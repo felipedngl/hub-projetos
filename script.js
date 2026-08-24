@@ -357,7 +357,7 @@ async function loadProjects() {
     try {
       const snapshot = await db.collection("projects").get();
       if (snapshot.empty) {
-        return typeof initialProjects !== "undefined" ? initialProjects : [];
+        return Array.isArray(initialProjects) ? initialProjects : [];
       }
       const projectsList = [];
       snapshot.forEach((doc) => {
@@ -366,7 +366,7 @@ async function loadProjects() {
       return projectsList;
     } catch (error) {
       console.error("Erro ao carregar do Firebase:", error);
-      return typeof initialProjects !== "undefined" ? initialProjects : [];
+      return Array.isArray(initialProjects) ? initialProjects : [];
     }
   }
 
@@ -1605,17 +1605,19 @@ $("#btnNewProject").addEventListener("click", () => {
   }
 
 async function init() {
-  const params = new URLSearchParams(window.location.search);
-  let designerUnlocked = sessionStorage.getItem(DESIGNER_KEY) === "true";
+    const params = new URLSearchParams(window.location.search);
+    let designerUnlocked = sessionStorage.getItem(DESIGNER_KEY) === "true";
 
-  // Carrega lista atualizada da nuvem
-  const list = await loadProjects();
-  projects = list;
+    // Carrega do Firebase e garante que é uma lista válida
+    const loadedData = await loadProjects();
+    projects = Array.isArray(loadedData) ? loadedData : [];
 
-  // ... resto da sua função init() continua igual
+    // ... restante do seu código da função init() continua aqui
+	
     // ============================================================
     // 1. ACESSO DO CLIENTE POR NOME (?cliente=Nome)
     // ============================================================
+	
     const clienteParam = params.get("cliente");
 
     if (clienteParam) {

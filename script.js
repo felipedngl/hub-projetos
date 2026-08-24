@@ -1552,7 +1552,7 @@
     document.querySelector(".container").appendChild(err);
   }
 
-  /* ---------------- Init ---------------- */
+/* ---------------- Init ---------------- */
   function proceedClientAccess() {
     setClientMode(true);
     openProject(projects[0].id);
@@ -1568,6 +1568,7 @@
       <p>Este HUB é protegido por senha. Digite a senha do designer para abrir.</p>
       <button type="button" class="btn-primary" id="btnHubUnlock">Abrir o HUB</button>`;
     document.querySelector(".container").appendChild(locked);
+    
     document.getElementById("btnHubUnlock").addEventListener("click", () => {
       openPasswordModal({
         title: "Acesso ao HUB",
@@ -1586,7 +1587,7 @@
     });
   }
 
-function init() {
+  function init() {
     const params = new URLSearchParams(window.location.search);
 
     // Checa se o designer já está autenticado nesta sessão da aba
@@ -1669,7 +1670,6 @@ function init() {
     // ============================================================
     // ACESSO AO PAINEL GERAL DO DESIGNER (Sem parâmetro de cliente)
     // ============================================================
-    // Se não for link de cliente e o designer NÃO estiver autenticado:
     if (!designerUnlocked) {
       openPasswordModal({
         title: "Acesso Restrito ao Hub",
@@ -1683,14 +1683,14 @@ function init() {
           } else {
             showToast("Senha Mestre incorreta.", true);
           }
-        }
+        },
       });
       return;
     }
 
     // Se já estiver com a senha mestre na sessão, carrega o painel
     renderApp();
-}
+  }
     // ============================================================
     // COMPATIBILIDADE COM ?projeto=ID
     // ============================================================

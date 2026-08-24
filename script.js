@@ -571,8 +571,10 @@ async function loadProjects() {
         </div>
       </article>`;
   }
+function renderDashboard() {
+    // Trava de segurança: se 'projects' não for uma lista (array), transforma em lista vazia
+    if (!Array.isArray(projects)) projects = [];
 
-  function renderDashboard() {
     const term = searchTerm.trim().toLowerCase();
     const filtered = projects.filter((p) => {
       const matchFilter =
@@ -581,11 +583,11 @@ async function loadProjects() {
         p.status === activeFilter;
       const matchSearch =
         !term ||
-        p.title.toLowerCase().includes(term) ||
-        p.client.toLowerCase().includes(term);
+        (p.title && p.title.toLowerCase().includes(term)) ||
+        (p.client && p.client.toLowerCase().includes(term));
       return matchFilter && matchSearch;
     });
-
+	
     const grid = $("#projectsGrid");
     const emptyState = $("#emptyState");
     if (filtered.length === 0) {
@@ -1608,20 +1610,22 @@ async function init() {
     const params = new URLSearchParams(window.location.search);
     let designerUnlocked = sessionStorage.getItem(DESIGNER_KEY) === "true";
 
-    // Carrega do Firebase e garante que é uma lista válida
-    const loadedData = await loadProjects();
-    projects = Array.isArray(loadedData) ? loadedData : [];
+    // Carrega a lista do Firebase
+    const loadedProjects = await loadProjects();
+    
+    // Garante que 'projects' seja estritamente um Array de projetos
+    if (Array.isArray(loadedProjects)) {
+      projects = loadedProjects;
+    } else {
+      projects = Array.isArray(initialProjects) ? initialProjects : [];
+    }
 
-    // ... restante do seu código da função init() continua aqui
-	
     // ============================================================
     // 1. ACESSO DO CLIENTE POR NOME (?cliente=Nome)
     // ============================================================
-	
     const clienteParam = params.get("cliente");
 
     if (clienteParam) {
-      const list = loadProjects() || initialProjects;
       const normalize = (value) =>
         String(value || "")
           .trim()
@@ -1630,7 +1634,7 @@ async function init() {
           .toLowerCase();
 
       const clienteBusca = normalize(clienteParam);
-      const clientData = list.find((p) => normalize(p.client) === clienteBusca);
+      const clientData = projects.find((p) => normalize(p.client) === clienteBusca);
 
       if (!clientData) {
         showClientError();
@@ -1685,8 +1689,7 @@ async function init() {
     const projetoParam = params.get("projeto");
 
     if (projetoParam) {
-      const list = loadProjects() || initialProjects;
-      const clientData = list.find((p) => p.id === projetoParam);
+      const clientData = projects.find((p) => p.id === projetoParam);
 
       if (!clientData) {
         showClientError();
@@ -1742,19 +1745,15 @@ async function init() {
     // 3. ACESSO NORMAL AO PAINEL DO DESIGNER
     // ============================================================
     if (designerUnlocked) {
-      projects = loadProjects() || initialProjects;
       applyAccessUI();
       renderDashboard();
       updateClientButton();
       return;
     }
 
-    // Sem ?cliente= ou ?projeto=:
-    // O HUB permanece bloqueado até a senha mestre.
-    projects = loadProjects() || initialProjects;
+    // Sem ?cliente= ou ?projeto=: HUB bloqueado
     showHubLocked();
   }
-
   // Inicializa o app ao carregar a página
   document.addEventListener("DOMContentLoaded", init);
 })();

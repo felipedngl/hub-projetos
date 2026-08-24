@@ -262,6 +262,27 @@
     </div>
   </div>
 
+<!-- SDKs do Firebase (App e Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCBzGa8dUJRTsOI15cClllCsRWnhiGTN_c",
+      authDomain: "hub-menche.firebaseapp.com",
+      projectId: "hub-menche",
+      storageBucket: "hub-menche.firebasestorage.app",
+      messagingSenderId: "541406471380",
+      appId: "1:541406471380:web:7a748c7f84d2ef930a8741"
+    };
+
+    // Inicializa o Firebase e o Banco Firestore
+    firebase.initializeApp(firebaseConfig);
+    window.db = firebase.firestore();
+  </script>
+
+  <!-- Seu script original -->
   <script src="script.js"></script>
 </body>
 </html>

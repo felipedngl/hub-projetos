@@ -1192,11 +1192,17 @@
     setTimeout(() => $("#fieldName").focus(), 60);
   }
 
-  function closeModal() {
-    modalOverlay.hidden = true;
-    modalOverlay.style.display = "none";
-    document.body.style.overflow = "";
-  }
+function closeModal() {
+  modalOverlay.hidden = true;
+  modalOverlay.style.display = "none";
+  document.body.style.overflow = "";
+}
+
+/* ---------------- Botão Novo Projeto ---------------- */
+$("#btnNewProject").addEventListener("click", () => {
+  if (!designerUnlocked || currentProjectId != null || clientMode) return;
+  openModal();
+});
 
   function handleCoverFile(file) {
     if (!file) return;
@@ -1347,8 +1353,8 @@
       return;
     }
     openPasswordModal({
-      title: "Acesso Restrito do Designer",
-      hint: "Digite a senha mestre para ver todos os projetos sem restrições. (padrão: menche-2024)",
+      title: "Acesso Restrito",
+      hint: "Digite a senha para ver todos os projetos sem restrições.",
       onSuccess: (value) => {
         if (value === MASTER_PASSWORD) {
           unlockDesigner();

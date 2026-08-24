@@ -353,32 +353,45 @@
     }
   }
 
-  function loadProjects() {
+async function loadProjects() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      let parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return null;
-      let changed = false;
-      parsed = parsed.map((p) => {
-        if (!p.shareKey) changed = true;
-        const m = p.memorial || {};
-        if (m.acabamentos && !m.fornecedores) changed = true;
-        Object.keys(m).forEach((k) => {
-          if (MEMORIAL_TABLES[k]) {
-            (m[k] || []).forEach((r) => {
-              MEMORIAL_TABLES[k].cols.forEach((c) => {
-                if (r[c.key] === undefined) changed = true;
-              });
-            });
-          }
-        });
-        return seedProject(p);
+      const snapshot = await db.collection("projects").get();
+      if (snapshot.empty) {
+        return typeof initialProjects !== "undefined" ? initialProjects : [];
+      }
+      const projectsList = [];
+      snapshot.forEach((doc) => {
+        projectsList.push({ id: doc.id, ...doc.data() });
       });
-      if (changed) saveProjects(parsed);
-      return parsed;
-    } catch (e) {
-      return null;
+      return projectsList;
+    } catch (error) {
+      console.error("Erro ao carregar do Firebase:", error);
+      return typeof initialProjects !== "undefined" ? initialProjects : [];
+    }
+  }
+
+  async function saveProjects(customProjects = null) {
+    try {
+      const listToSave = customProjects || projects;
+      for (const proj of listToSave) {
+        await db.collection("projects").doc(proj.id).set(proj, { merge: true });
+      }
+      if (typeof showToast === "function") showToast("Projetos salvos na nuvem!");
+      return true;
+    } catch (error) {
+      console.error("Erro ao salvar no Firebase:", error);
+      if (typeof showToast === "function") showToast("Erro ao salvar na nuvem.", true);
+      return false;
+    }
+  }
+
+  async function deleteProjectFromCloud(projectId) {
+    try {
+      await db.collection("projects").doc(projectId).delete();
+      if (typeof showToast === "function") showToast("Projeto removido da nuvem!");
+    } catch (error) {
+      console.error("Erro ao deletar do Firebase:", error);
+      if (typeof showToast === "function") showToast("Erro ao excluir o projeto.", true);
     }
   }
 
@@ -1591,10 +1604,15 @@ $("#btnNewProject").addEventListener("click", () => {
     });
   }
 
-  function init() {
-    const params = new URLSearchParams(window.location.search);
-    let designerUnlocked = sessionStorage.getItem(DESIGNER_KEY) === "true";
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  let designerUnlocked = sessionStorage.getItem(DESIGNER_KEY) === "true";
 
+  // Carrega lista atualizada da nuvem
+  const list = await loadProjects();
+  projects = list;
+
+  // ... resto da sua função init() continua igual
     // ============================================================
     // 1. ACESSO DO CLIENTE POR NOME (?cliente=Nome)
     // ============================================================

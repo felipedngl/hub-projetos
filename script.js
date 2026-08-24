@@ -1551,7 +1551,6 @@
       <p>Este link só funciona no navegador do proprietário do HUB. Peça ao designer para enviar o arquivo de compartilhamento (.html) deste projeto.</p>`;
     document.querySelector(".container").appendChild(err);
   }
-
 /* ---------------- Init ---------------- */
   function proceedClientAccess() {
     setClientMode(true);
@@ -1568,17 +1567,16 @@
       <p>Este HUB é protegido por senha. Digite a senha do designer para abrir.</p>
       <button type="button" class="btn-primary" id="btnHubUnlock">Abrir o HUB</button>`;
     document.querySelector(".container").appendChild(locked);
-    
+
     document.getElementById("btnHubUnlock").addEventListener("click", () => {
       openPasswordModal({
         title: "Acesso ao HUB",
         hint: "Digite a senha mestre do designer para abrir o HUB de Projetos.",
         onSuccess: (value) => {
           if (value === MASTER_PASSWORD) {
-            unlockDesigner();
+            sessionStorage.setItem(DESIGNER_KEY, "true");
             closePasswordModal();
-            showDashboard();
-            showToast("Acesso do designer liberado.");
+            location.reload();
           } else {
             showToast("Senha incorreta.", true);
           }
@@ -1589,18 +1587,15 @@
 
   function init() {
     const params = new URLSearchParams(window.location.search);
-
-    // Checa se o designer já está autenticado nesta sessão da aba
     let designerUnlocked = sessionStorage.getItem(DESIGNER_KEY) === "true";
 
     // ============================================================
-    // ACESSO DO CLIENTE POR NOME (?cliente=Nome)
+    // 1. ACESSO DO CLIENTE POR NOME (?cliente=Nome)
     // ============================================================
     const clienteParam = params.get("cliente");
 
     if (clienteParam) {
       const list = loadProjects() || initialProjects;
-
       const normalize = (value) =>
         String(value || "")
           .trim()
@@ -1609,25 +1604,19 @@
           .toLowerCase();
 
       const clienteBusca = normalize(clienteParam);
-
-      // Procura o projeto pelo campo CLIENTE
-      const clientData = list.find(
-        (p) => normalize(p.client) === clienteBusca
-      );
+      const clientData = list.find((p) => normalize(p.client) === clienteBusca);
 
       if (!clientData) {
         showClientError();
         return;
       }
 
-      // O cliente verá SOMENTE o próprio projeto
       projects = [clientData];
 
       const proceedClientReadOnly = () => {
         setClientMode(true);
         openProject(clientData.id);
 
-        // Esconde botões do painel administrativo e navegação
         const btnBack = $("#btnBack");
         const btnDelete = $("#btnDeleteProject");
         const btnShare = $("#btnShareProject");
@@ -1641,12 +1630,10 @@
         if (btnDesigner) btnDesigner.hidden = true;
       };
 
-      // Exige a senha do cliente se houver senha cadastrada
       if (clientData.clientPassword && !designerUnlocked) {
         openPasswordModal({
           title: "Acesso ao Projeto",
-          hint: `O projeto "${clientData.title}" está protegido. Digite a senha exclusiva do seu projeto:`,
-
+          hint: `O projeto "${clientData.title}" está protegido. Digite a senha enviada pelo designer:`,
           onSuccess: (value) => {
             if (value === clientData.clientPassword) {
               closePasswordModal();
@@ -1663,36 +1650,11 @@
       } else {
         proceedClientReadOnly();
       }
-
       return;
     }
 
     // ============================================================
-    // ACESSO AO PAINEL GERAL DO DESIGNER (Sem parâmetro de cliente)
-    // ============================================================
-    if (!designerUnlocked) {
-      openPasswordModal({
-        title: "Acesso Restrito ao Hub",
-        hint: "Digite a Senha Mestre para acessar o Painel do Designer:",
-        onSuccess: (value) => {
-          if (value === MASTER_PASSWORD) {
-            closePasswordModal();
-            // Salva na SESSION (apaga ao fechar a aba)
-            sessionStorage.setItem(DESIGNER_KEY, "true");
-            renderApp(); // Carrega os projetos no painel
-          } else {
-            showToast("Senha Mestre incorreta.", true);
-          }
-        },
-      });
-      return;
-    }
-
-    // Se já estiver com a senha mestre na sessão, carrega o painel
-    renderApp();
-  }
-    // ============================================================
-    // COMPATIBILIDADE COM ?projeto=ID
+    // 2. COMPATIBILIDADE COM ?projeto=ID
     // ============================================================
     const projetoParam = params.get("projeto");
 
@@ -1728,7 +1690,6 @@
         openPasswordModal({
           title: "Acesso do Cliente",
           hint: `O projeto "${clientData.title}" está protegido. Digite a senha enviada pelo designer.`,
-
           onSuccess: (value) => {
             if (
               value === clientData.clientPassword ||
@@ -1748,14 +1709,12 @@
       } else {
         proceedClientReadOnly();
       }
-
       return;
     }
 
     // ============================================================
-    // ACESSO NORMAL AO PAINEL DO DESIGNER
+    // 3. ACESSO NORMAL AO PAINEL DO DESIGNER
     // ============================================================
-
     if (designerUnlocked) {
       projects = loadProjects() || initialProjects;
       applyAccessUI();
@@ -1765,10 +1724,11 @@
     }
 
     // Sem ?cliente= ou ?projeto=:
-    // o HUB permanece bloqueado até a senha mestre.
+    // O HUB permanece bloqueado até a senha mestre.
     projects = loadProjects() || initialProjects;
     showHubLocked();
   }
 
-  init();
+  // Inicializa o app ao carregar a página
+  document.addEventListener("DOMContentLoaded", init);
 })();

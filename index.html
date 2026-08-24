@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HUB de Projetos — Menchë Interiores</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <button class="btn-back" id="btnBack" hidden aria-label="Voltar ao painel">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+        <span>Painel</span>
+      </button>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 21h18" />
+            <path d="M5 21V8l7-5 7 5v13" />
+            <path d="M9 21v-6h6v6" />
+          </svg>
+        </span>
+        <div>
+          <h1>HUB de Projetos</h1>
+          <p>Menchë Interiores</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-designer" id="btnDesignerAccess" data-locked-label="Acesso Restrito do Designer" data-unlocked-label="Bloquear acesso do Designer"></button>
+        <button class="btn-client" id="btnClientView" hidden data-view-label="Visualizar como Cliente" data-exit-label="Sair do modo Cliente"></button>
+        <button class="btn-primary" id="btnNewProject">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          + Novo Projeto
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- ============ PAINEL PRINCIPAL ============ -->
+    <section class="view" id="view-dashboard">
+      <div class="toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input type="text" id="searchInput" placeholder="Buscar por nome ou cliente..." autocomplete="off" />
+        </div>
+        <div class="filters" id="filterBar" role="group" aria-label="Filtros">
+          <button class="chip active" data-filter="todos">Todos</button>
+          <button class="chip" data-filter="residencial">Residencial</button>
+          <button class="chip" data-filter="comercial">Comercial</button>
+          <button class="chip" data-filter="em andamento">Em Andamento</button>
+          <button class="chip" data-filter="concluido">Concluído</button>
+        </div>
+      </div>
+
+      <div class="stats-bar" id="statsBar" aria-live="polite"></div>
+
+      <div class="grid" id="projectsGrid"></div>
+
+      <div class="empty-state" id="emptyState" hidden>
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <path d="M9 9h6M9 13h6" />
+        </svg>
+        <h3>Nenhum projeto encontrado</h3>
+        <p>Ajuste a busca ou crie um novo projeto.</p>
+      </div>
+    </section>
+
+    <!-- ============ VISÃO INTERNA DO PROJETO ============ -->
+    <section class="view" id="view-project" hidden>
+      <div class="project-layout">
+        <aside class="project-sidebar" id="projectSidebar">
+          <div class="sidebar-project">
+            <div class="sidebar-cover">
+              <img id="projCover" alt="Capa do projeto" />
+            </div>
+            <h2 id="projTitle"></h2>
+            <p id="projMeta" class="proj-meta"></p>
+            <div class="sidebar-actions">
+              <span class="status-tag" id="projStatusTag" hidden></span>
+              <label class="status-select">
+                <span>Status</span>
+                <select id="projStatus">
+                  <option value="em andamento">Em Andamento</option>
+                  <option value="concluido">Concluído</option>
+                </select>
+              </label>
+              <button class="btn-share" id="btnShareProject">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="18" cy="5" r="3" />
+                  <circle cx="6" cy="12" r="3" />
+                  <circle cx="18" cy="19" r="3" />
+                  <path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" />
+                </svg>
+                Compartilhar
+              </button>
+              <button class="btn-delete" id="btnDeleteProject">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18" />
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                </svg>
+                Excluir
+              </button>
+            </div>
+          </div>
+          <nav class="stage-nav" id="stageNav" aria-label="Etapas do projeto"></nav>
+        </aside>
+
+        <section class="project-content">
+          <div id="stageContainer"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ MODAL NOVO PROJETO ============ -->
+  <div class="modal-overlay" id="modalOverlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h2 id="modalTitle">Novo Projeto</h2>
+        <button class="btn-close" id="btnCloseModal" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <form id="projectForm" novalidate>
+        <div class="field">
+          <label for="fieldName">Nome do projeto</label>
+          <input type="text" id="fieldName" placeholder="Ex.: Apartamento Jardins" required />
+        </div>
+        <div class="field">
+          <label for="fieldClient">Cliente</label>
+          <input type="text" id="fieldClient" placeholder="Ex.: Mariana Alves" required />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="fieldArea">Área (m²)</label>
+            <input type="number" id="fieldArea" placeholder="Ex.: 120" min="1" step="0.1" required />
+          </div>
+          <div class="field">
+            <label for="fieldType">Tipo</label>
+            <select id="fieldType">
+              <option value="residencial">Residencial</option>
+              <option value="comercial">Comercial</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="fieldStatus">Status</label>
+          <select id="fieldStatus">
+            <option value="em andamento">Em Andamento</option>
+            <option value="concluido">Concluído</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fieldClientPassword">Senha do Cliente</label>
+          <input type="text" id="fieldClientPassword" placeholder="Opcional — protege o link de compartilhamento" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="fieldImage">Imagem de capa</label>
+          <div class="dropzone" id="dropzone">
+            <input type="file" id="fieldImage" accept="image/*" />
+            <div class="dropzone-inner" id="dropzoneInner">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 16V4" />
+                <path d="m6 10 6-6 6 6" />
+                <path d="M4 20h16" />
+              </svg>
+              <p>Arraste uma imagem aqui ou <span>clique para escolher</span></p>
+            </div>
+            <div class="dropzone-preview" id="dropzonePreview" hidden>
+              <img id="previewImage" alt="Pré-visualização da capa" />
+              <button type="button" class="btn-remove-image" id="btnRemoveImage">Remover</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" id="btnCancel">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar Projeto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ MODAL COMPARTILHAR ============ -->
+  <div class="modal-overlay" id="shareModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+      <div class="modal-header">
+        <h2 id="shareTitle">Compartilhar projeto</h2>
+        <button class="btn-close" id="btnCloseShare" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="share-body">
+        <p class="share-name" id="shareProjectName"></p>
+        <p class="share-hint" id="sharePasswordNote"></p>
+        <p class="share-hint">
+          O cliente verá apenas este projeto, em modo de leitura: poderá baixar os
+          arquivos (renders, plantas e PDFs) e consultar o memorial descritivo com
+          os links dos produtos. Contratos ficam ocultos.
+        </p>
+        <div class="share-link-row">
+          <input type="text" id="shareLinkInput" readonly />
+          <button class="btn-small" id="btnCopyLink">Copiar</button>
+        </div>
+        <div class="share-divider">ou</div>
+        <button class="btn-primary btn-block" id="btnDownloadClientFile">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12" />
+            <path d="m7 10 5 5 5-5" />
+            <path d="M5 21h14" />
+          </svg>
+          Baixar arquivo do cliente (.html)
+        </button>
+        <p class="share-tip">
+          Use o link para conferir a visualização do cliente neste navegador. Para
+          enviar a outro aparelho, baixe o arquivo .html e envie à cliente — ele
+          contém apenas o projeto dela.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL SENHA (cliente / designer) ============ -->
+  <div class="modal-overlay" id="passwordModal" hidden>
+    <div class="modal modal--narrow" role="dialog" aria-modal="true" aria-labelledby="passwordModalTitle">
+      <div class="modal-header">
+        <h2 id="passwordModalTitle">Acesso</h2>
+        <button class="btn-close" id="btnClosePassword" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="share-body">
+        <p class="share-hint" id="passwordModalHint"></p>
+        <div class="field">
+          <label for="passwordInput">Senha</label>
+          <input type="password" id="passwordInput" autocomplete="off" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" id="btnCancelPassword">Cancelar</button>
+          <button type="button" class="btn-primary" id="btnConfirmPassword">Entrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

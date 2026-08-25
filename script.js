@@ -648,6 +648,8 @@ $$("#stageNav .stage-link").forEach((btn) => {
   });
 });
 
+	}
+
   function openProject(id) {
     currentProjectId = id;
     currentStage = "briefing";

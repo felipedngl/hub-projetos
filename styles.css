@@ -1850,3 +1850,32 @@ body.client-mode .stage-nav button {
     transition-duration: 0.01ms !important;
   }
 }
+/* Campo de preço do memorial */
+.price-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 0 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.price-prefix {
+  flex: 0 0 auto;
+  color: #f0f0f0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.price-input input {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  width: 100%;
+  min-width: 0;
+  padding: 10px 0 !important;
+  margin: 0 !important;
+}

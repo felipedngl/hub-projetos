@@ -1469,16 +1469,16 @@ rows.push(row);
               if (col.key === "preco") {
                 return `
                   <td>
-                    <div class="price-input">
-                      <span class="price-prefix">R$</span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        data-row="${i}"
-                        data-col="preco"
-                        value="${escapeHTML(r[col.key] || "")}"
-                      />
-                    </div>
+<div class="price-input">
+  <span class="price-prefix">R$</span>
+  <input
+    type="number"
+    step="0.01"
+    data-row="${i}"
+    data-col="preco"
+    value="${escapeHTML(r[col.key] || "")}"
+  />
+</div>
                   </td>`;
               }
 

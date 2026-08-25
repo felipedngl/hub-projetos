@@ -1076,21 +1076,19 @@ function clientContractsHTML(project) {
       const canDownload = c.allowClientDownload === true;
 
       const action = canDownload
-        ? `
-          <a
-            class="file-open"
-            href="${c.value}"
-            download="${escapeHTML(c.fileName || c.name)}"
-            target="_blank"
-            rel="noopener"
-          >Baixar</a>`
-        : `
-          <a
-            class="file-open"
-            href="${c.value}"
-            target="_blank"
-            rel="noopener"
-          >Visualizar</a>`;
+  ? `
+    <a
+      class="file-open"
+      href="${c.value}"
+      download="${escapeHTML(c.fileName || c.name)}"
+    >Baixar</a>`
+  : `
+    <a
+      class="file-open"
+      href="${c.value}"
+      target="_blank"
+      rel="noopener"
+    >Visualizar</a>`;
 
       return `
         <div class="contract-item">

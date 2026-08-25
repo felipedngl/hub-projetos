@@ -107,7 +107,7 @@
   let uploadedImage = null;
   let clientMode = false;
   let localPreview = false;
-  let designerUnlocked = sessionStorage.getItem(DESIGNER_KEY) === "1";
+  let designerUnlocked = sessionStorage.getItem(DESIGNER_KEY) === "true";
 
   /* ---------------- Acesso / modos de exibição ---------------- */
   function readOnlyView() {
@@ -126,7 +126,7 @@
 
   function unlockDesigner() {
     designerUnlocked = true;
-    sessionStorage.setItem(DESIGNER_KEY, "1");
+    sessionStorage.setItem(DESIGNER_KEY, "true");
     applyAccessUI();
     updateClientButton();
     if (currentProjectId != null) {
@@ -341,17 +341,6 @@
   ];
 
   /* ---------------- Persistência ---------------- */
-  function saveProjects(data) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data || projects));
-      return true;
-    } catch (e) {
-      showToast(e && e.name === "QuotaExceededError"
-        ? "Armazenamento cheio: remova arquivos grandes para continuar salvando."
-        : "Não foi possível salvar os dados.", true);
-      return false;
-    }
-  }
 
 async function loadProjects() {
     try {
@@ -636,10 +625,13 @@ function renderDashboard() {
       statusTag.hidden = true;
       statusSel.hidden = false;
       statusSel.value = p.status;
-      statusSel.onchange = () => {
-        p.status = statusSel.value;
-        if (saveProjects()) showToast("Status atualizado.");
-      };
+ statusSel.onchange = async () => {
+  p.status = statusSel.value;
+
+  if (await saveProjects()) {
+    showToast("Status atualizado.");
+  }
+};
     } else {
       statusSel.hidden = true;
       statusTag.textContent = STATUS_LABELS[p.status] || p.status;
@@ -665,12 +657,15 @@ function renderDashboard() {
       }).join("");
 
     $$("#stageNav .stage-link").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        currentStage = btn.dataset.stage;
-        renderSidebar();
-        renderStage();
-      });
-    });
+btn.addEventListener("click", async () => {
+  const id = btn.closest(".file-item").dataset.fileId;
+
+  s.files = s.files.filter((f) => f.id !== id);
+
+  if (await saveProjects()) {
+    renderStage();
+  }
+});
   }
 
   function openProject(id) {
@@ -776,7 +771,7 @@ function renderDashboard() {
 
     // Permissão individual de download para o cliente
     $$("#stageFiles .file-download-toggle").forEach((checkbox) => {
-      checkbox.addEventListener("change", () => {
+checkbox.addEventListener("change", async () => {
         const id = checkbox.dataset.fileId;
         const file = s.files.find((f) => f.id === id);
 
@@ -784,7 +779,7 @@ function renderDashboard() {
 
         file.allowClientDownload = checkbox.checked;
 
-        if (saveProjects()) {
+        if (await saveProjects()) {
           showToast(
             checkbox.checked
               ? "Download liberado para o cliente."

@@ -1466,8 +1466,8 @@ if (col.key === "preco") {
 }
 
 return `<td><input type="text" data-row="${i}" data-col="${col.key}" value="${escapeHTML(r[col.key] || "")}" />`;
-        	})
-        	.join("");
+              })
+              .join("");
     }
 
     return `

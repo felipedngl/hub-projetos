@@ -1363,9 +1363,25 @@ function contractListHTML(contracts) {
       const rows = project.memorial[key];
 
       $("#btnAddRow-" + key).addEventListener("click", () => {
-        const row = {};
-        table.cols.forEach((col) => (row[col.key] = ""));
-        rows.push(row);
+const row = {};
+
+table.cols.forEach((col) => {
+  row[col.key] = "";
+});
+
+// Gera automaticamente o próximo número do item
+const numerosExistentes = rows
+  .map((r) => parseInt(String(r.item || "").replace(/\D/g, ""), 10))
+  .filter((n) => !isNaN(n));
+
+const proximoNumero =
+  numerosExistentes.length > 0
+    ? Math.max(...numerosExistentes) + 1
+    : 1;
+
+row.item = String(proximoNumero).padStart(3, "0");
+
+rows.push(row);
         saveProjects();
         renderMemorial(project);
       });

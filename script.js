@@ -818,11 +818,39 @@ container.innerHTML = header + `
     <label>Renders, plantas e documentos desta etapa</label>
     ${clientFilesHTML(s.files || [])}
   </div>`;
+
+  $$(".client-file-view", container).forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.fileId;
+      const file = (s.files || []).find((f) => f.id === id);
+
+      if (!file) {
+        showToast("Arquivo não encontrado.", true);
+        return;
+      }
+
+      openClientFile(file.dataUrl, file.name, false);
+    });
+  });
+
+  $$(".client-file-download", container).forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.fileId;
+      const file = (s.files || []).find((f) => f.id === id);
+
+      if (!file) {
+        showToast("Arquivo não encontrado.", true);
+        return;
+      }
+
+      openClientFile(file.dataUrl, file.name, true);
+    });
+  });
 }
 
 function clientFilesHTML(files) {
   if (!files || !files.length) {
-    return '<div class="file-empty">Nenhum arquivo nesta etapa.</div>';
+    return '<div class="file-empty">Nenhum arquivo disponível nesta etapa.</div>';
   }
 
   return files
@@ -835,8 +863,18 @@ function clientFilesHTML(files) {
       const canDownload = f.allowClientDownload === true;
 
       const action = canDownload
-        ? `<a class="file-open" href="${f.dataUrl}" download="${escapeHTML(f.name)}" target="_blank" rel="noopener">Baixar</a>`
-        : `<a class="file-open" href="${f.dataUrl}" target="_blank" rel="noopener">Visualizar</a>`;
+        ? `
+          <button
+            type="button"
+            class="file-open client-file-download"
+            data-file-id="${f.id}"
+          >Baixar</button>`
+        : `
+          <button
+            type="button"
+            class="file-open client-file-view"
+            data-file-id="${f.id}"
+          >Visualizar</button>`;
 
       return `
         <div class="file-item">
@@ -852,6 +890,45 @@ function clientFilesHTML(files) {
     })
     .join("");
 }
+
+function openClientFile(dataUrl, fileName, download = false) {
+  try {
+    const parts = dataUrl.split(",");
+    const mime =
+      parts[0].match(/data:(.*?);base64/)?.[1] ||
+      "application/octet-stream";
+
+    const binary = atob(parts[1]);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    const blob = new Blob([bytes], { type: mime });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+
+    if (download) {
+      link.download = fileName || "arquivo";
+    } else {
+      link.target = "_blank";
+      link.rel = "noopener";
+    }
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (error) {
+    console.error("Erro ao abrir arquivo:", error);
+    showToast("Não foi possível abrir este arquivo.", true);
+  }
+}
+
   function memorialClientHTML(project) {
     return (
       Object.keys(MEMORIAL_TABLES)

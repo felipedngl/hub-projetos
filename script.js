@@ -946,6 +946,15 @@ function openClientFile(dataUrl, fileName, download = false) {
         .map((key) => {
           const table = MEMORIAL_TABLES[key];
           const rows = project.memorial[key];
+			const qtyTotal = rows.reduce((total, r) => {
+  return total + (parseFloat(String(r.qty || "").replace(",", ".")) || 0);
+}, 0);
+
+const priceTotal = rows.reduce((total, r) => {
+  const qty = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
+  const price = parsePrice(r.preco);
+  return total + qty * price;
+}, 0);
           const head = `<tr><th>${table.cols.map((c) => escapeHTML(c.label)).join("</th><th>")}</th></tr>`;
           let body;
           if (!rows.length) {
@@ -973,10 +982,19 @@ function openClientFile(dataUrl, fileName, download = false) {
           return `
             <div class="memorial-section">
               <div class="memorial-head"><h3>${ICONS.table} ${table.title}</h3></div>
-              <div class="table-wrap">
-                <table class="memorial-table"><thead>${head}</thead><tbody>${body}</tbody></table>
-              </div>
-            </div>`;
+<div class="table-wrap">
+  <table class="memorial-table"><thead>${head}</thead><tbody>${body}</tbody></table>
+</div>
+
+${qtyTotal > 0 || priceTotal > 0
+  ? `<div class="memorial-summary">
+      <strong>${table.title}:</strong>
+      ${rows.length} item(ns)
+      ${qtyTotal > 0 ? " · Qtd. total " + formatArea(qtyTotal) : ""}
+      ${priceTotal > 0 ? " · " + formatCurrency(priceTotal) : ""}
+    </div>`
+  : ""}
+  </div>`;
         })
         .join("") +
       memorialGrandTotalHTML(project) +

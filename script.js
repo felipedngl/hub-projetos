@@ -1465,8 +1465,7 @@ if (col.key === "preco") {
     </td>`;
 }
 
-return `<td><input type="text" data-row="${i}" data-col="${col.key}" value="${escapeHTML(r[col.key] || "")}" />`;            .join("");
-          return `<tr>${cells}<td><button class="row-del" data-row="${i}" title="Remover linha">✕</button></td></tr>`;
+return `<td><input type="text" data-row="${i}" data-col="${col.key}" value="${escapeHTML(r[col.key] || "")}" />`;
         })
         .join("");
     }

@@ -644,11 +644,16 @@ function renderDashboard() {
 $$("#stageNav .stage-link").forEach((btn) => {
   btn.addEventListener("click", () => {
     currentStage = btn.dataset.stage;
+
+    $$("#stageNav .stage-link").forEach((item) => {
+      item.classList.toggle("active", item === btn);
+    });
+
     renderStage();
   });
 });
 
-	}
+}
 
   function openProject(id) {
     currentProjectId = id;
@@ -796,14 +801,23 @@ if (stage.special === "contracts") {
     return;
   }
 
-  const s = project.stages[stage.id];
+const s = project.stages[stage.id];
 
-  container.innerHTML = header + `
-    <div class="panel">
-      <h3>${ICONS.upload} Arquivos da etapa</h3>
-      <label>Renders, plantas e documentos desta etapa</label>
-      ${clientFilesHTML(s.files || [])}
-    </div>`;
+container.innerHTML = header + `
+  <div class="panel">
+    <h3>${ICONS[stage.id]} Anotações da etapa</h3>
+    <div class="stage-text-client">
+      ${s.text
+        ? escapeHTML(s.text).replace(/\n/g, "<br>")
+        : '<span class="file-empty">Nenhuma anotação registrada nesta etapa.</span>'}
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>${ICONS.upload} Arquivos da etapa</h3>
+    <label>Renders, plantas e documentos desta etapa</label>
+    ${clientFilesHTML(s.files || [])}
+  </div>`;
 }
 
 function clientFilesHTML(files) {

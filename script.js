@@ -784,10 +784,11 @@ function renderStageClient(project, stage) {
 
   // Contratos: o cliente pode visualizar os documentos,
   // mas não pode adicionar, editar ou excluir.
-  if (stage.special === "contracts") {
-    container.innerHTML = header + clientContractsHTML(project);
-    return;
-  }
+if (stage.special === "contracts") {
+  container.innerHTML = header + clientContractsHTML(project);
+  attachClientContractViewers(project);
+  return;
+}
 
   // Memorial: o cliente pode visualizar os itens e links.
   if (stage.special === "memorial") {
@@ -1075,7 +1076,7 @@ function clientContractsHTML(project) {
       // Download somente se você tiver liberado.
       const canDownload = c.allowClientDownload === true;
 
-      const action = canDownload
+const action = canDownload
   ? `
     <a
       class="file-open"
@@ -1083,12 +1084,11 @@ function clientContractsHTML(project) {
       download="${escapeHTML(c.fileName || c.name)}"
     >Baixar</a>`
   : `
-    <a
-      class="file-open"
-      href="${c.value}"
-      target="_blank"
-      rel="noopener"
-    >Visualizar</a>`;
+    <button
+      type="button"
+      class="file-open contract-view-file"
+      data-contract-id="${c.id}"
+    >Visualizar</button>`;
 
       return `
         <div class="contract-item">
@@ -1111,6 +1111,45 @@ function clientContractsHTML(project) {
         ${items}
       </div>
     </div>`;
+}
+
+function openContractFile(dataUrl) {
+  try {
+    const parts = dataUrl.split(",");
+    const mime = parts[0].match(/data:(.*?);base64/)?.[1] || "application/octet-stream";
+    const binary = atob(parts[1]);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    const blob = new Blob([bytes], { type: mime });
+    const url = URL.createObjectURL(blob);
+
+    window.open(url, "_blank", "noopener,noreferrer");
+
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (error) {
+    console.error("Erro ao visualizar arquivo:", error);
+    showToast("Não foi possível visualizar este arquivo.", true);
+  }
+}
+
+function attachClientContractViewers(project) {
+  $$(".contract-view-file").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.contractId;
+      const contract = (project.contracts || []).find((c) => c.id === id);
+
+      if (!contract || !contract.value) {
+        showToast("Arquivo não encontrado.", true);
+        return;
+      }
+
+      openContractFile(contract.value);
+    });
+  });
 }
 
 function contractListHTML(contracts) {

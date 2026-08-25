@@ -447,9 +447,14 @@ async function loadProjects() {
   }
 
   function attachDropzone(container, arr, rerender) {
-    const dz = $("[data-dropzone]", container);
-    if (!dz) return;
-    const input = $("[data-file-input]", dz);
+const dz = container?.matches?.("[data-dropzone]")
+  ? container
+  : $("[data-dropzone]", container);
+
+if (!dz) return;
+
+const input = $("[data-file-input]", dz);
+if (!input) return;
     input.addEventListener("change", async () => {
       if (input.files.length && (await importFiles(Array.from(input.files), arr))) rerender();
       input.value = "";
@@ -464,26 +469,6 @@ async function loadProjects() {
       dz.classList.remove("dragover");
       if (e.dataTransfer.files.length && (await importFiles(Array.from(e.dataTransfer.files), arr))) rerender();
     });
-  }
-
-  function fileListHTML(files) {
-    if (!files.length) return '<div class="file-empty">Nenhum arquivo nesta etapa ainda.</div>';
-    return files
-      .map((f) => {
-        const isImg = f.type && f.type.startsWith("image/");
-        const thumb = isImg ? `<img src="${f.dataUrl}" alt="${escapeHTML(f.name)}" />` : ICONS.fileDoc;
-        return `
-          <div class="file-item" data-file-id="${f.id}">
-            <div class="file-thumb">${thumb}</div>
-            <div class="file-meta">
-              <span class="file-name">${escapeHTML(f.name)}</span>
-              <span class="file-size">${f.type || "Arquivo"} · ${formatBytes(f.size)}</span>
-            </div>
-            <a class="file-open" href="${f.dataUrl}" target="_blank" rel="noopener">Abrir</a>
-            <button class="file-remove" title="Remover arquivo">✕</button>
-          </div>`;
-      })
-      .join("");
   }
 
   function fileListHTML(files) {
@@ -790,29 +775,38 @@ checkbox.addEventListener("change", async () => {
     });
   }
 
-  /* ---------------- Render: etapa (cliente, leitura) ---------------- */
-  function renderStageClient(project, stage) {
-    const container = $("#stageContainer");
-    const header = `
-      <div class="stage-header">
-        <h2>${stage.label}</h2>
-        <p class="stage-hint">${stage.hint}</p>
-      </div>`;
+/* ---------------- Render: etapa (cliente, leitura) ---------------- */
+function renderStageClient(project, stage) {
+  const container = $("#stageContainer");
 
+  const header = `
+    <div class="stage-header">
+      <h2>${stage.label}</h2>
+      <p class="stage-hint">${stage.hint}</p>
+    </div>`;
 
-    if (stage.special === "memorial") {
-      container.innerHTML = header + memorialClientHTML(project);
-      return;
-    }
-
-    const s = project.stages[stage.id];
-    container.innerHTML = header + `
-      <div class="panel">
-        <h3>${ICONS.upload} Arquivos da etapa</h3>
-        <label>Renders, plantas e documentos desta etapa</label>
-        ${clientFilesHTML(s.files)}
-      </div>`;
+  // Contratos: o cliente pode visualizar os documentos,
+  // mas não pode adicionar, editar ou excluir.
+  if (stage.special === "contracts") {
+    container.innerHTML = header + clientContractsHTML(project);
+    return;
   }
+
+  // Memorial: o cliente pode visualizar os itens e links.
+  if (stage.special === "memorial") {
+    container.innerHTML = header + memorialClientHTML(project);
+    return;
+  }
+
+  const s = project.stages[stage.id];
+
+  container.innerHTML = header + `
+    <div class="panel">
+      <h3>${ICONS.upload} Arquivos da etapa</h3>
+      <label>Renders, plantas e documentos desta etapa</label>
+      ${clientFilesHTML(s.files || [])}
+    </div>`;
+}
 
   function memorialClientHTML(project) {
     return (
@@ -942,7 +936,7 @@ checkbox.addEventListener("change", async () => {
           name,
           kind: "link",
           value: normalizeUrl(link),
-          allowClientDownload,
+          allowClientDownload, false,
         };
       } else {
         const file = fileInput.files[0];
@@ -958,7 +952,7 @@ checkbox.addEventListener("change", async () => {
           value: dataUrl,
           fileName: file.name,
           fileType: file.type,
-          allowClientDownload,
+          allowClientDownload,false,
         };
       }
 
@@ -990,37 +984,53 @@ checkbox.addEventListener("change", async () => {
         }
       });
     });
+	$$("#contractList .contract-download-checkbox").forEach((checkbox) => {
+ 	checkbox.addEventListener("change", () => {
+     const id = checkbox.dataset.contractId;
+     const contract = project.contracts.find((c) => c.id === id);
+
+     if (!contract) return;
+
+     contract.allowClientDownload = checkbox.checked;
+
+     if (saveProjects()) {
+       showToast(
+         checkbox.checked
+          ? "Download liberado para o cliente."
+          : "Download bloqueado para o cliente."
+      );
+    }
+  });
+});
+}
+
+/* ---------------- Contratos (cliente, leitura) ---------------- */
+function clientContractsHTML(project) {
+  const contracts = project.contracts || [];
+
+  if (!contracts.length) {
+    return `
+      <div class="panel">
+        <h3>${ICONS.contratos} Documentos e links</h3>
+        <div class="file-empty">Nenhum documento disponível.</div>
+      </div>`;
   }
 
-  function contractListHTML(contracts) {
-    return contracts
-      .map((c) => {
-        const kindLabel = c.kind === "link" ? "Link" : "Arquivo";
-        const kindClass = c.kind === "link" ? "kind-link" : "kind-file";
-        const sub =
-          c.kind === "link"
-            ? c.value
-            : `${c.fileName} · ${c.fileType || "arquivo"}`;
+  const items = contracts
+    .map((c) => {
+      const kindLabel = c.kind === "link" ? "Link" : "Arquivo";
+      const kindClass = c.kind === "link" ? "kind-link" : "kind-file";
 
-        const canDownload = c.allowClientDownload === true;
-
+      // Links externos não são arquivos armazenados no Hub.
+      // Portanto, o cliente pode abrir o link normalmente.
+      if (c.kind === "link") {
         return `
-          <div class="contract-item" data-id="${c.id}">
+          <div class="contract-item">
             <span class="contract-kind ${kindClass}">${kindLabel}</span>
 
             <div class="contract-meta">
               <strong>${escapeHTML(c.name)}</strong>
-              <span>${escapeHTML(sub)}</span>
-
-              <label class="file-client-download">
-                <input
-                  type="checkbox"
-                  class="contract-download-toggle"
-                  data-contract-id="${c.id}"
-                  ${canDownload ? "checked" : ""}
-                />
-                Permitir download pelo cliente
-              </label>
+              <span>${escapeHTML(c.value)}</span>
             </div>
 
             <a
@@ -1029,15 +1039,103 @@ checkbox.addEventListener("change", async () => {
               target="_blank"
               rel="noopener"
             >Abrir</a>
-
-            <button
-              class="file-remove"
-              title="Remover documento"
-            >✕</button>
           </div>`;
-      })
-      .join("");
-  }
+      }
+
+      // Arquivos: visualizar sempre.
+      // Download somente se você tiver liberado.
+      const canDownload = c.allowClientDownload === true;
+
+      const action = canDownload
+        ? `
+          <a
+            class="file-open"
+            href="${c.value}"
+            download="${escapeHTML(c.fileName || c.name)}"
+            target="_blank"
+            rel="noopener"
+          >Baixar</a>`
+        : `
+          <a
+            class="file-open"
+            href="${c.value}"
+            target="_blank"
+            rel="noopener"
+          >Visualizar</a>`;
+
+      return `
+        <div class="contract-item">
+          <span class="contract-kind ${kindClass}">${kindLabel}</span>
+
+          <div class="contract-meta">
+            <strong>${escapeHTML(c.name)}</strong>
+            <span>${escapeHTML(c.fileName || "Documento")}</span>
+          </div>
+
+          ${action}
+        </div>`;
+    })
+    .join("");
+
+  return `
+    <div class="panel">
+      <h3>${ICONS.contratos} Documentos e links</h3>
+      <div class="contract-list">
+        ${items}
+      </div>
+    </div>`;
+}
+
+function contractListHTML(contracts) {
+  return contracts
+    .map((c) => {
+      const kindLabel = c.kind === "link" ? "Link" : "Arquivo";
+      const kindClass = c.kind === "link" ? "kind-link" : "kind-file";
+      const sub =
+        c.kind === "link"
+          ? c.value
+          : `${c.fileName} · ${c.fileType || "arquivo"}`;
+
+      const downloadControl =
+        c.kind === "file"
+          ? `
+            <label class="contract-download-toggle">
+              <input
+                type="checkbox"
+                class="contract-download-checkbox"
+                data-contract-id="${c.id}"
+                ${c.allowClientDownload === true ? "checked" : ""}
+              />
+              <span>Cliente pode baixar</span>
+            </label>`
+          : "";
+
+      return `
+        <div class="contract-item" data-id="${c.id}">
+          <span class="contract-kind ${kindClass}">${kindLabel}</span>
+
+          <div class="contract-meta">
+            <strong>${escapeHTML(c.name)}</strong>
+            <span>${escapeHTML(sub)}</span>
+          </div>
+
+          ${downloadControl}
+
+          <a
+            class="file-open"
+            href="${escapeHTML(c.value)}"
+            target="_blank"
+            rel="noopener"
+          >Abrir</a>
+
+          <button
+            class="file-remove"
+            title="Remover documento"
+          >✕</button>
+        </div>`;
+    })
+    .join("");
+}
 
   /* ---------------- Memorial Descritivo (proprietário) ---------------- */
   function renderMemorial(project) {
@@ -1603,7 +1701,6 @@ $("#btnNewProject").addEventListener("click", () => {
 
 async function init() {
     const params = new URLSearchParams(window.location.search);
-    let designerUnlocked = sessionStorage.getItem(DESIGNER_KEY) === "true";
 
     // Carrega a lista do Firebase
     const loadedProjects = await loadProjects();

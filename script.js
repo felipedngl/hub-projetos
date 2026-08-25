@@ -805,6 +805,38 @@ function renderStageClient(project, stage) {
     </div>`;
 }
 
+function clientFilesHTML(files) {
+  if (!files || !files.length) {
+    return '<div class="file-empty">Nenhum arquivo nesta etapa.</div>';
+  }
+
+  return files
+    .map((f) => {
+      const isImg = f.type && f.type.startsWith("image/");
+      const thumb = isImg
+        ? `<img src="${f.dataUrl}" alt="${escapeHTML(f.name)}" />`
+        : ICONS.fileDoc;
+
+      const canDownload = f.allowClientDownload === true;
+
+      const action = canDownload
+        ? `<a class="file-open" href="${f.dataUrl}" download="${escapeHTML(f.name)}" target="_blank" rel="noopener">Baixar</a>`
+        : `<a class="file-open" href="${f.dataUrl}" target="_blank" rel="noopener">Visualizar</a>`;
+
+      return `
+        <div class="file-item">
+          <div class="file-thumb">${thumb}</div>
+
+          <div class="file-meta">
+            <span class="file-name">${escapeHTML(f.name)}</span>
+            <span class="file-size">${f.type || "Arquivo"} · ${formatBytes(f.size)}</span>
+          </div>
+
+          ${action}
+        </div>`;
+    })
+    .join("");
+}
   function memorialClientHTML(project) {
     return (
       Object.keys(MEMORIAL_TABLES)

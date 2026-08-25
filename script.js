@@ -1420,19 +1420,25 @@ rows.push(row);
   function memorialSectionHTML(project, key) {
     const table = MEMORIAL_TABLES[key];
     const rows = project.memorial[key];
+
     const qtyTotal = rows
-      .map((r) => parseFloat(r.qty))
+      .map((r) => parseFloat(String(r.qty || "").replace(",", ".")))
       .filter((n) => !isNaN(n))
       .reduce((a, b) => a + b, 0);
-const priceTotal = rows.reduce((total, r) => {
-  const qty = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
-  const price = parsePrice(r.preco);
-  return total + qty * price;
-}, 0);
 
-    const head = `<tr><th>${table.cols.map((c) => escapeHTML(c.label)).join("</th><th>")}</th><th></th></tr>`;
+    const priceTotal = rows.reduce((total, r) => {
+      const qty =
+        parseFloat(String(r.qty || "").replace(",", ".")) || 0;
+      const price = parsePrice(r.preco);
+      return total + qty * price;
+    }, 0);
+
+    const head = `<tr><th>${table.cols
+      .map((c) => escapeHTML(c.label))
+      .join("</th><th>")}</th><th></th></tr>`;
 
     let body;
+
     if (!rows.length) {
       body = `<tr class="row-empty"><td colspan="${table.cols.length + 1}">Nenhum item cadastrado — clique em "+ Adicionar".</td></tr>`;
     } else {
@@ -1444,30 +1450,45 @@ const priceTotal = rows.reduce((total, r) => {
                 return `
                   <td class="cell-link">
                     <div class="link-cell">
-                      <input type="text" data-row="${i}" data-col="link" value="${escapeHTML(r[col.key] || "")}" placeholder="https://produto.com.br" />
-                      <a class="link-open" data-row="${i}" title="Abrir link do produto">${ICONS.openLink}</a>
+                      <input
+                        type="text"
+                        data-row="${i}"
+                        data-col="link"
+                        value="${escapeHTML(r[col.key] || "")}"
+                        placeholder="https://produto.com.br"
+                      />
+                      <a
+                        class="link-open"
+                        data-row="${i}"
+                        title="Abrir link do produto"
+                      >${ICONS.openLink}</a>
                     </div>
                   </td>`;
               }
-if (col.key === "preco") {
-  return `
-    <td>
-      <div class="price-input">
-        <span class="price-prefix">R$</span>
-        <input
-          type="number"
-          step="0.01"
-          data-row="${i}"
-          data-col="${col.key}"
-          value="${escapeHTML(r[col.key] || "")}"
-        />
-      </div>
-    </td>`;
-}
 
-return `<td><input type="text" data-row="${i}" data-col="${col.key}" value="${escapeHTML(r[col.key] || "")}" />`;
-              })
-              .join("");
+              if (col.key === "preco") {
+                return `
+                  <td>
+                    <div class="price-input">
+                      <span class="price-prefix">R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        data-row="${i}"
+                        data-col="preco"
+                        value="${escapeHTML(r[col.key] || "")}"
+                      />
+                    </div>
+                  </td>`;
+              }
+
+              return `<td><input type="text" data-row="${i}" data-col="${col.key}" value="${escapeHTML(r[col.key] || "")}" /></td>`;
+            })
+            .join("");
+
+          return `<tr>${cells}<td><button class="row-del" data-row="${i}" title="Remover linha">✕</button></td></tr>`;
+        })
+        .join("");
     }
 
     return `
@@ -1476,15 +1497,32 @@ return `<td><input type="text" data-row="${i}" data-col="${col.key}" value="${es
           <h3>${ICONS.table} ${table.title}</h3>
           <button type="button" class="btn-small" id="btnAddRow-${key}">+ Adicionar</button>
         </div>
+
         <div class="table-wrap">
           <table class="memorial-table" id="memTable-${key}">
             <thead>${head}</thead>
             <tbody>${body}</tbody>
           </table>
         </div>
-        ${qtyTotal > 0 || priceTotal > 0
-          ? `<div class="memorial-summary"><strong>${table.title}:</strong> ${rows.length} item(ns)${qtyTotal > 0 ? " · Qtd. total " + formatArea(qtyTotal) : ""}${priceTotal > 0 ? " · " + formatCurrency(priceTotal) : ""}</div>`
-          : ""}
+
+        ${
+          qtyTotal > 0 || priceTotal > 0
+            ? `<div class="memorial-summary">
+                <strong>${table.title}:</strong>
+                ${rows.length} item(ns)
+                ${
+                  qtyTotal > 0
+                    ? " · Qtd. total " + formatArea(qtyTotal)
+                    : ""
+                }
+                ${
+                  priceTotal > 0
+                    ? " · " + formatCurrency(priceTotal)
+                    : ""
+                }
+              </div>`
+            : ""
+        }
       </div>`;
   }
 

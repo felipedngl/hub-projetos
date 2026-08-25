@@ -1400,8 +1400,7 @@ function contractListHTML(contracts) {
                     </div>
                   </td>`;
               }
-              return `<td><input type="text" data-row="${i}" data-col="${col.key}" value="${escapeHTML(r[col.key] || "")}" /></td>`;
-            })
+return `<td><input type="${col.key === "preco" ? "number" : "text"}" step="${col.key === "preco" ? "0.01" : ""}" data-row="${i}" data-col="${col.key}" value="${escapeHTML(r[col.key] || "")}" /></td>`;            })
             .join("");
           return `<tr>${cells}<td><button class="row-del" data-row="${i}" title="Remover linha">✕</button></td></tr>`;
         })

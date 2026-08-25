@@ -948,6 +948,11 @@ function openClientFile(dataUrl, fileName, download = false) {
                       ? `<td><a class="memorial-link" href="${escapeHTML(normalizeUrl(r[col.key]))}" target="_blank" rel="noopener">${escapeHTML(r[col.key])}</a></td>`
                       : "<td>—</td>";
                   }
+                  if (col.key === "preco") {
+                    const valor = parsePrice(r[col.key]);
+                    return `<td>${valor > 0 ? formatCurrency(valor) : ""}</td>`;
+                  }
+
                   return `<td>${escapeHTML(r[col.key] || "")}</td>`;
                 });
                 return `<tr>${cells.join("")}</tr>`;

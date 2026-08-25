@@ -1593,42 +1593,108 @@ body.client-mode .stage-nav button {
 }
 
 /* ---------- Responsive ---------- */
+/* ---------- Responsive ---------- */
+
 @media (max-width: 900px) {
   .project-layout {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .project-sidebar {
     position: static;
     max-height: none;
+    gap: 12px;
+  }
+
+  .sidebar-project {
+    padding: 14px;
+  }
+
+  .sidebar-cover {
+    aspect-ratio: 16 / 7;
+    margin-bottom: 12px;
+  }
+
+  .sidebar-project h2 {
+    font-size: 1.1rem;
+  }
+
+  .sidebar-actions {
+    display: none;
   }
 
   .stage-nav {
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 2px 8px;
+    scrollbar-width: thin;
   }
 
   .stage-nav-title {
-    width: 100%;
+    display: none;
   }
 
   .stage-nav button {
     width: auto;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
+    min-width: max-content;
+    padding: 10px 13px;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .stage-nav .nav-dot {
+    display: none;
+  }
+
+  .project-content {
+    width: 100%;
+    min-width: 0;
   }
 }
 
 @media (max-width: 640px) {
   .header-inner {
-    padding: 14px 16px;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .brand {
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
   }
 
   .brand h1 {
-    font-size: 1.02rem;
+    font-size: 0.96rem;
+    white-space: nowrap;
   }
 
   .brand p {
     display: none;
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  .btn-client,
+  .btn-designer {
+    padding: 9px 10px;
+    font-size: 0.78rem;
+  }
+
+  .btn-back {
+    padding: 8px 10px;
   }
 
   .btn-back span {
@@ -1636,7 +1702,119 @@ body.client-mode .stage-nav button {
   }
 
   .container {
-    padding: 20px 14px 60px;
+    padding: 14px 12px 50px;
+  }
+
+  .sidebar-project {
+    border-radius: 14px;
+    padding: 12px;
+  }
+
+  .sidebar-cover {
+    aspect-ratio: 16 / 8;
+    border-radius: 10px;
+  }
+
+  .sidebar-project h2 {
+    font-size: 1rem;
+  }
+
+  .proj-meta {
+    font-size: 0.78rem;
+    margin: 4px 0 0;
+  }
+
+  .stage-nav {
+    margin: 0 -2px;
+    padding: 2px 2px 8px;
+  }
+
+  .stage-nav button {
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+  }
+
+  .stage-nav button svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .stage-header {
+    margin-bottom: 14px;
+  }
+
+  .stage-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .stage-header .stage-hint {
+    font-size: 0.82rem;
+  }
+
+  .panel {
+    padding: 14px;
+    border-radius: 13px;
+    margin-bottom: 12px;
+  }
+
+  .panel h3 {
+    font-size: 0.92rem;
+  }
+
+  .file-item {
+    gap: 9px;
+    padding: 9px;
+  }
+
+  .file-thumb {
+    width: 40px;
+    height: 40px;
+  }
+
+  .file-open {
+    padding: 8px 10px;
+    font-size: 0.76rem;
+  }
+
+  .contract-item {
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .contract-kind {
+    display: none;
+  }
+
+  .contract-meta strong {
+    font-size: 0.84rem;
+  }
+
+  .contract-meta span {
+    font-size: 0.72rem;
+  }
+
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal {
+    max-height: calc(100vh - 24px);
+    border-radius: 16px;
+  }
+
+  .modal-header {
+    padding: 18px;
+  }
+
+  .modal form {
+    padding: 18px;
+  }
+
+  .field-row,
+  .contract-form .field-row {
+    grid-template-columns: 1fr;
+    gap: 0;
   }
 
   .toolbar {
@@ -1651,18 +1829,16 @@ body.client-mode .stage-nav button {
     flex-wrap: nowrap;
   }
 
-  .field-row {
-    grid-template-columns: 1fr;
-    gap: 0;
+  .share-link-row {
+    flex-direction: column;
   }
 
-  .modal form {
-    padding: 18px;
+  .share-link-row .btn-small {
+    width: 100%;
   }
 
-  .contract-form .field-row {
-    grid-template-columns: 1fr;
-    gap: 0;
+  table.memorial-table {
+    min-width: 650px;
   }
 }
 

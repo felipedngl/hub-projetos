@@ -641,17 +641,12 @@ function renderDashboard() {
           </button>`;
       }).join("");
 
-    $$("#stageNav .stage-link").forEach((btn) => {
-btn.addEventListener("click", async () => {
-  const id = btn.closest(".file-item").dataset.fileId;
-
-  s.files = s.files.filter((f) => f.id !== id);
-
-  if (await saveProjects()) {
+$$("#stageNav .stage-link").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    currentStage = btn.dataset.stage;
     renderStage();
-  }
+  });
 });
-  }
 
   function openProject(id) {
     currentProjectId = id;

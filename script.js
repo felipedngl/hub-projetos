@@ -359,20 +359,31 @@ async function loadProjects() {
     }
   }
 
-  async function saveProjects(customProjects = null) {
+let saveQueue = Promise.resolve();
+
+async function saveProjects(customProjects = null) {
+  saveQueue = saveQueue.then(async () => {
     try {
       const listToSave = customProjects || projects;
+
       for (const proj of listToSave) {
         await db.collection("projects").doc(proj.id).set(proj, { merge: true });
       }
-      if (typeof showToast === "function") showToast("Projetos salvos na nuvem!");
+
       return true;
     } catch (error) {
       console.error("Erro ao salvar no Firebase:", error);
-      if (typeof showToast === "function") showToast("Erro ao salvar na nuvem.", true);
+
+      if (typeof showToast === "function") {
+        showToast("Erro ao salvar na nuvem.", true);
+      }
+
       return false;
     }
-  }
+  });
+
+  return saveQueue;
+}
 
   async function deleteProjectFromCloud(projectId) {
     try {
@@ -1379,7 +1390,11 @@ function contractListHTML(contracts) {
       .map((r) => parseFloat(r.qty))
       .filter((n) => !isNaN(n))
       .reduce((a, b) => a + b, 0);
-    const priceTotal = rows.map((r) => parsePrice(r.preco)).reduce((a, b) => a + b, 0);
+const priceTotal = rows.reduce((total, r) => {
+  const qty = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
+  const price = parsePrice(r.preco);
+  return total + qty * price;
+}, 0);
 
     const head = `<tr><th>${table.cols.map((c) => escapeHTML(c.label)).join("</th><th>")}</th><th></th></tr>`;
 
@@ -1426,10 +1441,16 @@ return `<td><input type="${col.key === "preco" ? "number" : "text"}" step="${col
   }
 
   function memorialGrandTotalHTML(project) {
-    const grandTotal = Object.keys(MEMORIAL_TABLES).reduce(
-      (sum, key) => sum + (project.memorial[key] || []).reduce((s, r) => s + parsePrice(r.preco), 0),
-      0
-    );
+const grandTotal = Object.keys(MEMORIAL_TABLES).reduce(
+  (sum, key) =>
+    sum +
+    (project.memorial[key] || []).reduce((s, r) => {
+      const qty = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
+      const price = parsePrice(r.preco);
+      return s + qty * price;
+    }, 0),
+  0
+);
     const itemCount = Object.keys(MEMORIAL_TABLES).reduce(
       (sum, key) => sum + (project.memorial[key] || []).length,
       0

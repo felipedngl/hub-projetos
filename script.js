@@ -931,7 +931,7 @@ function renderStageClient(project, stage) {
           name,
           kind: "link",
           value: normalizeUrl(link),
-          allowClientDownload, false,
+          allowClientDownload,
         };
       } else {
         const file = fileInput.files[0];
@@ -947,7 +947,7 @@ function renderStageClient(project, stage) {
           value: dataUrl,
           fileName: file.name,
           fileType: file.type,
-          allowClientDownload,false,
+          allowClientDownload,
         };
       }
 

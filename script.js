@@ -759,7 +759,23 @@ $$("#stageNav .stage-link").forEach((btn) => {
     if (stage.special === "memorial") return renderMemorial(project);
 
     const s = project.stages[stage.id];
-    const container = $("#stageContainer");
+	const container = $("#stageContainer");
+
+// Marca como lidas as mensagens do cliente ao abrir a etapa
+let messagesMarkedAsRead = false;
+
+if (Array.isArray(s.clientMessages)) {
+  s.clientMessages.forEach((message) => {
+    if (message.author === "client" && message.readByDesigner !== true) {
+      message.readByDesigner = true;
+      messagesMarkedAsRead = true;
+    }
+  });
+}
+
+if (messagesMarkedAsRead) {
+  saveProjects();
+}
 
     container.innerHTML = `
       <div class="stage-header">

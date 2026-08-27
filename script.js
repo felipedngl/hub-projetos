@@ -575,17 +575,24 @@ return `
           <span title="Metragem">${ICONS.area} ${formatArea(p.area)} m²</span>
         </div>
 
-        <div class="card-footer">
+<div class="card-footer">
   ${
     unreadMessages > 0
-      ? `<span class="card-message-notification">
-          <span class="notification-dot"></span>
-          ${unreadMessages === 1 ? "Nova mensagem" : `${unreadMessages} novas mensagens`}
-        </span>`
-      : `<span class="status-tag ${statusClass}">${statusLabel}</span>`
+      ? `
+        <div class="card-message-row">
+          <span class="card-message-notification">
+            <span class="notification-dot"></span>
+            ${unreadMessages === 1 ? "Nova mensagem" : `${unreadMessages} novas mensagens`}
+          </span>
+        </div>
+      `
+      : ""
   }
 
-  <span class="btn-detail">Ver Detalhes</span>
+  <div class="card-action-row">
+    <span class="status-tag ${statusClass}">${statusLabel}</span>
+    <span class="btn-detail">Ver Detalhes</span>
+  </div>
 </div>
       </div>
     </article>`;

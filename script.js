@@ -748,6 +748,30 @@ $$("#stageNav .stage-link").forEach((btn) => {
         <label>Upload de PDFs, imagens de renders, plantas e documentos</label>
         ${makeDropzoneHTML("image/*,application/pdf,.dwg,.dxf")}
         <div class="file-list" id="stageFiles">${fileListHTML(s.files)}</div>
+      </div>
+
+      <div class="panel client-conversation-panel">
+        <h3>💬 Conversa com o cliente</h3>
+
+        <div id="stageConversation">
+          ${stageConversationHTML(s.clientMessages || [])}
+        </div>
+
+        <div class="conversation-form">
+          <textarea
+            id="designerMessageInput"
+            class="stage-textarea"
+            placeholder="Escreva uma resposta para o cliente..."
+          ></textarea>
+
+          <button
+            type="button"
+            class="btn-primary"
+            id="btnSendDesignerMessage"
+          >
+            Enviar resposta
+          </button>
+        </div>
       </div>`;
 
     const textarea = $("#stageText");
@@ -765,6 +789,42 @@ $$("#stageNav .stage-link").forEach((btn) => {
         s.files = s.files.filter((f) => f.id !== id);
         if (saveProjects()) renderStage();
       });
+    });
+	    const designerInput = $("#designerMessageInput");
+    const designerButton = $("#btnSendDesignerMessage");
+
+    designerButton.addEventListener("click", async () => {
+      const text = designerInput.value.trim();
+
+      if (!text) {
+        showToast("Escreva uma resposta antes de enviar.", true);
+        return;
+      }
+
+      if (!Array.isArray(s.clientMessages)) {
+        s.clientMessages = [];
+      }
+
+      s.clientMessages.push({
+        id: uid(),
+        author: "designer",
+        text,
+        createdAt: Date.now(),
+      });
+
+      designerButton.disabled = true;
+      designerButton.textContent = "Enviando...";
+
+      const saved = await saveProjects();
+
+      if (saved) {
+        renderStage();
+        showToast("Resposta enviada.");
+      } else {
+        s.clientMessages.pop();
+        designerButton.disabled = false;
+        designerButton.textContent = "Enviar resposta";
+      }
     });
 
     // Permissão individual de download para o cliente

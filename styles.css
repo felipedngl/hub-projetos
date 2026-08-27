@@ -1952,17 +1952,13 @@ table.memorial-table td:focus-within {
 
 .card-message-dot {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 12px;
-  height: 12px;
+  top: -7px;
+  right: -7px;
+  width: 18px;
+  height: 18px;
   background: #e53935;
-  border: 2px solid var(--bg-dark);
+  border: 3px solid var(--bg-dark);
   border-radius: 50%;
-  z-index: 10;
-  box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.18);
-}
-
-.price-input:focus-within input {
-  border-left-color: var(--accent) !important;
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }

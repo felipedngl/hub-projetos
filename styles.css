@@ -1946,6 +1946,22 @@ table.memorial-table td:focus-within {
 .price-input:focus-within .price-prefix {
   color: var(--accent);
 }
+.card {
+  position: relative;
+}
+
+.card-message-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 12px;
+  height: 12px;
+  background: #e53935;
+  border: 2px solid var(--bg-dark);
+  border-radius: 50%;
+  z-index: 10;
+  box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.18);
+}
 
 .price-input:focus-within input {
   border-left-color: var(--accent) !important;

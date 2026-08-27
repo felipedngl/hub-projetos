@@ -160,6 +160,22 @@
     return "id" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
 
+function countUnreadClientMessages(project) {
+  let total = 0;
+
+  Object.values(project.stages || {}).forEach((stage) => {
+    if (!Array.isArray(stage.clientMessages)) return;
+
+    total += stage.clientMessages.filter(
+      (message) =>
+        message.author === "client" &&
+        message.readByDesigner !== true
+    ).length;
+  });
+
+  return total;
+}
+
   function genKey() {
     return Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 8);
   }
@@ -538,10 +554,7 @@ function cardHTML(p, index) {
   const statusLabel = STATUS_LABELS[p.status] || p.status;
   const statusClass = STATUS_CLASS[p.status] || "";
 
-  const hasNewMessages = Object.values(p.stages || {}).some((stage) =>
-    Array.isArray(stage.clientMessages) &&
-    stage.clientMessages.some((message) => message.author === "client")
-  );
+  const unreadMessages = countUnreadClientMessages(p);
 
 return `
   <article class="card" data-id="${p.id}" tabindex="0" style="animation-delay: ${Math.min(index * 60, 360)}ms">
@@ -926,11 +939,12 @@ function renderStageClient(project, stage) {
     }
 
     s.clientMessages.push({
-      id: uid(),
-      author: "client",
-      text,
-      createdAt: Date.now(),
-    });
+  id: uid(),
+  author: "client",
+  text,
+  createdAt: Date.now(),
+  readByDesigner: false,
+});
 
     sendButton.disabled = true;
     sendButton.textContent = "Enviando...";

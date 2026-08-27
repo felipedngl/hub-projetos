@@ -527,11 +527,23 @@ body.client-mode.project-restricted .btn-back {
 .card-footer {
   margin-top: auto;
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.card-message-row {
+  display: flex;
+  align-items: center;
+}
+
+.card-action-row {
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
 }
 
 .status-tag {

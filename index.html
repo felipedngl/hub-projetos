@@ -121,28 +121,6 @@
 
         <section class="project-content">
 
-  <!-- Aviso de notificações do cliente -->
-  <div id="clientNotificationPrompt" hidden>
-    <div class="client-notification-content">
-      <div class="client-notification-icon">🔔</div>
-
-      <div class="client-notification-text">
-        <strong>Ative as notificações</strong>
-        <span>Receba um aviso quando a Menchë Interiores enviar uma nova mensagem sobre seu projeto.</span>
-      </div>
-
-      <div class="client-notification-actions">
-        <button id="btnNotificationLater" type="button">
-          Agora não
-        </button>
-
-        <button id="btnEnableNotifications" type="button">
-          Ativar notificações
-        </button>
-      </div>
-    </div>
-  </div>
-
   <div id="stageContainer"></div>
 
 </section>
@@ -285,6 +263,41 @@
       </div>
     </div>
   </div>
+  <!-- ============ MODAL NOTIFICAÇÕES DO CLIENTE ============ -->
+<div class="modal-overlay" id="notificationModal" hidden>
+  <div class="modal modal--narrow" role="dialog" aria-modal="true" aria-labelledby="notificationModalTitle">
+
+    <div class="modal-header">
+      <h2 id="notificationModalTitle">Ative as notificações</h2>
+
+      <button class="btn-close" id="btnCloseNotification" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="share-body">
+
+      <div class="notification-modal-icon">🔔</div>
+
+      <p class="share-hint">
+        Receba um aviso quando a Menchë Interiores enviar uma nova mensagem sobre seu projeto.
+      </p>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" id="btnNotificationLater">
+          Agora não
+        </button>
+
+        <button type="button" class="btn-primary" id="btnEnableNotifications">
+          Ativar notificações
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <!-- SDKs do Firebase (App, Firestore e Cloud Messaging) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>

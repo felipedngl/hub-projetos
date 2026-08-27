@@ -560,8 +560,6 @@ console.log("Projeto:", p.title, "Mensagens não lidas:", unreadMessages);
 
 return `
   <article class="card" data-id="${p.id}" tabindex="0" style="animation-delay: ${Math.min(index * 60, 360)}ms">
-    ${unreadMessages > 0 ? `<span class="card-message-dot"></span>` : ""}
-
     <div class="card-cover">
         <span class="card-badge badge-type-${p.type}">${p.type}</span>
 
@@ -578,9 +576,17 @@ return `
         </div>
 
         <div class="card-footer">
-          <span class="status-tag ${statusClass}">${statusLabel}</span>
-          <span class="btn-detail">Ver Detalhes</span>
-        </div>
+  ${
+    unreadMessages > 0
+      ? `<span class="card-message-notification">
+          <span class="notification-dot"></span>
+          ${unreadMessages === 1 ? "Nova mensagem" : `${unreadMessages} novas mensagens`}
+        </span>`
+      : `<span class="status-tag ${statusClass}">${statusLabel}</span>`
+  }
+
+  <span class="btn-detail">Ver Detalhes</span>
+</div>
       </div>
     </article>`;
 }

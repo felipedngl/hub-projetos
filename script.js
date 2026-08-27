@@ -177,6 +177,15 @@ function countUnreadClientMessages(project) {
 }
 
 function hasUnreadDesignerMessage(stage) {
+  if (!stage || !Array.isArray(stage.clientMessages)) return false;
+
+  return stage.clientMessages.some(
+    (message) =>
+      message.author === "designer" &&
+      message.readByClient !== true
+  );
+}
+
 async function markDesignerMessagesAsReadByClient(stage) {
   if (!stage || !Array.isArray(stage.clientMessages)) return false;
 
@@ -196,14 +205,6 @@ async function markDesignerMessagesAsReadByClient(stage) {
 
   await saveProjects();
   return true;
-}
-  if (!stage || !Array.isArray(stage.clientMessages)) return false;
-
-  return stage.clientMessages.some(
-    (message) =>
-      message.author === "designer" &&
-      message.readByClient !== true
-  );
 }
 
   function genKey() {

@@ -709,18 +709,22 @@ $$("#stageNav .stage-link").forEach((btn) => {
 }
 
   function openProject(id) {
-    currentProjectId = id;
-    currentStage = "briefing";
-    $("#view-dashboard").hidden = true;
-    $("#view-project").hidden = false;
-    $("#btnBack").hidden = clientMode;
-    if (clientMode) document.title = `${id ? currentProjectTitle() : "Projeto"} — HUB de Projetos`;
-    updateClientButton();
-    applyAccessUI();
-    renderSidebar();
-    renderStage();
-    window.scrollTo({ top: 0 });
+  currentProjectId = id;
+  currentStage = "briefing";
+  $("#view-dashboard").hidden = true;
+  $("#view-project").hidden = false;
+  $("#btnBack").hidden = clientMode;
+  if (clientMode) document.title = `${id ? currentProjectTitle() : "Projeto"} — HUB de Projetos`;
+  updateClientButton();
+  applyAccessUI();
+  renderSidebar();
+  renderStage();
+  window.scrollTo({ top: 0 });
+
+  if (clientMode) {
+    setupClientNotificationPrompt();
   }
+}
 
   function currentProjectTitle() {
     const p = currentProject();
@@ -2290,6 +2294,35 @@ async function init() {
     // Sem ?cliente= ou ?projeto=: HUB bloqueado
     showHubLocked();
   }
+
+function setupClientNotificationPrompt() {
+  const prompt = document.getElementById("clientNotificationPrompt");
+  const btnEnable = document.getElementById("btnEnableNotifications");
+  const btnLater = document.getElementById("btnNotificationLater");
+
+  if (!prompt || !btnEnable || !btnLater) return;
+
+  // Só mostra se o navegador ainda não recebeu uma decisão
+  if (Notification.permission !== "default") return;
+
+  prompt.hidden = false;
+
+  btnLater.onclick = () => {
+    prompt.hidden = true;
+  };
+
+  btnEnable.onclick = async () => {
+    const permission = await Notification.requestPermission();
+
+    if (permission === "granted") {
+      prompt.hidden = true;
+      showToast("Notificações ativadas.");
+    } else {
+      prompt.hidden = true;
+    }
+  };
+}
+
   // Inicializa o app ao carregar a página
   document.addEventListener("DOMContentLoaded", init);
 })();

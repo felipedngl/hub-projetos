@@ -729,34 +729,32 @@ function renderDashboard() {
 }).join("");
 
 $$("#stageNav .stage-link").forEach((btn) => {
-  btn.addEventListener("click", async () => {
+  btn.addEventListener("click", () => {
     currentStage = btn.dataset.stage;
 
-    // Se for o cliente, marca como lidas as mensagens
-    // do designer nesta etapa.
+    // Atualiza visualmente qual etapa está selecionada
+    $$("#stageNav .stage-link").forEach((item) => {
+      item.classList.toggle("active", item === btn);
+    });
+
+    // Abre a etapa imediatamente
+    renderStage();
+
+    // Depois que a etapa abriu, marca as mensagens do designer
+    // como lidas, sem bloquear a navegação.
     if (clientMode) {
       const p = currentProject();
       const stage = p?.stages?.[currentStage];
 
       if (stage) {
-        await markDesignerMessagesAsReadByClient(stage);
+        markDesignerMessagesAsReadByClient(stage).then(() => {
+          // Atualiza somente a sidebar depois de salvar
+          renderSidebar();
+        });
       }
     }
-
-    $$("#stageNav .stage-link").forEach((item) => {
-      item.classList.toggle("active", item === btn);
-    });
-
-    // Re-renderiza a sidebar para remover o destaque laranja
-    // depois que as mensagens foram marcadas como lidas.
-    renderSidebar();
-
-    renderStage();
   });
 });
-
-}
-
   function openProject(id) {
   currentProjectId = id;
   currentStage = "briefing";

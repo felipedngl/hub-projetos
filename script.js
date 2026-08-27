@@ -2296,29 +2296,54 @@ async function init() {
   }
 
 function setupClientNotificationPrompt() {
-  const prompt = document.getElementById("clientNotificationPrompt");
+  const notificationModal = document.getElementById("notificationModal");
   const btnEnable = document.getElementById("btnEnableNotifications");
   const btnLater = document.getElementById("btnNotificationLater");
+  const btnClose = document.getElementById("btnCloseNotification");
 
-  if (!prompt || !btnEnable || !btnLater) return;
+  if (!notificationModal || !btnEnable || !btnLater) return;
 
-  // Só mostra se o navegador ainda não recebeu uma decisão
+  // Se o navegador já recebeu uma decisão, não mostra o popup.
   if (Notification.permission !== "default") return;
 
-  prompt.hidden = false;
+  notificationModal.hidden = false;
+  notificationModal.style.display = "flex";
+  document.body.style.overflow = "hidden";
 
-  btnLater.onclick = () => {
-    prompt.hidden = true;
+  const closeNotificationModal = () => {
+    notificationModal.hidden = true;
+    notificationModal.style.display = "none";
+    document.body.style.overflow = "";
+  };
+
+  btnLater.onclick = closeNotificationModal;
+
+  if (btnClose) {
+    btnClose.onclick = closeNotificationModal;
+  }
+
+  notificationModal.onclick = (e) => {
+    if (e.target === notificationModal) {
+      closeNotificationModal();
+    }
   };
 
   btnEnable.onclick = async () => {
-    const permission = await Notification.requestPermission();
+    try {
+      const permission = await Notification.requestPermission();
 
-    if (permission === "granted") {
-      prompt.hidden = true;
-      showToast("Notificações ativadas.");
-    } else {
-      prompt.hidden = true;
+      if (permission === "granted") {
+        closeNotificationModal();
+        showToast("Notificações ativadas.");
+      } else {
+        closeNotificationModal();
+      }
+    } catch (error) {
+      console.error(
+        "Erro ao solicitar permissão para notificações:",
+        error
+      );
+      closeNotificationModal();
     }
   };
 }

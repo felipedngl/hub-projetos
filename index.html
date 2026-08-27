@@ -120,8 +120,32 @@
         </aside>
 
         <section class="project-content">
-          <div id="stageContainer"></div>
-        </section>
+
+  <!-- Aviso de notificações do cliente -->
+  <div id="clientNotificationPrompt" hidden>
+    <div class="client-notification-content">
+      <div class="client-notification-icon">🔔</div>
+
+      <div class="client-notification-text">
+        <strong>Ative as notificações</strong>
+        <span>Receba um aviso quando a Menchë Interiores enviar uma nova mensagem sobre seu projeto.</span>
+      </div>
+
+      <div class="client-notification-actions">
+        <button id="btnNotificationLater" type="button">
+          Agora não
+        </button>
+
+        <button id="btnEnableNotifications" type="button">
+          Ativar notificações
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="stageContainer"></div>
+
+</section>
       </div>
     </section>
   </main>

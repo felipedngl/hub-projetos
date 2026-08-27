@@ -733,16 +733,13 @@ $$("#stageNav .stage-link").forEach((btn) => {
 
     const s = project.stages[stage.id];
     const container = $("#stageContainer");
+
     container.innerHTML = `
       <div class="stage-header">
         <h2>${stage.label}</h2>
         <p class="stage-hint">${stage.hint}</p>
       </div>
-      <div class="panel">
-        <h3>${ICONS[stage.id]} Anotações da etapa</h3>
-        <label for="stageText">Descreva o andamento, decisões e observações desta etapa</label>
-        <textarea id="stageText" class="stage-textarea" placeholder="Escreva aqui...">${escapeHTML(s.text)}</textarea>
-      </div>
+
       <div class="panel">
         <h3>${ICONS.upload} Arquivos da etapa</h3>
         <label>Upload de PDFs, imagens de renders, plantas e documentos</label>

@@ -534,28 +534,45 @@ if (!input) return;
   }
 
   /* ---------------- Render: painel ---------------- */
-  function cardHTML(p, index) {
-    const statusLabel = STATUS_LABELS[p.status] || p.status;
-    const statusClass = STATUS_CLASS[p.status] || "";
-    return `
-      <article class="card" data-id="${p.id}" tabindex="0" style="animation-delay: ${Math.min(index * 60, 360)}ms">
-        <div class="card-cover">
-          <span class="card-badge badge-type-${p.type}">${p.type}</span>
-          <img src="${p.image}" alt="Capa do projeto ${escapeHTML(p.title)}" loading="lazy" onerror="this.src='${PLACEHOLDER}'" />
+function cardHTML(p, index) {
+  const statusLabel = STATUS_LABELS[p.status] || p.status;
+  const statusClass = STATUS_CLASS[p.status] || "";
+
+  const hasNewMessages = Object.values(p.stages || {}).some((stage) =>
+    Array.isArray(stage.clientMessages) &&
+    stage.clientMessages.some((message) => message.author === "client")
+  );
+
+  return `
+    <article class="card" data-id="${p.id}" tabindex="0" style="animation-delay: ${Math.min(index * 60, 360)}ms">
+      <div class="card-cover">
+        <span class="card-badge badge-type-${p.type}">${p.type}</span>
+
+        ${
+          hasNewMessages
+            ? `<span class="card-message-badge">💬 Nova mensagem</span>`
+            : ""
+        }
+
+        <img src="${p.image}" alt="Capa do projeto ${escapeHTML(p.title)}" loading="lazy" onerror="this.src='${PLACEHOLDER}'" />
+      </div>
+
+      <div class="card-body">
+        <h3 class="card-title">${escapeHTML(p.title)}</h3>
+
+        <div class="card-meta">
+          <span title="Cliente">${ICONS.client} ${escapeHTML(p.client)}</span>
+          <span title="Metragem">${ICONS.area} ${formatArea(p.area)} m²</span>
         </div>
-        <div class="card-body">
-          <h3 class="card-title">${escapeHTML(p.title)}</h3>
-          <div class="card-meta">
-            <span title="Cliente">${ICONS.client} ${escapeHTML(p.client)}</span>
-            <span title="Metragem">${ICONS.area} ${formatArea(p.area)} m²</span>
-          </div>
-          <div class="card-footer">
-            <span class="status-tag ${statusClass}">${statusLabel}</span>
-            <span class="btn-detail">Ver Detalhes</span>
-          </div>
+
+        <div class="card-footer">
+          <span class="status-tag ${statusClass}">${statusLabel}</span>
+          <span class="btn-detail">Ver Detalhes</span>
         </div>
-      </article>`;
-  }
+      </div>
+    </article>`;
+}
+
 function renderDashboard() {
     // Trava de segurança: se 'projects' não for uma lista (array), transforma em lista vazia
     if (!Array.isArray(projects)) projects = [];

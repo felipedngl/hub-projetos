@@ -825,18 +825,6 @@ if (messagesMarkedAsRead) {
       });
     });
 
-// Marca como lidas as mensagens enviadas pelo cliente
-let messagesMarkedAsRead = false;
-
-if (Array.isArray(s.clientMessages)) {
-  s.clientMessages.forEach((message) => {
-    if (message.author === "client" && message.readByDesigner !== true) {
-      message.readByDesigner = true;
-      messagesMarkedAsRead = true;
-    }
-  });
-}
-
 if (messagesMarkedAsRead) {
   saveProjects();
 }

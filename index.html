@@ -284,8 +284,20 @@
   // Banco Firestore
   window.db = firebase.firestore();
 
-  // Firebase Cloud Messaging
-  window.messaging = firebase.messaging();
+// Firebase Cloud Messaging
+window.messaging = firebase.messaging();
+
+// Registra o Service Worker do Firebase Messaging
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .register("/firebase-messaging-sw.js")
+    .then((registration) => {
+      console.log("Firebase Messaging Service Worker registrado:", registration);
+    })
+    .catch((error) => {
+      console.error("Erro ao registrar Firebase Messaging Service Worker:", error);
+    });
+}
 </script>
 
 <!-- Seu script original -->

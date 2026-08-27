@@ -558,7 +558,7 @@ function cardHTML(p, index) {
 
 return `
   <article class="card" data-id="${p.id}" tabindex="0" style="animation-delay: ${Math.min(index * 60, 360)}ms">
-    ${hasNewMessages ? `<span class="card-message-dot"></span>` : ""}
+    ${unreadMessages > 0 ? `<span class="card-message-dot"></span>` : ""}
 
     <div class="card-cover">
         <span class="card-badge badge-type-${p.type}">${p.type}</span>

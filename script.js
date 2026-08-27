@@ -176,6 +176,16 @@ function countUnreadClientMessages(project) {
   return total;
 }
 
+function hasUnreadDesignerMessage(stage) {
+  if (!stage || !Array.isArray(stage.clientMessages)) return false;
+
+  return stage.clientMessages.some(
+    (message) =>
+      message.author === "designer" &&
+      message.readByClient !== true
+  );
+}
+
   function genKey() {
     return Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 8);
   }
@@ -685,14 +695,18 @@ function renderDashboard() {
     $("#stageNav").innerHTML =
       '<div class="stage-nav-title">Etapas do projeto</div>' +
       navStages.map((stage) => {
-        const done = stageHasContent(p, stage);
-        return `
-          <button class="stage-link ${stage.id === currentStage ? "active" : ""}" data-stage="${stage.id}">
-            ${ICONS[stage.id]}
-            <span class="nav-label">${stage.label}</span>
-            <span class="nav-dot ${done ? "done" : ""}" title="${done ? "Etapa com conteúdo" : "Etapa vazia"}"></span>
-          </button>`;
-      }).join("");
+  const done = stageHasContent(p, stage);
+  const unread = hasUnreadDesignerMessage(p.stages?.[stage.id]);
+
+  return `
+    <button class="stage-link ${
+      stage.id === currentStage ? "active" : ""
+    } ${unread ? "has-unread-message" : ""}" data-stage="${stage.id}">
+      ${ICONS[stage.id]}
+      <span class="nav-label">${stage.label}</span>
+      <span class="nav-dot ${done ? "done" : ""}" title="${done ? "Etapa com conteúdo" : "Etapa vazia"}"></span>
+    </button>`;
+}).join("");
 
 $$("#stageNav .stage-link").forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -863,12 +877,12 @@ if (messagesMarkedAsRead) {
       }
 
       s.clientMessages.push({
-        id: uid(),
-        author: "designer",
-        text,
-        createdAt: Date.now(),
-      });
-
+  id: uid(),
+  author: "designer",
+  text,
+  createdAt: Date.now(),
+  readByClient: false,
+});
       designerButton.disabled = true;
       designerButton.textContent = "Enviando...";
 

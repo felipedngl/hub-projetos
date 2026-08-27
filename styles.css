@@ -1950,15 +1950,39 @@ table.memorial-table td:focus-within {
   position: relative;
 }
 
-.card-message-dot {
-  position: absolute;
-  top: -7px;
-  right: -7px;
-  width: 18px;
-  height: 18px;
-  background: #e53935;
-  border: 3px solid var(--bg-dark);
+.card-message-notification {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  padding: 7px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 0 0 0 var(--accent-soft);
+  animation: messagePulse 2s ease-in-out infinite;
+}
+
+.card-message-notification .notification-dot {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  z-index: 20;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  background: #fff;
+  flex-shrink: 0;
+}
+
+@keyframes messagePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--accent-soft);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px var(--accent-soft);
+    transform: scale(1.02);
+  }
 }

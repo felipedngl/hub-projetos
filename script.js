@@ -556,6 +556,8 @@ function cardHTML(p, index) {
 
   const unreadMessages = countUnreadClientMessages(p);
 
+console.log("Projeto:", p.title, "Mensagens não lidas:", unreadMessages);
+
 return `
   <article class="card" data-id="${p.id}" tabindex="0" style="animation-delay: ${Math.min(index * 60, 360)}ms">
     ${unreadMessages > 0 ? `<span class="card-message-dot"></span>` : ""}

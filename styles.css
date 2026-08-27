@@ -754,6 +754,37 @@ body.client-mode.project-restricted .btn-back {
   color: var(--accent);
 }
 
+/* Etapa com nova mensagem do designer */
+.stage-nav button.has-unread-message {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 0 0 0 var(--accent-soft);
+  animation: stageMessagePulse 2s ease-in-out infinite;
+}
+
+.stage-nav button.has-unread-message:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.stage-nav button.has-unread-message .nav-dot {
+  background: #fff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+}
+
+@keyframes stageMessagePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(232, 106, 68, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 0 5px rgba(232, 106, 68, 0.18);
+  }
+}
+
 .stage-nav button svg {
   flex: none;
 }

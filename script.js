@@ -177,6 +177,26 @@ function countUnreadClientMessages(project) {
 }
 
 function hasUnreadDesignerMessage(stage) {
+async function markDesignerMessagesAsReadByClient(stage) {
+  if (!stage || !Array.isArray(stage.clientMessages)) return false;
+
+  let changed = false;
+
+  stage.clientMessages.forEach((message) => {
+    if (
+      message.author === "designer" &&
+      message.readByClient !== true
+    ) {
+      message.readByClient = true;
+      changed = true;
+    }
+  });
+
+  if (!changed) return false;
+
+  await saveProjects();
+  return true;
+}
   if (!stage || !Array.isArray(stage.clientMessages)) return false;
 
   return stage.clientMessages.some(
@@ -709,12 +729,27 @@ function renderDashboard() {
 }).join("");
 
 $$("#stageNav .stage-link").forEach((btn) => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     currentStage = btn.dataset.stage;
+
+    // Se for o cliente, marca como lidas as mensagens
+    // do designer nesta etapa.
+    if (clientMode) {
+      const p = currentProject();
+      const stage = p?.stages?.[currentStage];
+
+      if (stage) {
+        await markDesignerMessagesAsReadByClient(stage);
+      }
+    }
 
     $$("#stageNav .stage-link").forEach((item) => {
       item.classList.toggle("active", item === btn);
     });
+
+    // Re-renderiza a sidebar para remover o destaque laranja
+    // depois que as mensagens foram marcadas como lidas.
+    renderSidebar();
 
     renderStage();
   });

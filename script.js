@@ -774,12 +774,6 @@ $$("#stageNav .stage-link").forEach((btn) => {
         </div>
       </div>`;
 
-    const textarea = $("#stageText");
-    textarea.addEventListener("input", () => {
-      s.text = textarea.value;
-      saveProjects();
-    });
-
     const dz = $("[data-dropzone]", container);
     attachDropzone(dz, s.files, () => renderStage());
 

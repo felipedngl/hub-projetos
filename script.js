@@ -798,65 +798,127 @@ function renderStageClient(project, stage) {
       <p class="stage-hint">${stage.hint}</p>
     </div>`;
 
-  // Contratos: o cliente pode visualizar os documentos,
-  // mas não pode adicionar, editar ou excluir.
-if (stage.special === "contracts") {
-  container.innerHTML = header + clientContractsHTML(project);
-  attachClientContractViewers(project);
-  return;
-}
+  if (stage.special === "contracts") {
+    container.innerHTML = header + clientContractsHTML(project);
+    attachClientContractViewers(project);
+    return;
+  }
 
-  // Memorial: o cliente pode visualizar os itens e links.
   if (stage.special === "memorial") {
     container.innerHTML = header + memorialClientHTML(project);
     return;
   }
 
-const s = project.stages[stage.id];
+  const s = project.stages[stage.id];
 
-container.innerHTML = header + `
-  <div class="panel">
-    <h3>${ICONS[stage.id]} Anotações da etapa</h3>
-    <div class="stage-text-client">
-      ${s.text
-        ? escapeHTML(s.text).replace(/\n/g, "<br>")
-        : '<span class="file-empty">Nenhuma anotação registrada nesta etapa.</span>'}
+  container.innerHTML = header + `
+    <div class="panel">
+      <h3>${ICONS[stage.id]} Arquivos da etapa</h3>
+      <label>Renders, plantas e documentos desta etapa</label>
+      ${clientFilesHTML(s.files || [])}
     </div>
-  </div>
 
-  <div class="panel">
-    <h3>${ICONS.upload} Arquivos da etapa</h3>
-    <label>Renders, plantas e documentos desta etapa</label>
-    ${clientFilesHTML(s.files || [])}
-  </div>`;
+    <div class="panel client-conversation-panel">
+      <h3>💬 Observações e conversa</h3>
+      <p class="conversation-hint">
+        Envie uma observação, dúvida ou solicitação sobre esta etapa.
+      </p>
 
-  $$(".client-file-view", container).forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const id = btn.dataset.fileId;
-      const file = (s.files || []).find((f) => f.id === id);
+      <div id="stageConversation">
+        ${stageConversationHTML(s.clientMessages || [])}
+      </div>
 
-      if (!file) {
-        showToast("Arquivo não encontrado.", true);
-        return;
-      }
+      <div class="conversation-form">
+        <textarea
+          id="clientMessageInput"
+          class="stage-textarea"
+          placeholder="Escreva sua observação..."
+        ></textarea>
 
-      openClientFile(file.dataUrl, file.name, false);
+        <button
+          type="button"
+          class="btn-primary"
+          id="btnSendClientMessage"
+        >
+          Enviar observação
+        </button>
+      </div>
+    </div>`;
+
+  const input = $("#clientMessageInput");
+  const sendButton = $("#btnSendClientMessage");
+
+  sendButton.addEventListener("click", async () => {
+    const text = input.value.trim();
+
+    if (!text) {
+      showToast("Escreva uma observação antes de enviar.", true);
+      return;
+    }
+
+    if (!Array.isArray(s.clientMessages)) {
+      s.clientMessages = [];
+    }
+
+    s.clientMessages.push({
+      id: uid(),
+      author: "client",
+      text,
+      createdAt: Date.now(),
     });
+
+    sendButton.disabled = true;
+    sendButton.textContent = "Enviando...";
+
+    const saved = await saveProjects();
+
+    if (saved) {
+      input.value = "";
+      renderStageClient(project, stage);
+      showToast("Observação enviada.");
+    } else {
+      s.clientMessages.pop();
+      sendButton.disabled = false;
+      sendButton.textContent = "Enviar observação";
+    }
   });
+}
 
-  $$(".client-file-download", container).forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const id = btn.dataset.fileId;
-      const file = (s.files || []).find((f) => f.id === id);
+function stageConversationHTML(messages) {
+  if (!messages || !messages.length) {
+    return `
+      <div class="conversation-empty">
+        Nenhuma observação enviada ainda.
+      </div>`;
+  }
 
-      if (!file) {
-        showToast("Arquivo não encontrado.", true);
-        return;
-      }
+  return messages
+    .map((message) => {
+      const isClient = message.author === "client";
 
-      openClientFile(file.dataUrl, file.name, true);
-    });
-  });
+      const date = message.createdAt
+        ? new Date(message.createdAt).toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "";
+
+      return `
+        <div class="conversation-message ${isClient ? "client" : "designer"}">
+          <div class="conversation-message-head">
+            <strong>${isClient ? "Cliente" : "Menchë Interiores"}</strong>
+            <span>${date}</span>
+          </div>
+
+          <div class="conversation-message-text">
+            ${escapeHTML(message.text).replace(/\n/g, "<br>")}
+          </div>
+        </div>`;
+    })
+    .join("");
 }
 
 function clientFilesHTML(files) {

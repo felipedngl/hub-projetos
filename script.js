@@ -752,10 +752,12 @@ $$("#stageNav .stage-link").forEach((btn) => {
           // Atualiza somente a sidebar depois de salvar
           renderSidebar();
         });
-      }
-    }
-  });
-});
+      	}
+    	}
+  	});
+	});
+}
+
   function openProject(id) {
   currentProjectId = id;
   currentStage = "briefing";

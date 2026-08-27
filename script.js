@@ -543,16 +543,13 @@ function cardHTML(p, index) {
     stage.clientMessages.some((message) => message.author === "client")
   );
 
-  return `
-    <article class="card" data-id="${p.id}" tabindex="0" style="animation-delay: ${Math.min(index * 60, 360)}ms">
-      <div class="card-cover">
+return `
+  <article class="card" data-id="${p.id}" tabindex="0" style="animation-delay: ${Math.min(index * 60, 360)}ms">
+    ${hasNewMessages ? `<span class="card-message-dot"></span>` : ""}
+
+    <div class="card-cover">
         <span class="card-badge badge-type-${p.type}">${p.type}</span>
 
-        ${
-          hasNewMessages
-            ? `<span class="card-message-badge">💬 Nova mensagem</span>`
-            : ""
-        }
 
         <img src="${p.image}" alt="Capa do projeto ${escapeHTML(p.title)}" loading="lazy" onerror="this.src='${PLACEHOLDER}'" />
       </div>

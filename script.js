@@ -851,16 +851,23 @@ $$("#stageNav .stage-link").forEach((btn) => {
     // Depois que a etapa abriu, marca as mensagens do designer
     // como lidas, sem bloquear a navegação.
     if (clientMode) {
-      const p = currentProject();
-      const stage = p?.stages?.[currentStage];
+  const p = currentProject();
+  const stage = p?.stages?.[currentStage];
 
-      if (stage) {
-        markDesignerMessagesAsReadByClient(stage).then(() => {
-          // Atualiza somente a sidebar depois de salvar
-          renderSidebar();
-        });
+  if (stage) {
+    stage.clientMessages?.forEach((message) => {
+      if (message.author === "designer") {
+        message.readByClient = true;
       }
-    }
+    });
+
+    // Remove o laranja imediatamente.
+    renderSidebar();
+
+    // Salva sem bloquear a abertura da etapa.
+    saveProjects();
+  	}
+	}
   });
 });
 }

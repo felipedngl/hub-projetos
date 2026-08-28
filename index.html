@@ -328,29 +328,11 @@ window.messaging = firebase.messaging();
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker
     .register("/firebase-messaging-sw.js")
-    .then(async (registration) => {
+    .then((registration) => {
       console.log(
         "Firebase Messaging Service Worker registrado:",
         registration
       );
-
-      try {
-        const token = await window.messaging.getToken({
-          vapidKey: "BDorpWYNAa_hPDGQMimAWCJoSGbacbdcoQQpyFl8fVVEr1Eu5Mb5ba71tbFWMPlZphEBkzo23VHb9faRH6UOs3o",
-          serviceWorkerRegistration: registration
-        });
-
-        if (token) {
-          console.log("FCM TOKEN:", token);
-        } else {
-          console.warn("Firebase não retornou um token FCM.");
-        }
-      } catch (error) {
-        console.error(
-          "Erro ao obter token do Firebase Messaging:",
-          error
-        );
-      }
     })
     .catch((error) => {
       console.error(

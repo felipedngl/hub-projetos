@@ -1077,26 +1077,40 @@ if (stage && Array.isArray(stage.clientMessages)) {
 }
     // Depois que a etapa abriu, marca as mensagens do designer
     // como lidas, sem bloquear a navegação.
+const p = currentProject();
+const stage = p?.stages?.[currentStage];
+
+if (stage && Array.isArray(stage.clientMessages)) {
+  let changed = false;
+
+  stage.clientMessages.forEach((message) => {
     if (clientMode) {
-  const p = currentProject();
-  const stage = p?.stages?.[currentStage];
-
-  if (stage) {
-    stage.clientMessages?.forEach((message) => {
-      if (message.author === "designer") {
+      // Cliente abriu a etapa:
+      // marca mensagens do designer como lidas.
+      if (
+        message.author === "designer" &&
+        message.readByClient !== true
+      ) {
         message.readByClient = true;
+        changed = true;
       }
-    });
-
-    // Remove o laranja imediatamente.
-    renderSidebar();
-
-    // Salva sem bloquear a abertura da etapa.
-    saveProjects();
-  	}
-	}
+    } else {
+      // Designer abriu a etapa:
+      // marca mensagens do cliente como lidas.
+      if (
+        message.author === "client" &&
+        message.readByDesigner !== true
+      ) {
+        message.readByDesigner = true;
+        changed = true;
+      }
+    }
   });
-});
+
+  if (changed) {
+    renderSidebar();
+    saveProjects();
+  }
 }
 
   function openProject(id) {

@@ -2029,3 +2029,33 @@ table.memorial-table td:focus-within {
     transform: scale(1.02);
   }
 }
+
+.conversation-message-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.conversation-message-actions button {
+  border: 0;
+  background: transparent;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.conversation-message-actions button:hover {
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .conversation-message-actions {
+    gap: 6px;
+  }
+
+  .conversation-message-actions button {
+    min-height: 34px;
+    padding: 7px 9px;
+  }
+}

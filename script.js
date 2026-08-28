@@ -1014,6 +1014,58 @@ if (messagesMarkedAsRead) {
 	const designerInput = $("#designerMessageInput");
     const designerButton = $("#btnSendDesignerMessage");
 
+	$$("#stageConversation .btn-message-edit").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const messageId = button.dataset.messageId;
+    const message = s.clientMessages?.find((m) => m.id === messageId);
+
+    if (!message || message.author !== "designer") return;
+
+    const newText = prompt("Edite sua mensagem:", message.text);
+
+    if (newText === null) return;
+
+    const text = newText.trim();
+
+    if (!text) {
+      showToast("A mensagem não pode ficar vazia.", true);
+      return;
+    }
+
+    message.text = text;
+    message.editedAt = Date.now();
+
+    if (await saveProjects()) {
+      renderStage();
+      showToast("Mensagem editada.");
+    }
+  });
+});
+
+$$("#stageConversation .btn-message-delete").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const messageId = button.dataset.messageId;
+    const index = s.clientMessages?.findIndex(
+      (m) => m.id === messageId
+    );
+
+    if (index === -1) return;
+
+    const message = s.clientMessages[index];
+
+    if (!message || message.author !== "designer") return;
+
+    if (!confirm("Apagar esta mensagem?")) return;
+
+    s.clientMessages.splice(index, 1);
+
+    if (await saveProjects()) {
+      renderStage();
+      showToast("Mensagem apagada.");
+    }
+  });
+});
+	  
     designerButton.addEventListener("click", async () => {
       const text = designerInput.value.trim();
 
@@ -1129,6 +1181,58 @@ function renderStageClient(project, stage) {
   const input = $("#clientMessageInput");
   const sendButton = $("#btnSendClientMessage");
 
+$$("#stageConversation .btn-message-edit").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const messageId = button.dataset.messageId;
+    const message = s.clientMessages?.find((m) => m.id === messageId);
+
+    if (!message || message.author !== "client") return;
+
+    const newText = prompt("Edite sua mensagem:", message.text);
+
+    if (newText === null) return;
+
+    const text = newText.trim();
+
+    if (!text) {
+      showToast("A mensagem não pode ficar vazia.", true);
+      return;
+    }
+
+    message.text = text;
+    message.editedAt = Date.now();
+
+    if (await saveProjects()) {
+      renderStageClient(project, stage);
+      showToast("Mensagem editada.");
+    }
+  });
+});
+
+$$("#stageConversation .btn-message-delete").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const messageId = button.dataset.messageId;
+    const index = s.clientMessages?.findIndex(
+      (m) => m.id === messageId
+    );
+
+    if (index === -1) return;
+
+    const message = s.clientMessages[index];
+
+    if (!message || message.author !== "client") return;
+
+    if (!confirm("Apagar esta mensagem?")) return;
+
+    s.clientMessages.splice(index, 1);
+
+    if (await saveProjects()) {
+      renderStageClient(project, stage);
+      showToast("Mensagem apagada.");
+    }
+  });
+});
+	
   sendButton.addEventListener("click", async () => {
     const text = input.value.trim();
 
@@ -1199,7 +1303,9 @@ function stageConversationHTML(messages) {
         >
           <div class="conversation-message-head">
             <strong>${isClient ? "Cliente" : "Menchë Interiores"}</strong>
-            <span>${date}</span>
+            <span>
+  		  	  ${date}${message.editedAt ? " · editada" : ""}
+			</span>
           </div>
 
           <div class="conversation-message-text">

@@ -1424,7 +1424,9 @@ function stageConversationHTML(messages) {
         >
           <div class="conversation-message-head">
             <strong>${isClient ? "Cliente" : "Menchë Interiores"}</strong>
-            <span>${date}${message.editedAt ? " · editada" : ""}</span>
+            <span>
+              ${date}${message.editedAt ? " · editada" : ""}
+            </span>
           </div>
 
           <div class="conversation-message-text">
@@ -1437,23 +1439,25 @@ function stageConversationHTML(messages) {
                 <div class="conversation-message-actions">
                   <button
                     type="button"
-                    class="btn-message-action btn-message-edit"
+                    class="btn-message-edit"
                     data-message-id="${message.id}"
-                    aria-label="Editar mensagem"
                     title="Editar mensagem"
+                    aria-label="Editar mensagem"
                   >
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+                    ✎
                   </button>
+
                   <button
                     type="button"
-                    class="btn-message-action btn-message-delete"
+                    class="btn-message-delete"
                     data-message-id="${message.id}"
-                    aria-label="Apagar mensagem"
                     title="Apagar mensagem"
+                    aria-label="Apagar mensagem"
                   >
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>
+                    ×
                   </button>
-                </div>`
+                </div>
+              `
               : ""
           }
         </div>`;

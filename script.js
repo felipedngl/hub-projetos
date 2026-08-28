@@ -1188,8 +1188,15 @@ function stageConversationHTML(messages) {
           })
         : "";
 
+      const canEdit =
+        (clientMode && isClient) ||
+        (!clientMode && !localPreview && !isClient);
+
       return `
-        <div class="conversation-message ${isClient ? "client" : "designer"}">
+        <div
+          class="conversation-message ${isClient ? "client" : "designer"}"
+          data-message-id="${message.id}"
+        >
           <div class="conversation-message-head">
             <strong>${isClient ? "Cliente" : "Menchë Interiores"}</strong>
             <span>${date}</span>
@@ -1198,6 +1205,30 @@ function stageConversationHTML(messages) {
           <div class="conversation-message-text">
             ${escapeHTML(message.text).replace(/\n/g, "<br>")}
           </div>
+
+          ${
+            canEdit
+              ? `
+                <div class="conversation-message-actions">
+                  <button
+                    type="button"
+                    class="btn-message-edit"
+                    data-message-id="${message.id}"
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn-message-delete"
+                    data-message-id="${message.id}"
+                  >
+                    Apagar
+                  </button>
+                </div>
+              `
+              : ""
+          }
         </div>`;
     })
     .join("");

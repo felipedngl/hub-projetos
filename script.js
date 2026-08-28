@@ -874,6 +874,8 @@ $$("#stageNav .stage-link").forEach((btn) => {
 
   function openProject(id) {
   currentProjectId = id;
+  listenToCurrentProject(id);
+  
   currentStage = "briefing";
   $("#view-dashboard").hidden = true;
   $("#view-project").hidden = false;

@@ -1015,9 +1015,10 @@ function renderDashboard() {
       '<div class="stage-nav-title">Etapas do projeto</div>' +
       navStages.map((stage) => {
   const done = stageHasContent(p, stage);
+
   const unread = clientMode
-  ? hasUnreadDesignerMessage(p.stages?.[stage.id])
-  : hasUnreadClientMessage(p.stages?.[stage.id]);
+    ? hasUnreadDesignerMessage(p.stages?.[stage.id])
+    : hasUnreadClientMessage(p.stages?.[stage.id]);
 
   return `
     <button class="stage-link ${
@@ -2709,15 +2710,20 @@ async function init() {
         if (btnDesigner) btnDesigner.hidden = true;
       };
 
-      if (clientData.clientPassword && !designerUnlocked) {
+      if (
+  clientData.clientPassword &&
+  !designerUnlocked &&
+  !hasValidClientAccess(clientData.id)
+) {
         openPasswordModal({
           title: "Acesso ao Projeto",
           hint: `O projeto "${clientData.title}" está protegido. Digite a senha enviada pelo designer:`,
           onSuccess: (value) => {
             if (value === clientData.clientPassword) {
-              closePasswordModal();
-              proceedClientReadOnly();
-            } else if (value === MASTER_PASSWORD) {
+ 			 rememberClientAccess(clientData.id);
+ 			 closePasswordModal();
+ 			 proceedClientReadOnly();
+			} else if (value === MASTER_PASSWORD) {
               closePasswordModal();
               proceedClientReadOnly();
               showToast("Projeto aberto em modo somente leitura.");
@@ -2764,17 +2770,25 @@ async function init() {
         if (btnDesigner) btnDesigner.hidden = true;
       };
 
-      if (clientData.clientPassword && !designerUnlocked) {
+		if (
+  		clientData.clientPassword &&
+  		!designerUnlocked &&
+  		!hasValidClientAccess(clientData.id)
+		) {
         openPasswordModal({
           title: "Acesso do Cliente",
           hint: `O projeto "${clientData.title}" está protegido. Digite a senha enviada pelo designer.`,
           onSuccess: (value) => {
             if (
-              value === clientData.clientPassword ||
-              value === MASTER_PASSWORD
-            ) {
-              closePasswordModal();
-              proceedClientReadOnly();
+		  value === clientData.clientPassword ||
+		  value === MASTER_PASSWORD
+		) {
+		  if (value === clientData.clientPassword) {
+    		rememberClientAccess(clientData.id);
+  		}
+
+  		closePasswordModal();
+  		proceedClientReadOnly();
 
               if (value === MASTER_PASSWORD) {
                 showToast("Projeto aberto em modo somente leitura.");

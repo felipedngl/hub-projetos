@@ -1680,12 +1680,6 @@ body.client-mode .stage-nav button {
   align-items: center;
   gap: 6px;
   margin-top: 10px;
-  opacity: 0;
-  transition: opacity 0.18s ease;
-}
-
-.conversation-message:hover .conversation-message-actions,
-.conversation-message:focus-within .conversation-message-actions {
   opacity: 1;
 }
 

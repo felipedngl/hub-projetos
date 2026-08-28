@@ -196,6 +196,16 @@ function hasUnreadClientMessage(stage) {
   );
 }
 
+function hasUnreadClientMessage(stage) {
+  if (!stage || !Array.isArray(stage.clientMessages)) return false;
+
+  return stage.clientMessages.some(
+    (message) =>
+      message.author === "client" &&
+      message.readByDesigner !== true
+  );
+}
+
 async function markDesignerMessagesAsReadByClient(stage) {
   if (!stage || !Array.isArray(stage.clientMessages)) return false;
 
@@ -965,7 +975,9 @@ function renderDashboard() {
       '<div class="stage-nav-title">Etapas do projeto</div>' +
       navStages.map((stage) => {
   const done = stageHasContent(p, stage);
-  const unread = hasUnreadDesignerMessage(p.stages?.[stage.id]);
+  const unread = clientMode
+  ? hasUnreadDesignerMessage(p.stages?.[stage.id])
+  : hasUnreadClientMessage(p.stages?.[stage.id]);
 
   return `
     <button class="stage-link ${

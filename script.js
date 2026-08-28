@@ -1483,6 +1483,14 @@ function stageConversationHTML(messages) {
       </div>`;
   }
 
+  const canEditMessage = (message) => {
+    if (clientMode) {
+      return message.author === "client";
+    }
+
+    return message.author === "designer";
+  };
+
   return messages
     .map((message) => {
       const isClient = message.author === "client";
@@ -1496,10 +1504,6 @@ function stageConversationHTML(messages) {
             minute: "2-digit",
           })
         : "";
-
-      const canEdit =
-        (clientMode && isClient) ||
-        (!clientMode && !localPreview && !isClient);
 
       return `
         <div
@@ -1518,7 +1522,7 @@ function stageConversationHTML(messages) {
           </div>
 
           ${
-            canEdit
+            canEditMessage(message)
               ? `
                 <div class="conversation-message-actions">
                   <button

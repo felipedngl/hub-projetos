@@ -2409,6 +2409,13 @@ function setupClientNotificationPrompt() {
   if (!notificationModal || !btnEnable || !btnLater) return;
 
   // Se o navegador já recebeu uma decisão, não mostra o popup.
+if (Notification.permission === "granted") {
+  const project = currentProject();
+
+  if (project) {
+    registerClientNotifications(project.id);
+  }
+}
   if (Notification.permission !== "default") return;
 
   notificationModal.hidden = false;

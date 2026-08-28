@@ -432,6 +432,61 @@ async function saveProjects(customProjects = null) {
   return saveQueue;
 }
 
+async function saveClientFCMToken(projectId, token) {
+  if (!projectId || !token || !window.db) return;
+
+  try {
+    await window.db
+      .collection("fcmTokens")
+      .doc(token)
+      .set({
+        projectId: projectId,
+        token: token,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+    console.log("Token FCM salvo para o projeto:", projectId);
+  } catch (error) {
+    console.error("Erro ao salvar token FCM:", error);
+  }
+}
+
+async function registerClientNotifications(projectId) {
+  if (!projectId) return;
+  if (!window.messaging) return;
+  if (!("serviceWorker" in navigator)) return;
+
+  try {
+    const registration = await navigator.serviceWorker.getRegistration(
+      "/firebase-messaging-sw.js"
+    );
+
+    if (!registration) {
+      console.error("Service Worker do Firebase não encontrado.");
+      return;
+    }
+
+    const token = await window.messaging.getToken({
+      serviceWorkerRegistration: registration
+    });
+
+    if (!token) {
+      console.warn("Firebase não retornou um token FCM.");
+      return;
+    }
+
+    console.log("Token FCM do cliente obtido.");
+
+    await saveClientFCMToken(projectId, token);
+
+  } catch (error) {
+    console.error(
+      "Erro ao registrar notificações do cliente:",
+      error
+    );
+  }
+}
+
   async function deleteProjectFromCloud(projectId) {
     try {
       await db.collection("projects").doc(projectId).delete();
@@ -2383,6 +2438,12 @@ function setupClientNotificationPrompt() {
       const permission = await Notification.requestPermission();
 
       if (permission === "granted") {
+		  const project = currentProject();
+
+		  if (project) {
+		    await registerClientNotifications(project.id);
+		  }
+		  
         closeNotificationModal();
         showToast("Notificações ativadas.");
       } else {

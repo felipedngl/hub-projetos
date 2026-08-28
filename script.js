@@ -196,16 +196,6 @@ function hasUnreadClientMessage(stage) {
   );
 }
 
-function hasUnreadClientMessage(stage) {
-  if (!stage || !Array.isArray(stage.clientMessages)) return false;
-
-  return stage.clientMessages.some(
-    (message) =>
-      message.author === "client" &&
-      message.readByDesigner !== true
-  );
-}
-
 async function markDesignerMessagesAsReadByClient(stage) {
   if (!stage || !Array.isArray(stage.clientMessages)) return false;
 

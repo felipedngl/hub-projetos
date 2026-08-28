@@ -1077,8 +1077,7 @@ if (stage && Array.isArray(stage.clientMessages)) {
 }
     // Depois que a etapa abriu, marca as mensagens do designer
     // como lidas, sem bloquear a navegação.
-const p = currentProject();
-const stage = p?.stages?.[currentStage];
+const stage = currentProject()?.stages?.[currentStage];
 
 if (stage && Array.isArray(stage.clientMessages)) {
   let changed = false;

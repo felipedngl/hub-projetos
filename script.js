@@ -487,6 +487,26 @@ async function registerClientNotifications(projectId) {
   }
 }
 
+if (window.messaging) {
+  window.messaging.onMessage((payload) => {
+    console.log("Nova mensagem FCM recebida:", payload);
+
+    const title =
+      payload.notification?.title || "Menchë Interiores";
+
+    const body =
+      payload.notification?.body ||
+      "Você recebeu uma nova mensagem no Hub.";
+
+    if (Notification.permission === "granted") {
+      new Notification(title, {
+        body,
+        icon: "/favicon.ico"
+      });
+    }
+  });
+}
+
   async function deleteProjectFromCloud(projectId) {
     try {
       await db.collection("projects").doc(projectId).delete();

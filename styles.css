@@ -1674,3 +1674,73 @@ body.client-mode .stage-nav button {
     transition-duration: 0.01ms !important;
   }
 }
+
+.conversation-message-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.conversation-message:hover .conversation-message-actions,
+.conversation-message:focus-within .conversation-message-actions {
+  opacity: 1;
+}
+
+.conversation-message-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+  padding: 0;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  background: transparent;
+  color: var(--text-dim);
+
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition: all 0.18s ease;
+}
+
+.conversation-message-actions button:hover {
+  background: var(--accent-soft);
+  border-color: rgba(232, 106, 68, 0.4);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.conversation-message-actions .btn-message-delete:hover {
+  background: rgba(220, 80, 80, 0.08);
+  border-color: rgba(220, 80, 80, 0.35);
+  color: #d85c5c;
+}
+
+.conversation-message-actions button:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+  .conversation-message-actions {
+    opacity: 1;
+    margin-top: 8px;
+  }
+
+  .conversation-message-actions button {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    font-size: 17px;
+  }
+}

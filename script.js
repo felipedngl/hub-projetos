@@ -9,6 +9,44 @@
   /* Senha mestre do designer (altere aqui) e chave de persistência do desbloqueio */
   const MASTER_PASSWORD = "8452";
   const DESIGNER_KEY = "archDashV3_designer";
+const CLIENT_ACCESS_TTL = 7 * 24 * 60 * 60 * 1000;
+
+function getClientAccessKey(projectId) {
+  return `hub_client_access_${projectId}`;
+}
+
+function hasValidClientAccess(projectId) {
+  if (!projectId) return false;
+
+  const value = localStorage.getItem(
+    getClientAccessKey(projectId)
+  );
+
+  if (!value) return false;
+
+  const lastAccess = Number(value);
+
+  if (!Number.isFinite(lastAccess)) {
+    localStorage.removeItem(getClientAccessKey(projectId));
+    return false;
+  }
+
+  if (Date.now() - lastAccess >= CLIENT_ACCESS_TTL) {
+    localStorage.removeItem(getClientAccessKey(projectId));
+    return false;
+  }
+
+  return true;
+}
+
+function rememberClientAccess(projectId) {
+  if (!projectId) return;
+
+  localStorage.setItem(
+    getClientAccessKey(projectId),
+    String(Date.now())
+  );
+}
 
   /* ---------------- Configuração de etapas ---------------- */
   const STAGES = [

@@ -586,10 +586,22 @@ let saveQueue = Promise.resolve();
 async function saveProjects(customProjects = null) {
   saveQueue = saveQueue.then(async () => {
     try {
-      const listToSave = customProjects || projects;
+      let listToSave = customProjects;
+
+      if (!listToSave) {
+        const current = currentProject();
+
+        if (current) {
+          listToSave = [current];
+        } else {
+          listToSave = projects;
+        }
+      }
 
       for (const proj of listToSave) {
-        await db.collection("projects").doc(proj.id).set(proj, { merge: true });
+        await db.collection("projects").doc(proj.id).set(proj, {
+          merge: true
+        });
       }
 
       return true;

@@ -406,10 +406,74 @@ async function loadProjects() {
     }
   }
 
+let unsubscribeProjectListener = null;
+let projectListenerSnapshot = null;
+let messageAudioContext = null;
+
+function armMessageAudio() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    if (!messageAudioContext) messageAudioContext = new AudioCtx();
+    if (messageAudioContext.state === "suspended") {
+      messageAudioContext.resume().catch(() => {});
+    }
+  } catch (error) {
+    console.debug("Áudio de mensagens indisponível:", error);
+  }
+}
+
+document.addEventListener("pointerdown", armMessageAudio, { once: true });
+document.addEventListener("keydown", armMessageAudio, { once: true });
+
+function playMessageSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+
+    if (!messageAudioContext) messageAudioContext = new AudioCtx();
+
+    const ctx = messageAudioContext;
+    const start = () => {
+      const now = ctx.currentTime;
+      const gain = ctx.createGain();
+      const osc = ctx.createOscillator();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(1320, now + 0.11);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.045, now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.25);
+    };
+
+    if (ctx.state === "suspended") {
+      ctx.resume().then(start).catch(() => {});
+    } else {
+      start();
+    }
+  } catch (error) {
+    console.debug("Som de mensagem indisponível:", error);
+  }
+}
+
 function listenToCurrentProject(projectId) {
   if (!projectId) return null;
 
-  return db.collection("projects").doc(projectId).onSnapshot(
+  if (typeof unsubscribeProjectListener === "function") {
+    unsubscribeProjectListener();
+    unsubscribeProjectListener = null;
+  }
+
+  projectListenerSnapshot = null;
+
+  unsubscribeProjectListener = db.collection("projects").doc(projectId).onSnapshot(
     (doc) => {
       if (!doc.exists) return;
 
@@ -418,24 +482,62 @@ function listenToCurrentProject(projectId) {
         ...doc.data(),
       };
 
-      const index = projects.findIndex((p) => p.id === projectId);
+      const previous = projectListenerSnapshot;
+      const previousMessages = new Map();
 
+      if (previous?.stages) {
+        Object.values(previous.stages).forEach((stage) => {
+          (stage?.clientMessages || []).forEach((message) => {
+            previousMessages.set(message.id, message);
+          });
+        });
+      }
+
+      const incomingMessages = [];
+      Object.values(updatedProject.stages || {}).forEach((stage) => {
+        (stage?.clientMessages || []).forEach((message) => {
+          if (!previousMessages.has(message.id)) incomingMessages.push(message);
+        });
+      });
+
+      projectListenerSnapshot = updatedProject;
+
+      const index = projects.findIndex((p) => p.id === projectId);
       if (index !== -1) {
         projects[index] = updatedProject;
       } else {
         projects.push(updatedProject);
       }
 
-      // Atualiza a etapa que está aberta
+      incomingMessages.forEach((message) => {
+        const fromOtherSide =
+          (clientMode && message.author === "designer") ||
+          (!clientMode && !localPreview && message.author === "client");
+
+        if (fromOtherSide) {
+          playMessageSound();
+          showToast(
+            message.author === "client"
+              ? "Nova mensagem do cliente."
+              : "Nova mensagem da Menchë Interiores."
+          );
+        }
+      });
+
       if (currentProject()?.id === projectId) {
-        renderStage();
-        renderSidebar();
+        // Atualização automática não marca mensagens como lidas.
+        // Elas só são marcadas quando a etapa é aberta pelo usuário.
+        renderStage(true);
       }
+
+      renderSidebar();
     },
     (error) => {
       console.error("Erro no listener do projeto:", error);
     }
   );
+
+  return unsubscribeProjectListener;
 }
 
 let saveQueue = Promise.resolve();
@@ -499,6 +601,7 @@ async function registerClientNotifications(projectId) {
     }
 
     const token = await window.messaging.getToken({
+      vapidKey: "BDorpWYNAa_hPDGQMimAWCJoSGbacbdcoQQpyFl8fVVEr1Eu5Mb5ba71tbFWMPlZphEBkzo23VHb9faRH6UOs3o",
       serviceWorkerRegistration: registration
     });
 
@@ -521,7 +624,7 @@ async function registerClientNotifications(projectId) {
 
 if (window.messaging) {
   window.messaging.onMessage((payload) => {
-    console.log("Nova mensagem FCM recebida:", payload);
+    console.log("🔔 FCM CHEGOU EM TEMPO REAL:", payload);
 
     const title =
       payload.notification?.title || "Menchë Interiores";
@@ -530,11 +633,18 @@ if (window.messaging) {
       payload.notification?.body ||
       "Você recebeu uma nova mensagem no Hub.";
 
+    playMessageSound();
+    showToast(body);
+
     if (Notification.permission === "granted") {
-      new Notification(title, {
-        body,
-        icon: "/favicon.ico"
-      });
+      try {
+        new Notification(title, {
+          body,
+          icon: "/favicon.ico"
+        });
+      } catch (error) {
+        console.debug("Notificação do navegador indisponível:", error);
+      }
     }
   });
 }
@@ -898,6 +1008,11 @@ $$("#stageNav .stage-link").forEach((btn) => {
   }
 
   function showDashboard() {
+    if (typeof unsubscribeProjectListener === "function") {
+      unsubscribeProjectListener();
+      unsubscribeProjectListener = null;
+    }
+    projectListenerSnapshot = null;
     currentProjectId = null;
     document.querySelectorAll(".hub-locked").forEach((el) => el.remove());
     $("#view-project").hidden = true;
@@ -933,7 +1048,7 @@ $$("#stageNav .stage-link").forEach((btn) => {
   }
 
   /* ---------------- Render: etapa (proprietário) ---------------- */
-  function renderStage() {
+  function renderStage(autoRefresh = false) {
     const project = currentProject();
     const stage = STAGES.find((s) => s.id === currentStage);
     if (!project || !stage) return;
@@ -946,20 +1061,24 @@ $$("#stageNav .stage-link").forEach((btn) => {
     const s = project.stages[stage.id];
 	const container = $("#stageContainer");
 
-// Marca como lidas as mensagens do cliente ao abrir a etapa
-let messagesMarkedAsRead = false;
+// Mensagens recebidas do cliente só são marcadas como lidas
+// quando o designer realmente abre a etapa. Atualizações automáticas
+// do listener não devem apagar o aviso.
+if (!autoRefresh) {
+  let messagesMarkedAsRead = false;
 
-if (Array.isArray(s.clientMessages)) {
-  s.clientMessages.forEach((message) => {
-    if (message.author === "client" && message.readByDesigner !== true) {
-      message.readByDesigner = true;
-      messagesMarkedAsRead = true;
-    }
-  });
-}
+  if (Array.isArray(s.clientMessages)) {
+    s.clientMessages.forEach((message) => {
+      if (message.author === "client" && message.readByDesigner !== true) {
+        message.readByDesigner = true;
+        messagesMarkedAsRead = true;
+      }
+    });
+  }
 
-if (messagesMarkedAsRead) {
-  saveProjects();
+  if (messagesMarkedAsRead) {
+    saveProjects();
+  }
 }
 
     container.innerHTML = `
@@ -1305,9 +1424,7 @@ function stageConversationHTML(messages) {
         >
           <div class="conversation-message-head">
             <strong>${isClient ? "Cliente" : "Menchë Interiores"}</strong>
-            <span>
-  		  	  ${date}${message.editedAt ? " · editada" : ""}
-			</span>
+            <span>${date}${message.editedAt ? " · editada" : ""}</span>
           </div>
 
           <div class="conversation-message-text">
@@ -1320,21 +1437,23 @@ function stageConversationHTML(messages) {
                 <div class="conversation-message-actions">
                   <button
                     type="button"
-                    class="btn-message-edit"
+                    class="btn-message-action btn-message-edit"
                     data-message-id="${message.id}"
+                    aria-label="Editar mensagem"
+                    title="Editar mensagem"
                   >
-                    Editar
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                   </button>
-
                   <button
                     type="button"
-                    class="btn-message-delete"
+                    class="btn-message-action btn-message-delete"
                     data-message-id="${message.id}"
+                    aria-label="Apagar mensagem"
+                    title="Apagar mensagem"
                   >
-                    Apagar
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>
                   </button>
-                </div>
-              `
+                </div>`
               : ""
           }
         </div>`;
@@ -2489,7 +2608,6 @@ async function init() {
       const proceedClientReadOnly = () => {
         setClientMode(true);
         openProject(clientData.id);
-		listenToCurrentProject(clientData.id);
 
         const btnBack = $("#btnBack");
         const btnDelete = $("#btnDeleteProject");
@@ -2545,7 +2663,6 @@ async function init() {
       const proceedClientReadOnly = () => {
         setClientMode(true);
         openProject(clientData.id);
-		listenToCurrentProject(clientData.id);
 
         const btnBack = $("#btnBack");
         const btnDelete = $("#btnDeleteProject");

@@ -1,4 +1,5 @@
 import { initializeApp, cert, getApps } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 
 function getFirebaseApp() {
@@ -25,11 +26,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { token, title, body } = req.body || {};
+    const { projectId, title, body } = req.body || {};
 
-    if (!token) {
+    if (!projectId) {
       return res.status(400).json({
-        error: "Token FCM não informado",
+        error: "projectId não informado",
       });
     }
 
@@ -41,6 +42,29 @@ export default async function handler(req, res) {
 
     getFirebaseApp();
 
+    const db = getFirestore();
+
+    const snapshot = await db
+      .collection("fcmTokens")
+      .where("projectId", "==", projectId)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({
+        error: "Nenhum token encontrado para este projeto",
+      });
+    }
+
+    const tokenData = snapshot.docs[0].data();
+    const token = tokenData.token;
+
+    if (!token) {
+      return res.status(404).json({
+        error: "O projeto não possui um token FCM válido",
+      });
+    }
+
     const message = {
       token,
       notification: {
@@ -51,14 +75,14 @@ export default async function handler(req, res) {
 
     const response = await getMessaging().send(message);
 
-    console.log("Notificação FCM enviada:", response);
+    console.log("Notificação enviada:", response);
 
     return res.status(200).json({
       success: true,
       messageId: response,
     });
   } catch (error) {
-    console.error("Erro ao enviar notificação FCM:", error);
+    console.error("Erro ao enviar notificação:", error);
 
     return res.status(500).json({
       success: false,

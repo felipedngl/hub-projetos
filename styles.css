@@ -1738,3 +1738,6 @@ body.client-mode .stage-nav button {
     font-size: 17px;
   }
 }
+.conversation-message-actions {
+  opacity: 1;
+}

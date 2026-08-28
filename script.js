@@ -1213,9 +1213,6 @@ if (!autoRefresh) {
       });
     });
 
-if (messagesMarkedAsRead) {
-  saveProjects();
-}
 	const designerInput = $("#designerMessageInput");
     const designerButton = $("#btnSendDesignerMessage");
 

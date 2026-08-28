@@ -186,6 +186,16 @@ function hasUnreadDesignerMessage(stage) {
   );
 }
 
+function hasUnreadClientMessage(stage) {
+  if (!stage || !Array.isArray(stage.clientMessages)) return false;
+
+  return stage.clientMessages.some(
+    (message) =>
+      message.author === "client" &&
+      message.readByDesigner !== true
+  );
+}
+
 async function markDesignerMessagesAsReadByClient(stage) {
   if (!stage || !Array.isArray(stage.clientMessages)) return false;
 
@@ -197,6 +207,27 @@ async function markDesignerMessagesAsReadByClient(stage) {
       message.readByClient !== true
     ) {
       message.readByClient = true;
+      changed = true;
+    }
+  });
+
+  if (!changed) return false;
+
+  await saveProjects();
+  return true;
+}
+
+async function markClientMessagesAsReadByDesigner(stage) {
+  if (!stage || !Array.isArray(stage.clientMessages)) return false;
+
+  let changed = false;
+
+  stage.clientMessages.forEach((message) => {
+    if (
+      message.author === "client" &&
+      message.readByDesigner !== true
+    ) {
+      message.readByDesigner = true;
       changed = true;
     }
   });

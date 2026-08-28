@@ -1741,3 +1741,15 @@ body.client-mode .stage-nav button {
 .conversation-message-actions {
   opacity: 1;
 }
+/* Aviso de mensagem nova na etapa */
+.stage-link.has-unread-message {
+  background: #f28c28 !important;
+  border-color: #f28c28 !important;
+  color: #fff !important;
+}
+
+.stage-link.has-unread-message:hover {
+  background: #e67d17 !important;
+  border-color: #e67d17 !important;
+  color: #fff !important;
+}

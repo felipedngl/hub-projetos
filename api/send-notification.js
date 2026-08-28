@@ -71,6 +71,14 @@ export default async function handler(req, res) {
         title,
         body,
       },
+      data: {
+        projectId: String(projectId),
+      },
+      webpush: {
+        fcmOptions: {
+          link: `https://hub-projetos-ten.vercel.app/?projeto=${encodeURIComponent(projectId)}`,
+        },
+      },
     };
 
     const response = await getMessaging().send(message);

@@ -406,6 +406,38 @@ async function loadProjects() {
     }
   }
 
+function listenToCurrentProject(projectId) {
+  if (!projectId) return null;
+
+  return db.collection("projects").doc(projectId).onSnapshot(
+    (doc) => {
+      if (!doc.exists) return;
+
+      const updatedProject = {
+        id: doc.id,
+        ...doc.data(),
+      };
+
+      const index = projects.findIndex((p) => p.id === projectId);
+
+      if (index !== -1) {
+        projects[index] = updatedProject;
+      } else {
+        projects.push(updatedProject);
+      }
+
+      // Atualiza a etapa que está aberta
+      if (currentProject()?.id === projectId) {
+        renderStage();
+        renderSidebar();
+      }
+    },
+    (error) => {
+      console.error("Erro no listener do projeto:", error);
+    }
+  );
+}
+
 let saveQueue = Promise.resolve();
 
 async function saveProjects(customProjects = null) {
@@ -2311,6 +2343,7 @@ async function init() {
       const proceedClientReadOnly = () => {
         setClientMode(true);
         openProject(clientData.id);
+		listenToCurrentProject(clientData.id);
 
         const btnBack = $("#btnBack");
         const btnDelete = $("#btnDeleteProject");
@@ -2366,6 +2399,7 @@ async function init() {
       const proceedClientReadOnly = () => {
         setClientMode(true);
         openProject(clientData.id);
+		listenToCurrentProject(clientData.id);
 
         const btnBack = $("#btnBack");
         const btnDelete = $("#btnDeleteProject");

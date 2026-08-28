@@ -1039,9 +1039,42 @@ $$("#stageNav .stage-link").forEach((btn) => {
       item.classList.toggle("active", item === btn);
     });
 
-    // Abre a etapa imediatamente
-    renderStage();
+// Abre a etapa imediatamente
+renderStage();
 
+// Marca como lidas somente as mensagens
+// da etapa que acabou de ser aberta.
+const p = currentProject();
+const stage = p?.stages?.[currentStage];
+
+if (stage && Array.isArray(stage.clientMessages)) {
+  let changed = false;
+
+  stage.clientMessages.forEach((message) => {
+    if (clientMode) {
+      if (
+        message.author === "designer" &&
+        message.readByClient !== true
+      ) {
+        message.readByClient = true;
+        changed = true;
+      }
+    } else {
+      if (
+        message.author === "client" &&
+        message.readByDesigner !== true
+      ) {
+        message.readByDesigner = true;
+        changed = true;
+      }
+    }
+  });
+
+  if (changed) {
+    renderSidebar();
+    saveProjects();
+  }
+}
     // Depois que a etapa abriu, marca as mensagens do designer
     // como lidas, sem bloquear a navegação.
     if (clientMode) {
@@ -1148,22 +1181,6 @@ $$("#stageNav .stage-link").forEach((btn) => {
 // Mensagens recebidas do cliente só são marcadas como lidas
 // quando o designer realmente abre a etapa. Atualizações automáticas
 // do listener não devem apagar o aviso.
-if (!autoRefresh) {
-  let messagesMarkedAsRead = false;
-
-  if (Array.isArray(s.clientMessages)) {
-    s.clientMessages.forEach((message) => {
-      if (message.author === "client" && message.readByDesigner !== true) {
-        message.readByDesigner = true;
-        messagesMarkedAsRead = true;
-      }
-    });
-  }
-
-  if (messagesMarkedAsRead) {
-    saveProjects();
-  }
-}
 
     container.innerHTML = `
       <div class="stage-header">

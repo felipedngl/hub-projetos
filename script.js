@@ -482,6 +482,29 @@ async function markClientMessagesAsReadByDesigner(stage) {
 
   /* ---------------- Persistência ---------------- */
 
+async function loadClientProject(projectId) {
+  try {
+    if (!projectId) return null;
+
+    const snapshot = await db
+      .collection("projects")
+      .doc(String(projectId))
+      .get();
+
+    if (!snapshot.exists) {
+      return null;
+    }
+
+    return {
+      id: snapshot.id,
+      ...snapshot.data(),
+    };
+  } catch (error) {
+    console.error("Erro ao carregar projeto do cliente:", error);
+    return null;
+  }
+}
+
 async function loadProjects() {
     try {
       const snapshot = await db.collection("projects").get();
@@ -2783,8 +2806,82 @@ async function init() {
   btnBack.style.display = "none";
 }
 
-    // Carrega a lista do Firebase
-    const loadedProjects = await loadProjects();
+  // ============================================================
+  // AUTENTICAÇÃO DO CLIENTE
+  // ============================================================
+
+  if (isClientLink && !designerUnlocked && window.auth) {
+    const projetoParam = params.get("projeto");
+    const clienteParam = params.get("cliente");
+
+    openPasswordModal({
+      title: "Acesso ao Projeto",
+      hint: "Insira a senha de acesso enviada pelo designer.",
+      clientAccess: true,
+      cleanBackground: true,
+
+      onSuccess: async (value) => {
+        try {
+          const response = await fetch("/api/client-auth", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              projectId: projetoParam || null,
+              clientName: clienteParam || null,
+              password: value
+            })
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || !result.success) {
+            showToast(result.error || "Senha incorreta.", true);
+            return;
+          }
+
+          await window.auth.signInWithCustomToken(result.token);
+
+          closePasswordModal(true);
+
+          sessionStorage.setItem(
+  "authenticatedClientProjectId",
+  result.projectId
+);
+
+location.reload();
+
+        } catch (error) {
+          console.error("Erro ao autenticar cliente:", error);
+          showToast("Não foi possível validar o acesso.", true);
+        }
+      }
+    });
+
+    return;
+  }
+
+  // Carrega somente o projeto autorizado quando for acesso de cliente
+  let loadedProjects;
+
+  if (isClientLink && !designerUnlocked) {
+    const authenticatedProjectId =
+      window.__authenticatedClientProjectId ||
+      sessionStorage.getItem("authenticatedClientProjectId");
+
+    if (authenticatedProjectId) {
+      const clientProject = await loadClientProject(
+        authenticatedProjectId
+      );
+
+      loadedProjects = clientProject ? [clientProject] : [];
+    } else {
+      loadedProjects = [];
+    }
+  } else {
+    loadedProjects = await loadProjects();
+  }
     
     // Garante que 'projects' seja estritamente um Array de projetos
     if (Array.isArray(loadedProjects)) {
@@ -2835,12 +2932,8 @@ async function init() {
         if (btnDesigner) btnDesigner.hidden = true;
       };
 
-      if (
-  clientData.clientPassword &&
-  !designerUnlocked &&
-  !hasValidClientAccess(clientData.id)
-) {
-        openPasswordModal({
+      proceedClientReadOnly();
+      return;
           title: "Acesso ao Projeto",
           hint: `O projeto "${clientData.title}" está protegido. Insira a senha de acesso:`,
 		  clientAccess: true,
@@ -2894,12 +2987,8 @@ async function init() {
         if (btnDesigner) btnDesigner.hidden = true;
       };
 
-		if (
-  		clientData.clientPassword &&
-  		!designerUnlocked &&
-  		!hasValidClientAccess(clientData.id)
-		) {
-        openPasswordModal({
+      proceedClientReadOnly();
+      return;
           title: "Acesso do Cliente",
           hint: `O projeto "${clientData.title}" está protegido. Insira a senha de acesso:`,
 		  cleanBackground: true,

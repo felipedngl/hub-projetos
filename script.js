@@ -2934,24 +2934,6 @@ location.reload();
 
       proceedClientReadOnly();
       return;
-          title: "Acesso ao Projeto",
-          hint: `O projeto "${clientData.title}" está protegido. Insira a senha de acesso:`,
-		  clientAccess: true,
-		  cleanBackground: true,
-          onSuccess: (value) => {
-  	if (value === clientData.clientPassword) {
-	    rememberClientAccess(clientData.id);
-	    closePasswordModal(true);
-	    proceedClientReadOnly();
-	  } else {
- 	   showToast("Senha incorreta.", true);
-	  }
-	},
-    });
-      } else {
-        proceedClientReadOnly();
-      }
-      return;
     }
 
     // ============================================================

@@ -2719,6 +2719,10 @@ function closePasswordModal(authenticated = false) {
 
 async function init() {
     const params = new URLSearchParams(window.location.search);
+	const isClientLink =
+  	  params.has("cliente") || params.has("projeto");
+
+	document.body.classList.toggle("client-link", isClientLink);
 
     // Carrega a lista do Firebase
     const loadedProjects = await loadProjects();

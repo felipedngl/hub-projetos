@@ -2726,8 +2726,9 @@ async function init() {
   const btnBack = document.getElementById("btnBack");
 
   if (isClientLink && btnBack) {
-    btnBack.hidden = true;
-  }
+  btnBack.hidden = true;
+  btnBack.style.display = "none";
+}
 
     // Carrega a lista do Firebase
     const loadedProjects = await loadProjects();

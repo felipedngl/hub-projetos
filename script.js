@@ -2718,11 +2718,16 @@ function closePasswordModal(authenticated = false) {
   }
 
 async function init() {
-    const params = new URLSearchParams(window.location.search);
-	const isClientLink =
-  	  params.has("cliente") || params.has("projeto");
+  const params = new URLSearchParams(window.location.search);
 
-	document.body.classList.toggle("client-link", isClientLink);
+  const isClientLink =
+    params.has("cliente") || params.has("projeto");
+
+  const btnBack = document.getElementById("btnBack");
+
+  if (isClientLink && btnBack) {
+    btnBack.hidden = true;
+  }
 
     // Carrega a lista do Firebase
     const loadedProjects = await loadProjects();

@@ -2568,10 +2568,10 @@ function closePasswordModal(authenticated = false) {
   passwordModal.style.display = "none";
   document.body.style.overflow = "";
 
-  if (wasClientPassword && !authenticated) {
-    window.location.replace(window.location.pathname);
-    return;
-  }
+if (wasClientPassword && !authenticated) {
+  showHubLocked();
+  return;
+}
 
   if (wasHubPassword && !authenticated) {
     showHubLocked();
@@ -2796,40 +2796,145 @@ openPasswordModal({
 async function init() {
   const params = new URLSearchParams(window.location.search);
 
-  const isClientLink =
-    params.has("cliente") || params.has("projeto");
+  const clienteParam = params.get("cliente");
+  const projetoParam = params.get("projeto");
+
+  const isClientLink = Boolean(clienteParam || projetoParam);
 
   const btnBack = document.getElementById("btnBack");
 
+  // Link de cliente nunca deve mostrar o botão Painel
   if (isClientLink && btnBack) {
-  btnBack.hidden = true;
-  btnBack.style.display = "none";
-}
+    btnBack.hidden = true;
+    btnBack.style.display = "none";
+  }
 
   // ============================================================
-  // AUTENTICAÇÃO DO CLIENTE
+  // ACESSO DE CLIENTE
   // ============================================================
 
-  if (isClientLink && !designerUnlocked && window.auth) {
-    const projetoParam = params.get("projeto");
-    const clienteParam = params.get("cliente");
+  if (isClientLink && !designerUnlocked) {
+
+    // Se já existe uma sessão de cliente neste navegador,
+    // tenta recuperar o projeto autorizado.
+    const authenticatedProjectId =
+      sessionStorage.getItem("authenticatedClientProjectId");
+
+    if (authenticatedProjectId) {
+
+      const clientProject = await loadClientProject(
+        authenticatedProjectId
+      );
+
+      if (clientProject) {
+        projects = [clientProject];
+
+        setClientMode(true);
+        openProject(clientProject.id);
+
+        if (btnBack) {
+          btnBack.hidden = true;
+          btnBack.style.display = "none";
+        }
+
+        return;
+      }
+
+      sessionStorage.removeItem("authenticatedClientProjectId");
+    }
+
+    // ----------------------------------------------------------
+    // Ainda não autenticado: precisamos descobrir o projeto
+    // usando uma consulta pública SOMENTE para localizar o projeto.
+    // ----------------------------------------------------------
+
+    let clientData = null;
+
+    try {
+      if (projetoParam) {
+
+        const snapshot = await db
+          .collection("projects")
+          .doc(String(projetoParam))
+          .get();
+
+        if (snapshot.exists) {
+          clientData = {
+            id: snapshot.id,
+            ...snapshot.data()
+          };
+        }
+
+      } else if (clienteParam) {
+
+        const snapshot = await db
+          .collection("projects")
+          .where("client", "==", String(clienteParam))
+          .limit(1)
+          .get();
+
+        if (!snapshot.empty) {
+          const doc = snapshot.docs[0];
+
+          clientData = {
+            id: doc.id,
+            ...doc.data()
+          };
+        }
+      }
+
+    } catch (error) {
+      console.error(
+        "Erro ao localizar projeto do cliente:",
+        error
+      );
+    }
+
+    if (!clientData) {
+      showClientError();
+      return;
+    }
+
+    projects = [clientData];
+
+    // ----------------------------------------------------------
+    // PROJETO SEM SENHA
+    // ----------------------------------------------------------
+
+    if (!clientData.clientPassword) {
+
+      setClientMode(true);
+      openProject(clientData.id);
+
+      if (btnBack) {
+        btnBack.hidden = true;
+        btnBack.style.display = "none";
+      }
+
+      return;
+    }
+
+    // ----------------------------------------------------------
+    // PROJETO COM SENHA
+    // ----------------------------------------------------------
 
     openPasswordModal({
-      title: "Acesso ao Projeto",
-      hint: "Insira a senha de acesso enviada pelo designer.",
+      title: "Acesso do Cliente",
+      hint: `O projeto "${clientData.title}" está protegido. Insira a senha de acesso:`,
       clientAccess: true,
       cleanBackground: true,
 
       onSuccess: async (value) => {
+
         try {
+
           const response = await fetch("/api/client-auth", {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              projectId: projetoParam || null,
-              clientName: clienteParam || null,
+              projectId: clientData.id,
               password: value
             })
           });
@@ -2837,24 +2942,41 @@ async function init() {
           const result = await response.json();
 
           if (!response.ok || !result.success) {
-            showToast(result.error || "Senha incorreta.", true);
+            showToast(
+              result.error || "Senha incorreta.",
+              true
+            );
             return;
           }
 
-          await window.auth.signInWithCustomToken(result.token);
+          // Autentica este navegador como o cliente
+          // usando o token criado pela API.
+          await window.auth.signInWithCustomToken(
+            result.token
+          );
+
+          sessionStorage.setItem(
+            "authenticatedClientProjectId",
+            result.projectId
+          );
 
           closePasswordModal(true);
 
-          sessionStorage.setItem(
-  "authenticatedClientProjectId",
-  result.projectId
-);
-
-location.reload();
+          // Recarrega agora que o Firebase já reconhece
+          // este navegador como cliente autenticado.
+          window.location.reload();
 
         } catch (error) {
-          console.error("Erro ao autenticar cliente:", error);
-          showToast("Não foi possível validar o acesso.", true);
+
+          console.error(
+            "Erro ao autenticar cliente:",
+            error
+          );
+
+          showToast(
+            "Não foi possível validar o acesso.",
+            true
+          );
         }
       }
     });
@@ -2862,130 +2984,35 @@ location.reload();
     return;
   }
 
-  // Carrega somente o projeto autorizado quando for acesso de cliente
-  let loadedProjects;
+  // ============================================================
+  // ACESSO NORMAL DO DESIGNER
+  // ============================================================
 
-  if (isClientLink && !designerUnlocked) {
-    const authenticatedProjectId =
-      window.__authenticatedClientProjectId ||
-      sessionStorage.getItem("authenticatedClientProjectId");
+  if (designerUnlocked) {
 
-    if (authenticatedProjectId) {
-      const clientProject = await loadClientProject(
-        authenticatedProjectId
-      );
+    const loadedProjects = await loadProjects();
 
-      loadedProjects = clientProject ? [clientProject] : [];
-    } else {
-      loadedProjects = [];
-    }
-  } else {
-    loadedProjects = await loadProjects();
-  }
-    
-    // Garante que 'projects' seja estritamente um Array de projetos
     if (Array.isArray(loadedProjects)) {
       projects = loadedProjects;
     } else {
-      projects = Array.isArray(initialProjects) ? initialProjects : [];
+      projects = Array.isArray(initialProjects)
+        ? initialProjects
+        : [];
     }
 
-    // ============================================================
-    // 1. ACESSO DO CLIENTE POR NOME (?cliente=Nome)
-    // ============================================================
-    const clienteParam = params.get("cliente");
+    applyAccessUI();
+    renderDashboard();
+    updateClientButton();
 
-    if (clienteParam) {
-	  $$(".view").forEach((v) => (v.hidden = true));
-	
-      const normalize = (value) =>
-        String(value || "")
-          .trim()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase();
-
-      const clienteBusca = normalize(clienteParam);
-      const clientData = projects.find((p) => normalize(p.client) === clienteBusca);
-
-      if (!clientData) {
-        showClientError();
-        return;
-      }
-
-      projects = [clientData];
-
-      const proceedClientReadOnly = () => {
-        setClientMode(true);
-        openProject(clientData.id);
-
-        const btnBack = $("#btnBack");
-        const btnDelete = $("#btnDeleteProject");
-        const btnShare = $("#btnShareProject");
-        const btnClient = $("#btnClientView");
-        const btnDesigner = $("#btnDesignerAccess");
-
-        if (btnBack) btnBack.hidden = true;
-        if (btnDelete) btnDelete.hidden = true;
-        if (btnShare) btnShare.hidden = true;
-        if (btnClient) btnClient.hidden = true;
-        if (btnDesigner) btnDesigner.hidden = true;
-      };
-
-      proceedClientReadOnly();
-      return;
-    }
-
-    // ============================================================
-    // 2. COMPATIBILIDADE COM ?projeto=ID
-    // ============================================================
-    const projetoParam = params.get("projeto");
-
-    if (projetoParam) {
-	  $$(".view").forEach((v) => (v.hidden = true));
-      const clientData = projects.find((p) => p.id === projetoParam);
-
-      if (!clientData) {
-        showClientError();
-        return;
-      }
-
-      projects = [clientData];
-
-      const proceedClientReadOnly = () => {
-        setClientMode(true);
-        openProject(clientData.id);
-
-        const btnBack = $("#btnBack");
-        const btnDelete = $("#btnDeleteProject");
-        const btnShare = $("#btnShareProject");
-        const btnClient = $("#btnClientView");
-        const btnDesigner = $("#btnDesignerAccess");
-
-        if (btnBack) btnBack.hidden = true;
-        if (btnDelete) btnDelete.hidden = true;
-        if (btnShare) btnShare.hidden = true;
-        if (btnClient) btnClient.hidden = true;
-        if (btnDesigner) btnDesigner.hidden = true;
-      };
-
-      proceedClientReadOnly();
-      return;
-    }
-
-    // ============================================================
-    // 3. ACESSO NORMAL AO PAINEL DO DESIGNER
-    // ============================================================
-    if (designerUnlocked) {
-      applyAccessUI();
-      renderDashboard();
-      updateClientButton();
-      return;
-    }
-
-    // Sem ?cliente= ou ?projeto=: HUB bloqueado
-    showHubLocked();
+    return;
   }
+
+  // ============================================================
+  // NINGUÉM AUTENTICADO
+  // ============================================================
+
+  showHubLocked();
+}
 
 function setupClientNotificationPrompt() {
   const notificationModal = document.getElementById("notificationModal");

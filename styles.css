@@ -1660,6 +1660,12 @@ body.client-mode .stage-nav button {
     padding: 18px;
   }
 
+.modal--narrow {
+  width: calc(100vw - 24px);
+  max-width: calc(100vw - 24px);
+  min-width: 0;
+}
+
   .modal-overlay {
   padding: 12px;
   align-items: center;

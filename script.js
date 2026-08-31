@@ -1385,6 +1385,34 @@ function renderStageClient(project, stage) {
 
   const input = $("#clientMessageInput");
   const sendButton = $("#btnSendClientMessage");
+  // Liga os botões de arquivo do cliente
+  $$("#stageContainer .client-file-download").forEach((button) => {
+    button.addEventListener("click", () => {
+      const fileId = button.dataset.fileId;
+      const file = (s.files || []).find((f) => f.id === fileId);
+
+      if (!file || !file.dataUrl) {
+        showToast("Arquivo não encontrado.", true);
+        return;
+      }
+
+      openClientFile(file.dataUrl, file.name, true);
+    });
+  });
+
+  $$("#stageContainer .client-file-view").forEach((button) => {
+    button.addEventListener("click", () => {
+      const fileId = button.dataset.fileId;
+      const file = (s.files || []).find((f) => f.id === fileId);
+
+      if (!file || !file.dataUrl) {
+        showToast("Arquivo não encontrado.", true);
+        return;
+      }
+
+      openClientFile(file.dataUrl, file.name, false);
+    });
+  });
 
 $$("#stageConversation .btn-message-edit").forEach((button) => {
   button.addEventListener("click", async () => {
@@ -1565,21 +1593,28 @@ function clientFilesHTML(files) {
         ? `<img src="${f.dataUrl}" alt="${escapeHTML(f.name)}" />`
         : ICONS.fileDoc;
 
-      const canDownload = f.allowClientDownload === true;
+const canDownload = f.allowClientDownload === true;
 
-      const action = canDownload
+const action = `
+  <div class="file-actions">
+    <button
+      type="button"
+      class="file-open client-file-view"
+      data-file-id="${f.id}"
+    >Visualizar</button>
+
+    ${
+      canDownload
         ? `
           <button
             type="button"
             class="file-open client-file-download"
             data-file-id="${f.id}"
           >Baixar</button>`
-        : `
-          <button
-            type="button"
-            class="file-open client-file-view"
-            data-file-id="${f.id}"
-          >Visualizar</button>`;
+        : ""
+    }
+  </div>
+`;
 
       return `
         <div class="file-item">

@@ -1660,6 +1660,22 @@ body.client-mode .stage-nav button {
     padding: 18px;
   }
 
+  .modal-overlay {
+  padding: 12px;
+  align-items: center;
+}
+
+.modal {
+  width: min(100%, 540px);
+  max-width: 100%;
+  max-height: calc(100dvh - 24px);
+  box-sizing: border-box;
+}
+
+.modal-header {
+  padding: 18px;
+}
+
   .contract-form .field-row {
     grid-template-columns: 1fr;
     gap: 0;

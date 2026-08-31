@@ -2502,12 +2502,13 @@ function openPasswordModal(opts) {
   setTimeout(() => $("#passwordInput").focus(), 60);
 }
 
-  function closePasswordModal() {
-    passwordOnSuccess = null;
-    passwordModal.hidden = true;
-    passwordModal.style.display = "none";
-    document.body.style.overflow = "";
-  }
+function closePasswordModal() {
+  passwordOnSuccess = null;
+  passwordModal.hidden = true;
+  passwordModal.style.display = "none";
+  document.body.style.overflow = "";
+  document.body.classList.remove("client-password-mode");
+}
 
   $("#btnConfirmPassword").addEventListener("click", () => {
     const cb = passwordOnSuccess;

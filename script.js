@@ -1013,7 +1013,7 @@ function renderDashboard() {
 
     $("#stageNav").innerHTML =
       '<div class="stage-nav-title">Etapas do projeto</div>' +
-      navStages.map((stage) => {
+      navStages.map((stage, index) => {
   const done = stageHasContent(p, stage);
 
   const unread = clientMode
@@ -1025,7 +1025,9 @@ function renderDashboard() {
       stage.id === currentStage ? "active" : ""
     } ${unread ? "has-unread-message" : ""}" data-stage="${stage.id}">
       ${ICONS[stage.id]}
-      <span class="nav-label">${stage.label}</span>
+      <span class="nav-label">${
+  index < 7 ? `${index + 1}. ` : ""
+}${stage.label}</span>
       <span class="nav-dot ${done ? "done" : ""}" title="${done ? "Etapa com conteúdo" : "Etapa vazia"}"></span>
     </button>`;
 }).join("");

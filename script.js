@@ -2850,7 +2850,7 @@ async function init() {
     		rememberClientAccess(clientData.id);
   		}
 
-  		closePasswordModal();
+  		closePasswordModal(true);
   		proceedClientReadOnly();
 
               if (value === MASTER_PASSWORD) {

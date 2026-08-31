@@ -2736,6 +2736,8 @@ async function init() {
     const clienteParam = params.get("cliente");
 
     if (clienteParam) {
+	  $$(".view").forEach((v) => (v.hidden = true));
+	
       const normalize = (value) =>
         String(value || "")
           .trim()
@@ -2806,6 +2808,7 @@ async function init() {
     const projetoParam = params.get("projeto");
 
     if (projetoParam) {
+	  $$(".view").forEach((v) => (v.hidden = true));
       const clientData = projects.find((p) => p.id === projetoParam);
 
       if (!clientData) {

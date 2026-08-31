@@ -2774,16 +2774,19 @@ if (btnBack) {
 openPasswordModal({
   title: "MENCHË INTERIORES",
   hint: "Acesso ao HUB de Projetos Menchë Interiores",
-  onSuccess: async (value) => {
+onSuccess: async (value) => {
     try {
       await window.auth.signInWithEmailAndPassword(
         DESIGNER_EMAIL,
         value
       );
 
+      unlockDesigner();
+
       closePasswordModal(true);
       showToast("Acesso do designer liberado.");
       location.reload();
+
     } catch (error) {
       console.error("Erro no login do designer:", error);
       showToast("Senha incorreta.", true);

@@ -1111,6 +1111,10 @@ function openProject(id) {
   }
 
   function showDashboard() {
+  if (!designerUnlocked && !clientMode) {
+    showHubLocked();
+    return;
+  }
     if (typeof unsubscribeProjectListener === "function") {
       unsubscribeProjectListener();
       unsubscribeProjectListener = null;
@@ -2697,6 +2701,11 @@ function closePasswordModal(authenticated = false) {
   }
 
   function showHubLocked() {
+	const btnBack = $("#btnBack");
+if (btnBack) {
+  btnBack.hidden = true;
+  btnBack.style.display = "none";
+}
     $$(".view").forEach((v) => (v.hidden = true));
     document.querySelectorAll(".hub-locked").forEach((el) => el.remove());
     const locked = document.createElement("div");

@@ -26,11 +26,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { projectId, password } = req.body || {};
+    const {
+      projectId,
+      clientName,
+      password
+    } = req.body || {};
 
-    if (!projectId || !password) {
+    if ((!projectId && !clientName) || !password) {
       return res.status(400).json({
-        error: "Projeto e senha são obrigatórios",
+        error: "Projeto/cliente e senha são obrigatórios",
       });
     }
 
@@ -38,12 +42,26 @@ export default async function handler(req, res) {
 
     const db = getFirestore();
 
-    const projectDoc = await db
-      .collection("projects")
-      .doc(String(projectId))
-      .get();
+    let projectDoc = null;
 
-    if (!projectDoc.exists) {
+    if (projectId) {
+      projectDoc = await db
+        .collection("projects")
+        .doc(String(projectId))
+        .get();
+    } else {
+      const snapshot = await db
+        .collection("projects")
+        .where("client", "==", String(clientName))
+        .limit(1)
+        .get();
+
+      if (!snapshot.empty) {
+        projectDoc = snapshot.docs[0];
+      }
+    }
+
+    if (!projectDoc || !projectDoc.exists) {
       return res.status(404).json({
         error: "Projeto não encontrado",
       });
@@ -63,18 +81,20 @@ export default async function handler(req, res) {
       });
     }
 
-    const uid = `client_${String(projectId)}`;
+    const resolvedProjectId = String(projectDoc.id);
+    const uid = `client_${resolvedProjectId}`;
 
     const customToken = await getAuth().createCustomToken(uid, {
       role: "client",
-      projectId: String(projectId),
+      projectId: resolvedProjectId,
     });
 
     return res.status(200).json({
       success: true,
       token: customToken,
-      projectId: String(projectId),
+      projectId: resolvedProjectId,
     });
+
   } catch (error) {
     console.error("Erro na autenticação do cliente:", error);
 

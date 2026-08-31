@@ -1109,7 +1109,11 @@ if (stage && Array.isArray(stage.clientMessages)) {
     renderSidebar();
     saveProjects();
   }
-}
+  });
+
+  });
+
+  }
 
   function openProject(id) {
   currentProjectId = id;

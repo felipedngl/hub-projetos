@@ -2482,18 +2482,15 @@ $("#btnNewProject").addEventListener("click", () => {
   /* ---------------- Modal de senha ---------------- */
   const passwordModal = $("#passwordModal");
   let passwordOnSuccess = null;
+  let clientPasswordPending = false;
 
 function openPasswordModal(opts) {
   passwordOnSuccess = opts.onSuccess || null;
+  clientPasswordPending = opts.clientAccess === true;
 
   $("#passwordModalTitle").textContent = opts.title || "Acesso";
   $("#passwordModalHint").textContent = opts.hint || "";
   $("#passwordInput").value = "";
-
-  document.body.classList.toggle(
-    "client-password-mode",
-    opts.cleanBackground === true
-  );
 
   passwordModal.hidden = false;
   passwordModal.style.display = "flex";
@@ -2502,12 +2499,19 @@ function openPasswordModal(opts) {
   setTimeout(() => $("#passwordInput").focus(), 60);
 }
 
-function closePasswordModal() {
+function closePasswordModal(authenticated = false) {
+  const wasClientPassword = clientPasswordPending;
+
   passwordOnSuccess = null;
+  clientPasswordPending = false;
+
   passwordModal.hidden = true;
   passwordModal.style.display = "none";
   document.body.style.overflow = "";
-  document.body.classList.remove("client-password-mode");
+
+  if (wasClientPassword && !authenticated) {
+    window.location.replace(window.location.pathname);
+  }
 }
 
   $("#btnConfirmPassword").addEventListener("click", () => {
@@ -2699,6 +2703,7 @@ function closePasswordModal() {
       openPasswordModal({
         title: "Acesso ao HUB",
         hint: "Digite a senha mestre do designer para abrir o HUB de Projetos.",
+		clientAccess: true,
         onSuccess: (value) => {
           if (value === MASTER_PASSWORD) {
             sessionStorage.setItem(DESIGNER_KEY, "true");
@@ -2773,14 +2778,15 @@ async function init() {
         openPasswordModal({
           title: "Acesso ao Projeto",
           hint: `O projeto "${clientData.title}" está protegido. Insira a senha de acesso:`,
+		  clientAccess: true,
 		  cleanBackground: true,
           onSuccess: (value) => {
             if (value === clientData.clientPassword) {
  			 rememberClientAccess(clientData.id);
- 			 closePasswordModal();
+ 			 closePasswordModal(true);
  			 proceedClientReadOnly();
 			} else if (value === MASTER_PASSWORD) {
-              closePasswordModal();
+              closePasswordModal(true);
               proceedClientReadOnly();
               showToast("Projeto aberto em modo somente leitura.");
             } else {

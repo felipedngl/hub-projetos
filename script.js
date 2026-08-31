@@ -4,11 +4,10 @@
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
 
-  const STORAGE_KEY = "archDashV3";
-
   /* Senha mestre do designer (altere aqui) e chave de persistência do desbloqueio */
-  const MASTER_PASSWORD = "8452";
-  const DESIGNER_KEY = "archDashV3_designer";
+const STORAGE_KEY = "archDashV3";
+const DESIGNER_KEY = "archDashV3_designer";
+const DESIGNER_EMAIL = "mencheinteriores@outlook.com";
 const CLIENT_ACCESS_TTL = 7 * 24 * 60 * 60 * 1000;
 
 function getClientAccessKey(projectId) {
@@ -145,7 +144,32 @@ function rememberClientAccess(projectId) {
   let uploadedImage = null;
   let clientMode = false;
   let localPreview = false;
-  let designerUnlocked = sessionStorage.getItem(DESIGNER_KEY) === "true";
+  let designerUnlocked = false;
+  	if (window.auth) {
+  window.auth.onAuthStateChanged((user) => {
+    const wasUnlocked = designerUnlocked;
+
+    designerUnlocked = !!user;
+
+    if (designerUnlocked) {
+      sessionStorage.setItem(DESIGNER_KEY, "true");
+
+      if (!wasUnlocked) {
+        applyAccessUI();
+
+        if (!clientMode && !currentProjectId) {
+          renderDashboard();
+        }
+      }
+    } else {
+      sessionStorage.removeItem(DESIGNER_KEY);
+
+      if (wasUnlocked) {
+        showHubLocked();
+      }
+    }
+  });
+}
 
   /* ---------------- Acesso / modos de exibição ---------------- */
   function readOnlyView() {
@@ -2468,20 +2492,25 @@ $("#btnNewProject").addEventListener("click", () => {
       }
       return;
     }
-    openPasswordModal({
-      title: "Acesso Restrito",
-      hint: "Digite a senha para ver todos os projetos sem restrições.",
-      onSuccess: (value) => {
-        if (value === MASTER_PASSWORD) {
-          unlockDesigner();
-          closePasswordModal();
-          showToast("Acesso do designer liberado.");
-        } else {
-          showToast("Senha incorreta.", true);
-        }
-      },
-    });
-  });
+openPasswordModal({
+  title: "Acesso Restrito",
+  hint: "Digite a senha para ver todos os projetos sem restrições.",
+  onSuccess: async (value) => {
+    try {
+      await window.auth.signInWithEmailAndPassword(
+        DESIGNER_EMAIL,
+        value
+      );
+
+      closePasswordModal(true);
+      showToast("Acesso do designer liberado.");
+    } catch (error) {
+      console.error("Erro no login do designer:", error);
+      showToast("Senha incorreta.", true);
+    }
+  },
+});
+});
 
   /* ---------------- Modal de senha ---------------- */
   const passwordModal = $("#passwordModal");
@@ -2719,22 +2748,27 @@ if (btnBack) {
     document.getElementById("btnHubUnlock").addEventListener("click", () => {
 	  hubPasswordPending = true;
 		
-      openPasswordModal({
-        title: "MENCHË INTERIORES",
-        hint: "Acesso ao HUB de Projetos Menchë Interiores",
-		clientAccess: true,
-        onSuccess: (value) => {
-          if (value === MASTER_PASSWORD) {
-            sessionStorage.setItem(DESIGNER_KEY, "true");
-            closePasswordModal(true);
-            location.reload();
-          } else {
-            showToast("Senha incorreta.", true);
-          }
-        },
-      });
-    });
-  }
+openPasswordModal({
+  title: "MENCHË INTERIORES",
+  hint: "Acesso ao HUB de Projetos Menchë Interiores",
+  onSuccess: async (value) => {
+    try {
+      await window.auth.signInWithEmailAndPassword(
+        DESIGNER_EMAIL,
+        value
+      );
+
+      closePasswordModal(true);
+      showToast("Acesso do designer liberado.");
+      location.reload();
+    } catch (error) {
+      console.error("Erro no login do designer:", error);
+      showToast("Senha incorreta.", true);
+    }
+  },
+});
+});
+}
 
 async function init() {
   const params = new URLSearchParams(window.location.search);

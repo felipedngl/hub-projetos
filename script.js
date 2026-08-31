@@ -1109,7 +1109,6 @@ if (stage && Array.isArray(stage.clientMessages)) {
     renderSidebar();
     saveProjects();
   }
-  });
 
   });
 

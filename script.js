@@ -1042,79 +1042,48 @@ $$("#stageNav .stage-link").forEach((btn) => {
 // Abre a etapa imediatamente
 renderStage();
 
-// Marca como lidas somente as mensagens
-// da etapa que acabou de ser aberta.
-const p = currentProject();
-const stage = p?.stages?.[currentStage];
+    // Marca como lidas somente as mensagens
+    // da etapa que acabou de ser aberta.
+    const p = currentProject();
+    const stage = p?.stages?.[currentStage];
 
-if (stage && Array.isArray(stage.clientMessages)) {
-  let changed = false;
+    if (stage && Array.isArray(stage.clientMessages)) {
+      let changed = false;
 
-  stage.clientMessages.forEach((message) => {
-    if (clientMode) {
-      if (
-        message.author === "designer" &&
-        message.readByClient !== true
-      ) {
-        message.readByClient = true;
-        changed = true;
-      }
-    } else {
-      if (
-        message.author === "client" &&
-        message.readByDesigner !== true
-      ) {
-        message.readByDesigner = true;
-        changed = true;
+      stage.clientMessages.forEach((message) => {
+        if (clientMode) {
+          // Cliente abriu a etapa:
+          // marca mensagens do designer como lidas.
+          if (
+            message.author === "designer" &&
+            message.readByClient !== true
+          ) {
+            message.readByClient = true;
+            changed = true;
+          }
+        } else {
+          // Designer abriu a etapa:
+          // marca mensagens do cliente como lidas.
+          if (
+            message.author === "client" &&
+            message.readByDesigner !== true
+          ) {
+            message.readByDesigner = true;
+            changed = true;
+          }
+        }
+      });
+
+      if (changed) {
+        renderSidebar();
+        saveProjects();
       }
     }
   });
-
-  if (changed) {
-    renderSidebar();
-    saveProjects();
-  }
+});
 }
-    // Depois que a etapa abriu, marca as mensagens do designer
-    // como lidas, sem bloquear a navegação.
 
-if (stage && Array.isArray(stage.clientMessages)) {
-  let changed = false;
-
-  stage.clientMessages.forEach((message) => {
-    if (clientMode) {
-      // Cliente abriu a etapa:
-      // marca mensagens do designer como lidas.
-      if (
-        message.author === "designer" &&
-        message.readByClient !== true
-      ) {
-        message.readByClient = true;
-        changed = true;
-      }
-    } else {
-      // Designer abriu a etapa:
-      // marca mensagens do cliente como lidas.
-      if (
-        message.author === "client" &&
-        message.readByDesigner !== true
-      ) {
-        message.readByDesigner = true;
-        changed = true;
-      }
-    }
-  });
-
-  if (changed) {
-    renderSidebar();
-    saveProjects();
-  }
-
-  });
-
-  }
-
-  function openProject(id) {
+function openProject(id) {
   currentProjectId = id;
   listenToCurrentProject(id);
   

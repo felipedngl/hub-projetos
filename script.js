@@ -2846,19 +2846,15 @@ async function init() {
 		  clientAccess: true,
 		  cleanBackground: true,
           onSuccess: (value) => {
-            if (value === clientData.clientPassword) {
- 			 rememberClientAccess(clientData.id);
- 			 closePasswordModal(true);
- 			 proceedClientReadOnly();
-			} else if (value === MASTER_PASSWORD) {
-              closePasswordModal(true);
-              proceedClientReadOnly();
-              showToast("Projeto aberto em modo somente leitura.");
-            } else {
-              showToast("Senha incorreta.", true);
-            }
-          },
-        });
+  	if (value === clientData.clientPassword) {
+	    rememberClientAccess(clientData.id);
+	    closePasswordModal(true);
+	    proceedClientReadOnly();
+	  } else {
+ 	   showToast("Senha incorreta.", true);
+	  }
+	},
+    });
       } else {
         proceedClientReadOnly();
       }
@@ -2908,25 +2904,15 @@ async function init() {
           hint: `O projeto "${clientData.title}" está protegido. Insira a senha de acesso:`,
 		  cleanBackground: true,
           onSuccess: (value) => {
-            if (
-		  value === clientData.clientPassword ||
-		  value === MASTER_PASSWORD
-		) {
-		  if (value === clientData.clientPassword) {
-    		rememberClientAccess(clientData.id);
-  		}
-
-  		closePasswordModal(true);
-  		proceedClientReadOnly();
-
-              if (value === MASTER_PASSWORD) {
-                showToast("Projeto aberto em modo somente leitura.");
-              }
-            } else {
-              showToast("Senha incorreta.", true);
-            }
-          },
-        });
+  if (value === clientData.clientPassword) {
+    rememberClientAccess(clientData.id);
+    closePasswordModal(true);
+    proceedClientReadOnly();
+  } else {
+    showToast("Senha incorreta.", true);
+  }
+},
+});
       } else {
         proceedClientReadOnly();
       }

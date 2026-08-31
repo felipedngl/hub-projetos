@@ -1775,3 +1775,18 @@ body.client-mode .stage-nav button {
   border-color: #e67d17 !important;
   color: #fff !important;
 }
+
+/* ---------- Acesso do cliente: tela limpa ---------- */
+
+body.client-password-mode .modal-overlay {
+  background: var(--bg-dark);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.client-password-mode .modal--narrow {
+  width: min(440px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  min-width: 0;
+  box-sizing: border-box;
+}

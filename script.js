@@ -1928,21 +1928,28 @@ function clientContractsHTML(project) {
 
       // Arquivos: visualizar sempre.
       // Download somente se você tiver liberado.
-      const canDownload = c.allowClientDownload === true;
+const canDownload = c.allowClientDownload === true;
 
-const action = canDownload
-  ? `
-    <a
-      class="file-open"
-      href="${c.value}"
-      download="${escapeHTML(c.fileName || c.name)}"
-    >Baixar</a>`
-  : `
+const action = `
+  <div class="file-actions">
     <button
       type="button"
       class="file-open contract-view-file"
       data-contract-id="${c.id}"
-    >Visualizar</button>`;
+    >Visualizar</button>
+
+    ${
+      canDownload
+        ? `
+          <a
+            class="file-open"
+            href="${c.value}"
+            download="${escapeHTML(c.fileName || c.name)}"
+          >Baixar</a>`
+        : ""
+    }
+  </div>
+`;
 
       return `
         <div class="contract-item">

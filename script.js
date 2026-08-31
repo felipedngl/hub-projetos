@@ -2483,16 +2483,24 @@ $("#btnNewProject").addEventListener("click", () => {
   const passwordModal = $("#passwordModal");
   let passwordOnSuccess = null;
 
-  function openPasswordModal(opts) {
-    passwordOnSuccess = opts.onSuccess || null;
-    $("#passwordModalTitle").textContent = opts.title || "Acesso";
-    $("#passwordModalHint").textContent = opts.hint || "";
-    $("#passwordInput").value = "";
-    passwordModal.hidden = false;
-    passwordModal.style.display = "flex";
-    document.body.style.overflow = "hidden";
-    setTimeout(() => $("#passwordInput").focus(), 60);
-  }
+function openPasswordModal(opts) {
+  passwordOnSuccess = opts.onSuccess || null;
+
+  $("#passwordModalTitle").textContent = opts.title || "Acesso";
+  $("#passwordModalHint").textContent = opts.hint || "";
+  $("#passwordInput").value = "";
+
+  document.body.classList.toggle(
+    "client-password-mode",
+    opts.cleanBackground === true
+  );
+
+  passwordModal.hidden = false;
+  passwordModal.style.display = "flex";
+  document.body.style.overflow = "hidden";
+
+  setTimeout(() => $("#passwordInput").focus(), 60);
+}
 
   function closePasswordModal() {
     passwordOnSuccess = null;
@@ -2763,7 +2771,8 @@ async function init() {
 ) {
         openPasswordModal({
           title: "Acesso ao Projeto",
-          hint: `O projeto "${clientData.title}" está protegido. Digite a senha enviada pelo designer:`,
+          hint: `O projeto "${clientData.title}" está protegido. Insira a senha de acesso:`,
+		  cleanBackground: true,
           onSuccess: (value) => {
             if (value === clientData.clientPassword) {
  			 rememberClientAccess(clientData.id);
@@ -2823,7 +2832,8 @@ async function init() {
 		) {
         openPasswordModal({
           title: "Acesso do Cliente",
-          hint: `O projeto "${clientData.title}" está protegido. Digite a senha enviada pelo designer.`,
+          hint: `O projeto "${clientData.title}" está protegido. Insira a senha de acesso:`,
+		  cleanBackground: true,
           onSuccess: (value) => {
             if (
 		  value === clientData.clientPassword ||

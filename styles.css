@@ -1516,6 +1516,10 @@ body.client-mode #btnNewProject:hover {
   display: none !important;
 }
 
+body.client-link #btnBack {
+  display: none !important;
+}
+
 body.client-mode .stage-nav button {
   cursor: pointer;
 }

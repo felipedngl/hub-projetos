@@ -2774,7 +2774,8 @@ if (btnBack) {
 openPasswordModal({
   title: "MENCHË INTERIORES",
   hint: "Acesso ao HUB de Projetos Menchë Interiores",
-onSuccess: async (value) => {
+  clientAccess: false,
+  onSuccess: async (value) => {
     try {
       await window.auth.signInWithEmailAndPassword(
         DESIGNER_EMAIL,

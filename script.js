@@ -2483,6 +2483,7 @@ $("#btnNewProject").addEventListener("click", () => {
   const passwordModal = $("#passwordModal");
   let passwordOnSuccess = null;
   let clientPasswordPending = false;
+  let hubPasswordPending = false;
 
 function openPasswordModal(opts) {
   passwordOnSuccess = opts.onSuccess || null;
@@ -2501,9 +2502,11 @@ function openPasswordModal(opts) {
 
 function closePasswordModal(authenticated = false) {
   const wasClientPassword = clientPasswordPending;
+  const wasHubPassword = hubPasswordPending;
 
   passwordOnSuccess = null;
   clientPasswordPending = false;
+  hubPasswordPending = false;
 
   passwordModal.hidden = true;
   passwordModal.style.display = "none";
@@ -2511,6 +2514,11 @@ function closePasswordModal(authenticated = false) {
 
   if (wasClientPassword && !authenticated) {
     window.location.replace(window.location.pathname);
+    return;
+  }
+
+  if (wasHubPassword && !authenticated) {
+    showHubLocked();
   }
 }
 
@@ -2700,14 +2708,16 @@ function closePasswordModal(authenticated = false) {
     document.querySelector(".container").appendChild(locked);
 
     document.getElementById("btnHubUnlock").addEventListener("click", () => {
+	  hubPasswordPending = true;
+		
       openPasswordModal({
-        title: "Acesso ao HUB",
-        hint: "Digite a senha mestre do designer para abrir o HUB de Projetos.",
+        title: "MENCHË INTERIORES",
+        hint: "Acesso ao HUB de Projetos Menchë Interiores",
 		clientAccess: true,
         onSuccess: (value) => {
           if (value === MASTER_PASSWORD) {
             sessionStorage.setItem(DESIGNER_KEY, "true");
-            closePasswordModal();
+            closePasswordModal(true);
             location.reload();
           } else {
             showToast("Senha incorreta.", true);

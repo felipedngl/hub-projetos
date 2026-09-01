@@ -2364,7 +2364,7 @@ function renderSchedule(project) {
   });
 }
 
-/* ---------------- Lista do Cronograma ---------------- */
+/* ---------------- Gráfico do Cronograma ---------------- */
 function renderScheduleList(project, onEdit) {
   const container = $("#scheduleList");
 
@@ -2385,69 +2385,225 @@ function renderScheduleList(project, onEdit) {
     return;
   }
 
-  const sorted = schedule
-    .map((item, index) => ({ item, index }))
+  const validItems = schedule.filter((item) => {
+    return item && item.name && item.start && item.end;
+  });
+
+  if (!validItems.length) {
+    container.innerHTML = `
+      <div class="schedule-empty">
+        <div class="schedule-empty-icon">📅</div>
+        <strong>Nenhum serviço cadastrado</strong>
+        <span>Adicione os serviços da obra para começar o cronograma.</span>
+      </div>
+    `;
+    return;
+  }
+
+  const sorted = validItems
+    .map((item) => ({
+      item,
+      index: schedule.indexOf(item)
+    }))
     .sort((a, b) =>
-      String(a.item.start || "").localeCompare(
-        String(b.item.start || "")
-      )
+      String(a.item.start).localeCompare(String(b.item.start))
     );
 
-  container.innerHTML = `
-    <div class="schedule-list">
+  const dates = sorted.flatMap(({ item }) => [
+    new Date(`${item.start}T00:00:00`),
+    new Date(`${item.end}T00:00:00`)
+  ]);
 
-      ${sorted
-        .map(({ item, index }) => {
-          const start = new Date(`${item.start}T00:00:00`);
-          const end = new Date(`${item.end}T00:00:00`);
+  const minDate = new Date(Math.min(...dates.map((d) => d.getTime())));
+  const maxDate = new Date(Math.max(...dates.map((d) => d.getTime())));
 
-          const duration =
-            Math.floor((end - start) / 86400000) + 1;
+  minDate.setHours(0, 0, 0, 0);
+  maxDate.setHours(0, 0, 0, 0);
 
-          return `
-            <div class="schedule-item">
+  const totalDays =
+    Math.floor((maxDate - minDate) / 86400000) + 1;
 
-              <div class="schedule-item-info">
+  const days = [];
 
-                <strong>
-                  ${escapeHTML(item.name)}
-                </strong>
+  for (let i = 0; i < totalDays; i++) {
+    const date = new Date(minDate);
+    date.setDate(minDate.getDate() + i);
+    days.push(date);
+  }
 
-                <span>
-                  ${formatScheduleDate(item.start)}
-                  → 
-                  ${formatScheduleDate(item.end)}
-                  ·
-                  ${duration}
-                  ${duration === 1 ? "dia" : "dias"}
-                </span>
+  const dayWidth = 42;
 
-              </div>
+  const formatMonthYear = (date) => {
+    return date.toLocaleDateString("pt-BR", {
+      month: "long",
+      year: "numeric"
+    });
+  };
 
-              <div class="schedule-item-actions">
+  const monthGroups = [];
 
-                <button
-                  type="button"
-                  class="schedule-edit"
-                  data-index="${index}"
-                >
-                  Editar
-                </button>
+  days.forEach((date, index) => {
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
 
-                <button
-                  type="button"
-                  class="schedule-delete"
-                  data-index="${index}"
-                >
-                  Excluir
-                </button>
+    let group = monthGroups.find((g) => g.key === key);
 
-              </div>
+    if (!group) {
+      group = {
+        key,
+        label: formatMonthYear(date),
+        startIndex: index,
+        count: 0
+      };
 
+      monthGroups.push(group);
+    }
+
+    group.count++;
+  });
+
+  const monthHeader = monthGroups
+    .map((group) => {
+      return `
+        <div
+          class="schedule-month"
+          style="width:${group.count * dayWidth}px"
+        >
+          ${escapeHTML(
+            group.label.charAt(0).toUpperCase() +
+            group.label.slice(1)
+          )}
+        </div>
+      `;
+    })
+    .join("");
+
+  const dayHeader = days
+    .map((date) => {
+      const day = String(date.getDate()).padStart(2, "0");
+
+      return `
+        <div
+          class="schedule-day"
+          style="width:${dayWidth}px"
+        >
+          ${day}
+        </div>
+      `;
+    })
+    .join("");
+
+  const rows = sorted
+    .map(({ item, index }) => {
+      const start = new Date(`${item.start}T00:00:00`);
+      const end = new Date(`${item.end}T00:00:00`);
+
+      const startOffset =
+        Math.floor((start - minDate) / 86400000);
+
+      const duration =
+        Math.floor((end - start) / 86400000) + 1;
+
+      return `
+        <div class="schedule-gantt-row">
+
+          <div class="schedule-service-name">
+            <strong>${escapeHTML(item.name)}</strong>
+
+            <span>
+              ${formatScheduleDate(item.start)}
+              → ${formatScheduleDate(item.end)}
+            </span>
+          </div>
+
+          <div
+            class="schedule-timeline"
+            style="width:${totalDays * dayWidth}px"
+          >
+
+            <div class="schedule-grid">
+              ${days
+                .map(() => `<div class="schedule-grid-day"></div>`)
+                .join("")}
             </div>
-          `;
-        })
-        .join("")}
+
+            <div
+              class="schedule-bar"
+              style="
+                left:${startOffset * dayWidth}px;
+                width:${duration * dayWidth - 6}px;
+              "
+              title="${escapeHTML(item.name)}"
+            >
+              <span>${escapeHTML(item.name)}</span>
+            </div>
+
+          </div>
+
+          <div class="schedule-row-actions">
+
+            <button
+              type="button"
+              class="schedule-edit"
+              data-index="${index}"
+            >
+              Editar
+            </button>
+
+            <button
+              type="button"
+              class="schedule-delete"
+              data-index="${index}"
+            >
+              Excluir
+            </button>
+
+          </div>
+
+        </div>
+      `;
+    })
+    .join("");
+
+  container.innerHTML = `
+    <div class="schedule-gantt-wrapper">
+
+      <div class="schedule-gantt">
+
+        <div class="schedule-month-header">
+          <div class="schedule-fixed-header">
+            Serviço
+          </div>
+
+          <div
+            class="schedule-calendar-header"
+            style="width:${totalDays * dayWidth}px"
+          >
+            ${monthHeader}
+          </div>
+
+          <div class="schedule-actions-header"></div>
+        </div>
+
+        <div class="schedule-day-header">
+
+          <div class="schedule-fixed-header"></div>
+
+          <div
+            class="schedule-calendar-header"
+            style="width:${totalDays * dayWidth}px"
+          >
+            ${dayHeader}
+          </div>
+
+          <div class="schedule-actions-header"></div>
+
+        </div>
+
+        <div class="schedule-gantt-body">
+          ${rows}
+        </div>
+
+      </div>
 
     </div>
   `;
@@ -2481,7 +2637,6 @@ function renderScheduleList(project, onEdit) {
     });
   });
 }
-
 function formatScheduleDate(value) {
   if (!value) return "";
 

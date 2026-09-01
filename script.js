@@ -110,6 +110,7 @@ function rememberClientAccess(projectId) {
     pos: svg('<path d="M4 22V5"/><path d="M4 5h15l-3 4 3 4H4"/>'),
     contratos: svg('<path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M12 8v8M8 12h8"/>'),
     memorial: svg('<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>'),
+	cronograma: svg('<path d="M4 6h16M4 12h16M4 18h16"/><path d="M8 3v18M14 3v18"/>'),
     eye: svg('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>'),
     eyeOff: svg('<path d="M2 12s3.5-7 10-7a10 10 0 0 1 4.4 1.1"/><path d="M21.2 14.6A11 11 0 0 0 22 12s-3.5-7-10-7"/><path d="M14.8 14.9a3 3 0 0 1-5.6-2.1"/><path d="m3 3 18 18"/>'),
     client: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/>', 14),
@@ -1376,6 +1377,11 @@ function renderStageClient(project, stage) {
     container.innerHTML = header + memorialClientHTML(project);
     return;
   }
+  if (stage.special === "schedule") {
+    container.innerHTML =
+      header + renderScheduleClientHTML(project);
+    return;
+  }
 
   const s = project.stages[stage.id];
 
@@ -2637,6 +2643,243 @@ function renderScheduleList(project, onEdit) {
     });
   });
 }
+
+/* ---------------- Cronograma de Obra (cliente) ---------------- */
+function renderScheduleClientHTML(project) {
+  const schedule = Array.isArray(project.schedule)
+    ? project.schedule
+    : [];
+
+  if (!schedule.length) {
+    return `
+      <div class="panel">
+        <div class="schedule-empty">
+          <div class="schedule-empty-icon">📅</div>
+          <strong>Cronograma ainda não disponível</strong>
+          <span>O cronograma da obra ainda não possui serviços cadastrados.</span>
+        </div>
+      </div>
+    `;
+  }
+
+  const validItems = schedule.filter((item) => {
+    return item && item.name && item.start && item.end;
+  });
+
+  if (!validItems.length) {
+    return `
+      <div class="panel">
+        <div class="schedule-empty">
+          <div class="schedule-empty-icon">📅</div>
+          <strong>Cronograma ainda não disponível</strong>
+          <span>O cronograma da obra ainda não possui serviços cadastrados.</span>
+        </div>
+      </div>
+    `;
+  }
+
+  const sorted = validItems
+    .map((item) => ({
+      item,
+      index: schedule.indexOf(item)
+    }))
+    .sort((a, b) =>
+      String(a.item.start).localeCompare(String(b.item.start))
+    );
+
+  const dates = sorted.flatMap(({ item }) => [
+    new Date(`${item.start}T00:00:00`),
+    new Date(`${item.end}T00:00:00`)
+  ]);
+
+  const minDate = new Date(
+    Math.min(...dates.map((date) => date.getTime()))
+  );
+
+  const maxDate = new Date(
+    Math.max(...dates.map((date) => date.getTime()))
+  );
+
+  minDate.setHours(0, 0, 0, 0);
+  maxDate.setHours(0, 0, 0, 0);
+
+  const totalDays =
+    Math.floor((maxDate - minDate) / 86400000) + 1;
+
+  const days = [];
+
+  for (let i = 0; i < totalDays; i++) {
+    const date = new Date(minDate);
+    date.setDate(minDate.getDate() + i);
+    days.push(date);
+  }
+
+  const dayWidth = 42;
+
+  const monthGroups = [];
+
+  days.forEach((date, index) => {
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+
+    let group = monthGroups.find((item) => item.key === key);
+
+    if (!group) {
+      group = {
+        key,
+        label: date.toLocaleDateString("pt-BR", {
+          month: "long",
+          year: "numeric"
+        }),
+        count: 0
+      };
+
+      monthGroups.push(group);
+    }
+
+    group.count++;
+  });
+
+  const monthHeader = monthGroups
+    .map((group) => `
+      <div
+        class="schedule-month"
+        style="width:${group.count * dayWidth}px"
+      >
+        ${escapeHTML(
+          group.label.charAt(0).toUpperCase() +
+          group.label.slice(1)
+        )}
+      </div>
+    `)
+    .join("");
+
+  const dayHeader = days
+    .map((date) => `
+      <div
+        class="schedule-day"
+        style="width:${dayWidth}px"
+      >
+        ${String(date.getDate()).padStart(2, "0")}
+      </div>
+    `)
+    .join("");
+
+  const rows = sorted
+    .map(({ item }) => {
+      const start = new Date(`${item.start}T00:00:00`);
+      const end = new Date(`${item.end}T00:00:00`);
+
+      const startOffset =
+        Math.floor((start - minDate) / 86400000);
+
+      const duration =
+        Math.floor((end - start) / 86400000) + 1;
+
+      return `
+        <div class="schedule-gantt-row">
+
+          <div class="schedule-service-name">
+            <strong>${escapeHTML(item.name)}</strong>
+
+            <span>
+              ${formatScheduleDate(item.start)}
+              → ${formatScheduleDate(item.end)}
+            </span>
+          </div>
+
+          <div
+            class="schedule-timeline"
+            style="width:${totalDays * dayWidth}px"
+          >
+
+            <div class="schedule-grid">
+              ${days
+                .map(() => `
+                  <div class="schedule-grid-day"></div>
+                `)
+                .join("")}
+            </div>
+
+            <div
+              class="schedule-bar"
+              style="
+                left:${startOffset * dayWidth}px;
+                width:${duration * dayWidth - 6}px;
+              "
+              title="${escapeHTML(item.name)}"
+            >
+              <span>${escapeHTML(item.name)}</span>
+            </div>
+
+          </div>
+
+          <div class="schedule-actions-header"></div>
+
+        </div>
+      `;
+    })
+    .join("");
+
+  return `
+    <div class="panel schedule-panel">
+
+      <div class="schedule-toolbar">
+        <div>
+          <h3>📅 Cronograma da obra</h3>
+          <p class="schedule-description">
+            Acompanhe o período previsto para cada serviço.
+          </p>
+        </div>
+      </div>
+
+      <div class="schedule-gantt-wrapper">
+
+        <div class="schedule-gantt">
+
+          <div class="schedule-month-header">
+
+            <div class="schedule-fixed-header">
+              Serviço
+            </div>
+
+            <div
+              class="schedule-calendar-header"
+              style="width:${totalDays * dayWidth}px"
+            >
+              ${monthHeader}
+            </div>
+
+            <div class="schedule-actions-header"></div>
+
+          </div>
+
+          <div class="schedule-day-header">
+
+            <div class="schedule-fixed-header"></div>
+
+            <div
+              class="schedule-calendar-header"
+              style="width:${totalDays * dayWidth}px"
+            >
+              ${dayHeader}
+            </div>
+
+            <div class="schedule-actions-header"></div>
+
+          </div>
+
+          <div class="schedule-gantt-body">
+            ${rows}
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  `;
+}
+	
 function formatScheduleDate(value) {
   if (!value) return "";
 

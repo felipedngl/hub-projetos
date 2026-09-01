@@ -2349,7 +2349,7 @@ function renderSchedule(project) {
       project.schedule.push(item);
     }
 
-    await saveProjects();
+    await saveProjects([project]);
 
     editingIndex = null;
     form.hidden = true;
@@ -2641,7 +2641,7 @@ function renderScheduleList(project, onEdit) {
 
       project.schedule.splice(index, 1);
 
-      await saveProjects();
+      await saveProjects([project]);
 
       renderSchedule(project);
     });

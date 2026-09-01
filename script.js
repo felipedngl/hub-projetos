@@ -145,7 +145,7 @@ function rememberClientAccess(projectId) {
   let clientMode = false;
   let localPreview = false;
   let designerUnlocked = false;
-  	if (window.auth) {
+if (window.auth) {
   window.auth.onAuthStateChanged((user) => {
     const wasUnlocked = designerUnlocked;
 
@@ -165,6 +165,7 @@ function rememberClientAccess(projectId) {
       sessionStorage.removeItem(DESIGNER_KEY);
 
       if (wasUnlocked) {
+        designerUnlocked = false;
         showHubLocked();
       }
     }

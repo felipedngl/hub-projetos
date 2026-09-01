@@ -597,12 +597,16 @@ function listenToCurrentProject(projectId) {
 
       projectListenerSnapshot = updatedProject;
 
-      const index = projects.findIndex((p) => p.id === projectId);
-      if (index !== -1) {
-        projects[index] = updatedProject;
-      } else {
-        projects.push(updatedProject);
-      }
+		const index = projects.findIndex((p) => p.id === projectId);
+
+		if (index !== -1) {
+		  projects[index] = {
+		    ...projects[index],
+		    ...updatedProject,
+		  };
+		} else {
+		  projects.push(updatedProject);
+		}
 
       incomingMessages.forEach((message) => {
         const fromOtherSide =

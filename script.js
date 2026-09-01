@@ -57,6 +57,7 @@ function rememberClientAccess(projectId) {
     { id: "pos", label: "Pós-projeto", hint: "Acompanhamento de obra, decoração, as-built e entrega." },
     { id: "contratos", label: "Contratos", hint: "Registre e visualize contratos, aditivos, documentos e links.", special: "contracts" },
     { id: "memorial", label: "Memorial Descritivo", hint: "Planilhas de móveis soltos, marcenaria e fornecedores com preços e links de produtos.", special: "memorial" },
+    { id: "cronograma", label: "Cronograma de Obra", hint: "Visualize o planejamento e a duração dos serviços da obra.", special: "schedule" },
   ];
 
   const MEMORIAL_TABLES = {
@@ -1188,6 +1189,7 @@ function openProject(id) {
 
     if (stage.special === "contracts") return renderContracts(project);
     if (stage.special === "memorial") return renderMemorial(project);
+	if (stage.special === "schedule") return renderSchedule(project);
 
     const s = project.stages[stage.id];
 	const container = $("#stageContainer");
@@ -2180,6 +2182,315 @@ rows.push(row);
       });
     });
   }
+
+/* ---------------- Cronograma de Obra ---------------- */
+function renderSchedule(project) {
+  const stage = STAGES.find((s) => s.id === "cronograma");
+  const container = $("#stageContainer");
+
+  if (!Array.isArray(project.schedule)) {
+    project.schedule = [];
+  }
+
+  let editingIndex = null;
+
+  container.innerHTML = `
+    <div class="stage-header">
+      <h2>${stage.label}</h2>
+      <p class="stage-hint">${stage.hint}</p>
+    </div>
+
+    <div class="panel schedule-panel">
+
+      <div class="schedule-toolbar">
+        <div>
+          <h3>📅 Planejamento da obra</h3>
+          <p class="schedule-description">
+            Organize os serviços da obra por período.
+          </p>
+        </div>
+
+        <button type="button" class="btn-primary" id="btnAddSchedule">
+          + Adicionar serviço
+        </button>
+      </div>
+
+      <div id="scheduleForm" class="schedule-form" hidden>
+
+        <div class="schedule-form-grid">
+
+          <div>
+            <label for="scheduleName">Serviço</label>
+            <input
+              type="text"
+              id="scheduleName"
+              placeholder="Ex.: Retirar piso"
+            />
+          </div>
+
+          <div>
+            <label for="scheduleStart">Data de início</label>
+            <input
+              type="date"
+              id="scheduleStart"
+            />
+          </div>
+
+          <div>
+            <label for="scheduleEnd">Data de término</label>
+            <input
+              type="date"
+            id="scheduleEnd"
+            />
+          </div>
+
+        </div>
+
+        <div class="schedule-form-actions">
+
+          <button
+            type="button"
+            class="btn-primary"
+            id="btnSaveSchedule"
+          >
+            Salvar serviço
+          </button>
+
+          <button
+            type="button"
+            class="btn-secondary"
+            id="btnCancelSchedule"
+          >
+            Cancelar
+          </button>
+
+        </div>
+
+      </div>
+
+      <div id="scheduleList"></div>
+
+    </div>
+  `;
+
+  const form = $("#scheduleForm");
+  const btnAdd = $("#btnAddSchedule");
+  const btnSave = $("#btnSaveSchedule");
+  const btnCancel = $("#btnCancelSchedule");
+
+  btnAdd.addEventListener("click", () => {
+    editingIndex = null;
+
+    $("#scheduleName").value = "";
+    $("#scheduleStart").value = "";
+    $("#scheduleEnd").value = "";
+
+    form.hidden = false;
+
+    $("#scheduleName").focus();
+  });
+
+  btnCancel.addEventListener("click", () => {
+    editingIndex = null;
+    form.hidden = true;
+  });
+
+  btnSave.addEventListener("click", async () => {
+    const name = $("#scheduleName").value.trim();
+    const start = $("#scheduleStart").value;
+    const end = $("#scheduleEnd").value;
+
+    if (!name) {
+      showToast("Informe o nome do serviço.", true);
+      return;
+    }
+
+    if (!start || !end) {
+      showToast("Informe as datas de início e término.", true);
+      return;
+    }
+
+    if (end < start) {
+      showToast(
+        "A data de término não pode ser anterior à data de início.",
+        true
+      );
+      return;
+    }
+
+    const existingItem =
+      editingIndex !== null
+        ? project.schedule[editingIndex]
+        : null;
+
+    const item = {
+      id:
+        existingItem?.id ||
+        `schedule-${Date.now()}`,
+
+      name,
+      start,
+      end
+    };
+
+    if (editingIndex !== null) {
+      project.schedule[editingIndex] = item;
+    } else {
+      project.schedule.push(item);
+    }
+
+    await saveProjects();
+
+    editingIndex = null;
+    form.hidden = true;
+
+    renderSchedule(project);
+  });
+
+  renderScheduleList(project, (index) => {
+    const item = project.schedule[index];
+
+    if (!item) return;
+
+    editingIndex = index;
+
+    $("#scheduleName").value = item.name || "";
+    $("#scheduleStart").value = item.start || "";
+    $("#scheduleEnd").value = item.end || "";
+
+    form.hidden = false;
+
+    $("#scheduleName").focus();
+  });
+}
+
+/* ---------------- Lista do Cronograma ---------------- */
+function renderScheduleList(project, onEdit) {
+  const container = $("#scheduleList");
+
+  if (!container) return;
+
+  const schedule = Array.isArray(project.schedule)
+    ? project.schedule
+    : [];
+
+  if (!schedule.length) {
+    container.innerHTML = `
+      <div class="schedule-empty">
+        <div class="schedule-empty-icon">📅</div>
+        <strong>Nenhum serviço cadastrado</strong>
+        <span>Adicione os serviços da obra para começar o cronograma.</span>
+      </div>
+    `;
+    return;
+  }
+
+  const sorted = schedule
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) =>
+      String(a.item.start || "").localeCompare(
+        String(b.item.start || "")
+      )
+    );
+
+  container.innerHTML = `
+    <div class="schedule-list">
+
+      ${sorted
+        .map(({ item, index }) => {
+          const start = new Date(`${item.start}T00:00:00`);
+          const end = new Date(`${item.end}T00:00:00`);
+
+          const duration =
+            Math.floor((end - start) / 86400000) + 1;
+
+          return `
+            <div class="schedule-item">
+
+              <div class="schedule-item-info">
+
+                <strong>
+                  ${escapeHTML(item.name)}
+                </strong>
+
+                <span>
+                  ${formatScheduleDate(item.start)}
+                  → 
+                  ${formatScheduleDate(item.end)}
+                  ·
+                  ${duration}
+                  ${duration === 1 ? "dia" : "dias"}
+                </span>
+
+              </div>
+
+              <div class="schedule-item-actions">
+
+                <button
+                  type="button"
+                  class="schedule-edit"
+                  data-index="${index}"
+                >
+                  Editar
+                </button>
+
+                <button
+                  type="button"
+                  class="schedule-delete"
+                  data-index="${index}"
+                >
+                  Excluir
+                </button>
+
+              </div>
+
+            </div>
+          `;
+        })
+        .join("")}
+
+    </div>
+  `;
+
+  $$(".schedule-edit", container).forEach((button) => {
+    button.addEventListener("click", () => {
+      const index = Number(button.dataset.index);
+
+      onEdit(index);
+    });
+  });
+
+  $$(".schedule-delete", container).forEach((button) => {
+    button.addEventListener("click", async () => {
+      const index = Number(button.dataset.index);
+      const item = project.schedule[index];
+
+      if (!item) return;
+
+      const confirmed = confirm(
+        `Excluir o serviço "${item.name}" do cronograma?`
+      );
+
+      if (!confirmed) return;
+
+      project.schedule.splice(index, 1);
+
+      await saveProjects();
+
+      renderSchedule(project);
+    });
+  });
+}
+
+function formatScheduleDate(value) {
+  if (!value) return "";
+
+  const parts = String(value).split("-");
+
+  if (parts.length !== 3) return value;
+
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
 
   function memorialSectionHTML(project, key) {
     const table = MEMORIAL_TABLES[key];

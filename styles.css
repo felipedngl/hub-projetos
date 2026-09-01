@@ -1015,6 +1015,200 @@ textarea.stage-textarea::placeholder {
   }
 }
 
+/* ---------- Gráfico Gantt do Cronograma ---------- */
+
+.schedule-gantt-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.schedule-gantt {
+  min-width: max-content;
+}
+
+.schedule-month-header,
+.schedule-day-header,
+.schedule-gantt-row {
+  display: grid;
+  grid-template-columns: 190px max-content 150px;
+}
+
+.schedule-fixed-header {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  width: 190px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+
+.schedule-calendar-header {
+  display: flex;
+  overflow: hidden;
+}
+
+.schedule-month {
+  flex-shrink: 0;
+  padding: 10px 8px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--bg-dark);
+}
+
+.schedule-actions-header {
+  width: 150px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.schedule-day-header {
+  background: var(--bg-dark);
+}
+
+.schedule-day-header .schedule-fixed-header {
+  background: var(--bg-dark);
+}
+
+.schedule-day {
+  flex-shrink: 0;
+  width: 42px;
+  padding: 8px 0;
+  text-align: center;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.schedule-gantt-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule-gantt-row {
+  min-height: 64px;
+  border-bottom: 1px solid var(--border);
+}
+
+.schedule-gantt-row:last-child {
+  border-bottom: 0;
+}
+
+.schedule-service-name {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  width: 190px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.schedule-service-name strong {
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.schedule-service-name span {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.schedule-timeline {
+  position: relative;
+  height: 64px;
+  overflow: hidden;
+}
+
+.schedule-grid {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.schedule-grid-day {
+  flex: 0 0 42px;
+  height: 100%;
+  border-right: 1px solid var(--border);
+}
+
+.schedule-bar {
+  position: absolute;
+  top: 19px;
+  height: 26px;
+  min-width: 10px;
+  border-radius: 7px;
+  background: var(--accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.schedule-bar span {
+  color: var(--bg-dark);
+  font-size: 0.72rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.schedule-row-actions {
+  width: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  background: var(--surface);
+}
+
+.schedule-row-actions .schedule-edit,
+.schedule-row-actions .schedule-delete {
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .schedule-gantt-wrapper {
+    border-radius: 10px;
+  }
+
+  .schedule-month-header,
+  .schedule-day-header,
+  .schedule-gantt-row {
+    grid-template-columns: 160px max-content 130px;
+  }
+
+  .schedule-fixed-header,
+  .schedule-service-name {
+    width: 160px;
+  }
+
+  .schedule-actions-header,
+  .schedule-row-actions {
+    width: 130px;
+  }
+}
+
 /* ---------- Files ---------- */
 .dropzone {
   position: relative;

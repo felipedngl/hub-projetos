@@ -856,6 +856,165 @@ textarea.stage-textarea::placeholder {
   color: rgba(241, 234, 227, 0.35);
 }
 
+/* ---------- Cronograma de Obra ---------- */
+
+.schedule-panel {
+  overflow: hidden;
+}
+
+.schedule-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.schedule-description {
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  margin-top: 4px;
+}
+
+.schedule-form {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-dark);
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.schedule-form[hidden] {
+  display: none;
+}
+
+.schedule-form-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 2fr) minmax(160px, 1fr) minmax(160px, 1fr);
+  gap: 14px;
+}
+
+.schedule-form-grid input {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.schedule-form-grid input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.schedule-form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.schedule-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  color: var(--text-dim);
+  text-align: center;
+  gap: 6px;
+}
+
+.schedule-empty-icon {
+  font-size: 2rem;
+  margin-bottom: 4px;
+}
+
+.schedule-empty strong {
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.schedule-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.schedule-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.schedule-item-info strong {
+  font-size: 0.92rem;
+}
+
+.schedule-item-info span {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.schedule-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.schedule-edit,
+.schedule-delete {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-dim);
+  padding: 7px 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.78rem;
+}
+
+.schedule-edit:hover,
+.schedule-delete:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+@media (max-width: 760px) {
+  .schedule-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .schedule-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-item {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-item-actions {
+    justify-content: flex-end;
+  }
+}
+
 /* ---------- Files ---------- */
 .dropzone {
   position: relative;

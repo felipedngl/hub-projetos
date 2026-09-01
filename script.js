@@ -2794,8 +2794,8 @@ async function init() {
   // ACESSO DE CLIENTE
   // ============================================================
 
-  if (isClientLink && !designerUnlocked) {
-
+	if (isClientLink) {
+	
     // Se já existe uma sessão de cliente neste navegador,
     // tenta recuperar o projeto autorizado.
     const authenticatedProjectId =

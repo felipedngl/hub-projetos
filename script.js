@@ -3084,3 +3084,5 @@ if (Notification.permission === "granted") {
     init();
   }
 });
+
+})();

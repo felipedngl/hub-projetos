@@ -145,34 +145,10 @@ function rememberClientAccess(projectId) {
   let clientMode = false;
   let localPreview = false;
   let designerUnlocked = false;
-if (window.auth) {
-  window.auth.onAuthStateChanged((user) => {
-    const wasUnlocked = designerUnlocked;
+  let authStateReady = false;
+  let authStateUser = null;
 
-    designerUnlocked = !!user;
-
-    if (designerUnlocked) {
-      sessionStorage.setItem(DESIGNER_KEY, "true");
-
-      if (!wasUnlocked) {
-        applyAccessUI();
-
-        if (!clientMode && !currentProjectId) {
-          renderDashboard();
-        }
-      }
-    } else {
-      sessionStorage.removeItem(DESIGNER_KEY);
-
-      if (wasUnlocked) {
-        designerUnlocked = false;
-        showHubLocked();
-      }
-    }
-  });
-}
-
-  /* ---------------- Acesso / modos de exibição ---------------- */
+/* ---------------- Acesso / modos de exibição ---------------- */
   function readOnlyView() {
     return clientMode || localPreview || !designerUnlocked;
   }
@@ -3086,5 +3062,25 @@ if (Notification.permission === "granted") {
 }
 
   // Inicializa o app ao carregar a página
-  document.addEventListener("DOMContentLoaded", init);
-})();
+  document.addEventListener("DOMContentLoaded", () => {
+  if (window.auth) {
+    window.auth.onAuthStateChanged((user) => {
+      authStateUser = user;
+      authStateReady = true;
+      designerUnlocked = !!user;
+
+      if (designerUnlocked) {
+        sessionStorage.setItem(DESIGNER_KEY, "true");
+      } else {
+        sessionStorage.removeItem(DESIGNER_KEY);
+      }
+
+      applyAccessUI();
+
+      init();
+    });
+  } else {
+    authStateReady = true;
+    init();
+  }
+});

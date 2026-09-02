@@ -3542,71 +3542,72 @@ async function init() {
     // usando uma consulta pública SOMENTE para localizar o projeto.
     // ----------------------------------------------------------
 
-    let clientData = null;
+// ----------------------------------------------------------
+// Acesso do cliente pelo link
+// ----------------------------------------------------------
 
+if (!projetoParam) {
+  showClientError();
+  return;
+}
+
+openPasswordModal({
+  title: "Acesso do Cliente",
+  hint: "Digite a senha de acesso ao seu projeto:",
+  clientAccess: true,
+  cleanBackground: true,
+
+  onSuccess: async (value) => {
     try {
-      if (projetoParam) {
+      const response = await fetch("/api/client-auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          projectId: String(projetoParam),
+          password: value
+        })
+      });
 
-        const snapshot = await db
-          .collection("projects")
-          .doc(String(projetoParam))
-          .get();
+      const result = await response.json();
 
-        if (snapshot.exists) {
-          clientData = {
-            id: snapshot.id,
-            ...snapshot.data()
-          };
-        }
-
-      } else if (clienteParam) {
-
-        const snapshot = await db
-          .collection("projects")
-          .where("client", "==", String(clienteParam))
-          .limit(1)
-          .get();
-
-        if (!snapshot.empty) {
-          const doc = snapshot.docs[0];
-
-          clientData = {
-            id: doc.id,
-            ...doc.data()
-          };
-        }
+      if (!response.ok || !result.success) {
+        showToast(
+          result.error || "Senha incorreta.",
+          true
+        );
+        return;
       }
+
+      await window.auth.signInWithCustomToken(
+        result.token
+      );
+
+      sessionStorage.setItem(
+        "authenticatedClientProjectId",
+        result.projectId
+      );
+
+      closePasswordModal(true);
+
+      window.location.reload();
 
     } catch (error) {
       console.error(
-        "Erro ao localizar projeto do cliente:",
+        "Erro ao autenticar cliente:",
         error
       );
+
+      showToast(
+        "Não foi possível validar o acesso.",
+        true
+      );
     }
+  }
+});
 
-    if (!clientData) {
-      showClientError();
-      return;
-    }
-
-    projects = [clientData];
-
-    // ----------------------------------------------------------
-    // PROJETO SEM SENHA
-    // ----------------------------------------------------------
-
-    if (!clientData.clientPassword) {
-
-      setClientMode(true);
-      openProject(clientData.id);
-
-      if (btnBack) {
-        btnBack.hidden = true;
-        btnBack.style.display = "none";
-      }
-
-      return;
-    }
+return;
 
     // ----------------------------------------------------------
     // PROJETO COM SENHA

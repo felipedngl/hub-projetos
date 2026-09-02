@@ -2157,3 +2157,57 @@ body.client-password-mode .modal--narrow {
   display: block;
   object-fit: contain;
 }
+/* ---------- Cabeçalho compacto do projeto ---------- */
+
+.sidebar-project {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.sidebar-cover {
+  flex: 0 0 110px;
+  width: 110px;
+  height: 85px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.sidebar-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sidebar-project-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.sidebar-project-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.sidebar-project-main h2 {
+  margin: 0 0 5px;
+  font-size: 1.25rem;
+}
+
+.sidebar-project-main .proj-meta {
+  margin: 0;
+}
+
+.sidebar-project-status {
+  flex: 0 0 auto;
+}
+
+.sidebar-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

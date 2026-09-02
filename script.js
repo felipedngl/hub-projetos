@@ -1804,33 +1804,49 @@ function clientFilesHTML(files) {
 
   return files
     .map((f) => {
-      const isImg = f.type && f.type.startsWith("image/");
+      const isExternalLink = f.kind === "link" && f.value;
+      const isImg =
+        !isExternalLink &&
+        f.type &&
+        f.type.startsWith("image/");
+
       const thumb = isImg
         ? `<img src="${f.dataUrl}" alt="${escapeHTML(f.name)}" />`
         : ICONS.fileDoc;
 
-const canDownload = f.allowClientDownload === true;
+      const canDownload = f.allowClientDownload === true;
 
-const action = `
-  <div class="file-actions">
-    <button
-      type="button"
-      class="file-open client-file-view"
-      data-file-id="${f.id}"
-    >Visualizar</button>
-
-    ${
-      canDownload
+      const action = isExternalLink
         ? `
-          <button
-            type="button"
-            class="file-open client-file-download"
-            data-file-id="${f.id}"
-          >Baixar</button>`
-        : ""
-    }
-  </div>
-`;
+          <div class="file-actions">
+            <a
+              class="file-open"
+              href="${escapeHTML(f.value)}"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Visualizar</a>
+          </div>
+        `
+        : `
+          <div class="file-actions">
+            <button
+              type="button"
+              class="file-open client-file-view"
+              data-file-id="${f.id}"
+            >Visualizar</button>
+
+            ${
+              canDownload
+                ? `
+                  <button
+                    type="button"
+                    class="file-open client-file-download"
+                    data-file-id="${f.id}"
+                  >Baixar</button>`
+                : ""
+            }
+          </div>
+        `;
 
       return `
         <div class="file-item">
@@ -1838,7 +1854,14 @@ const action = `
 
           <div class="file-meta">
             <span class="file-name">${escapeHTML(f.name)}</span>
-            <span class="file-size">${f.type || "Arquivo"} · ${formatBytes(f.size)}</span>
+
+            <span class="file-size">
+              ${
+                isExternalLink
+                  ? "Link externo"
+                  : `${f.type || "Arquivo"} · ${formatBytes(f.size)}`
+              }
+            </span>
           </div>
 
           ${action}

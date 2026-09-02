@@ -857,57 +857,79 @@ if (!input) return;
     });
   }
 
-  function fileListHTML(files) {
-    if (!files.length) {
-      return '<div class="file-empty">Nenhum arquivo nesta etapa ainda.</div>';
-    }
-
-    return files
-      .map((f) => {
-        const isImg = f.type && f.type.startsWith("image/");
-        const thumb = isImg
-          ? `<img src="${f.dataUrl}" alt="${escapeHTML(f.name)}" />`
-          : ICONS.fileDoc;
-
-        // Por segurança, arquivos antigos que ainda não possuem
-        // a propriedade allowClientDownload começam bloqueados.
-        const canDownload = f.allowClientDownload === true;
-
-        return `
-          <div class="file-item" data-file-id="${f.id}">
-            <div class="file-thumb">${thumb}</div>
-
-            <div class="file-meta">
-              <span class="file-name">${escapeHTML(f.name)}</span>
-              <span class="file-size">${f.type || "Arquivo"} · ${formatBytes(f.size)}</span>
-
-              <label class="file-client-download">
-                <input
-                  type="checkbox"
-                  class="file-download-toggle"
-                  data-file-id="${f.id}"
-                  ${canDownload ? "checked" : ""}
-                />
-                Permitir download pelo cliente
-              </label>
-            </div>
-
-            <a
-              class="file-open"
-              href="${f.dataUrl}"
-              target="_blank"
-              rel="noopener"
-            >Abrir</a>
-
-            <button
-              class="file-remove"
-              title="Remover arquivo"
-            >✕</button>
-          </div>`;
-      })
-      .join("");
+function fileListHTML(files) {
+  if (!files.length) {
+    return '<div class="file-empty">Nenhum arquivo nesta etapa ainda.</div>';
   }
 
+  return files
+    .map((f) => {
+      const isExternalLink = f.kind === "link" && f.value;
+      const isImg = !isExternalLink && f.type && f.type.startsWith("image/");
+
+      const thumb = isImg
+        ? `<img src="${f.dataUrl}" alt="${escapeHTML(f.name)}" />`
+        : ICONS.fileDoc;
+
+      // Por segurança, arquivos antigos que ainda não possuem
+      // a propriedade allowClientDownload começam bloqueados.
+      const canDownload = f.allowClientDownload === true;
+
+      const openAction = isExternalLink
+        ? `
+          <a
+            class="file-open"
+            href="${escapeHTML(f.value)}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Abrir link</a>
+        `
+        : `
+          <a
+            class="file-open"
+            href="${f.dataUrl}"
+            target="_blank"
+            rel="noopener"
+          >Abrir</a>
+        `;
+
+      return `
+        <div class="file-item" data-file-id="${f.id}">
+          <div class="file-thumb">${thumb}</div>
+
+          <div class="file-meta">
+            <span class="file-name">${escapeHTML(f.name)}</span>
+            <span class="file-size">
+              ${isExternalLink ? "Link externo" : `${f.type || "Arquivo"} · ${formatBytes(f.size)}`}
+            </span>
+
+            ${
+              !isExternalLink
+                ? `
+                  <label class="file-client-download">
+                    <input
+                      type="checkbox"
+                      class="file-download-toggle"
+                      data-file-id="${f.id}"
+                      ${canDownload ? "checked" : ""}
+                    />
+                    Permitir download pelo cliente
+                  </label>
+                `
+                : ""
+            }
+          </div>
+
+          ${openAction}
+
+          <button
+            class="file-remove"
+            title="Remover arquivo"
+          >✕</button>
+        </div>`;
+    })
+    .join("");
+}
   /* ---------------- Render: painel ---------------- */
 function cardHTML(p, index) {
   const statusLabel = STATUS_LABELS[p.status] || p.status;

@@ -1397,6 +1397,43 @@ function renderStageClient(project, stage) {
     <div class="panel">
       <h3>${ICONS[stage.id]} Arquivos da etapa</h3>
       <label>Renders, plantas e documentos desta etapa</label>
+	  <div class="file-link-actions">
+  <button type="button" class="btn-secondary" id="btnAddExternalLink">
+    + Adicionar link externo
+  </button>
+</div>
+
+<div id="externalLinkForm" class="file-link-form" hidden>
+  <div class="file-link-form-grid">
+    <div>
+      <label for="externalLinkName">Nome do arquivo</label>
+      <input
+        type="text"
+        id="externalLinkName"
+        placeholder="Ex.: Projeto Executivo em PDF"
+      />
+    </div>
+
+    <div>
+      <label for="externalLinkUrl">Link</label>
+      <input
+        type="url"
+        id="externalLinkUrl"
+        placeholder="Cole aqui o link do Google Drive"
+      />
+    </div>
+  </div>
+
+  <div class="file-link-form-actions">
+    <button type="button" class="btn-primary" id="btnSaveExternalLink">
+      Salvar link
+    </button>
+
+    <button type="button" class="btn-secondary" id="btnCancelExternalLink">
+      Cancelar
+    </button>
+  </div>
+</div>
       ${clientFilesHTML(s.files || [])}
     </div>
 

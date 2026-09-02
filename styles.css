@@ -2236,3 +2236,57 @@ body.client-password-mode .modal--narrow {
     width: 100%;
   }
 }
+/* ---------- Cabeçalho do projeto separado das etapas ---------- */
+
+.project-header {
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.project-header .sidebar-project {
+  width: 100%;
+  min-height: 100px;
+  box-sizing: border-box;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.project-header .sidebar-cover {
+  flex: 0 0 110px;
+  width: 110px;
+  height: 72px;
+}
+
+.project-header .sidebar-project-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.project-header .sidebar-project-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.project-header .sidebar-project-main h2 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-header .sidebar-project-status {
+  flex: 0 0 auto;
+}
+
+.project-header .sidebar-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Etapas e conteúdo continuam abaixo */
+#view-project > .project-layout {
+  width: 100%;
+}

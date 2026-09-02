@@ -2316,3 +2316,97 @@ body.client-password-mode .modal--narrow {
     width: auto;
   }
 }
+/* ---------- Links externos de arquivos ---------- */
+
+.file-link-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin: 10px 0 14px;
+}
+
+.file-link-actions .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.file-link-actions .btn-secondary:hover {
+  background: var(--accent-soft);
+  border-color: rgba(232, 106, 68, 0.4);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.file-link-form {
+  margin: 0 0 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.file-link-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 14px;
+}
+
+.file-link-form-grid label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+
+.file-link-form-grid input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: var(--bg-dark);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.84rem;
+  outline: none;
+}
+
+.file-link-form-grid input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.file-link-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+@media (max-width: 760px) {
+  .file-link-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .file-link-form-actions {
+    justify-content: stretch;
+  }
+
+  .file-link-form-actions button {
+    flex: 1;
+  }
+}

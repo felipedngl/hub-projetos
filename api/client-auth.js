@@ -49,6 +49,36 @@ export default async function handler(req, res) {
         .collection("projects")
         .doc(String(projectId))
         .get();
+
+      if (!projectDoc.exists) {
+        const snapshot = await db
+          .collection("projects")
+          .get();
+
+        const slug = String(projectId)
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-zA-Z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")
+          .toLowerCase();
+
+        const match = snapshot.docs.find((doc) => {
+          const project = doc.data() || {};
+
+          const projectSlug = String(project.title || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-zA-Z0-9]+/g, "-")
+            .replace(/^-|-$/g, "")
+            .toLowerCase();
+
+          return projectSlug === slug;
+        });
+
+        if (match) {
+          projectDoc = match;
+        }
+      }
     } else {
       const snapshot = await db
         .collection("projects")
@@ -60,7 +90,6 @@ export default async function handler(req, res) {
         projectDoc = snapshot.docs[0];
       }
     }
-
     if (!projectDoc || !projectDoc.exists) {
       return res.status(404).json({
         error: "Projeto não encontrado",

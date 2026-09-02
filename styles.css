@@ -2152,8 +2152,8 @@ body.client-password-mode .modal--narrow {
 }
 /* Logo Menchë no cabeçalho */
 .brand-mark img {
-  width: 150px;
-  height: auto;
+  width: 55px;
+  height: 55px;
   display: block;
   object-fit: contain;
 }

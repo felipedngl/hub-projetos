@@ -3470,8 +3470,8 @@ if (wasClientPassword && !authenticated) {
   const shareModal = $("#shareModal");
 
   function shareLinkFor(project) {
-    return location.origin + location.pathname + `?projeto=${encodeURIComponent(project.id)}`;
-  }
+ 	return location.origin + location.pathname + `?projeto=${encodeURIComponent(slugify(project.title))}`;
+}
 
   function openShareModal() {
     const p = currentProject();

@@ -1721,7 +1721,7 @@ function stageConversationHTML(messages) {
           data-message-id="${message.id}"
         >
           <div class="conversation-message-head">
-            <strong>${isClient ? "Cliente" : "Menchë Interiores"}</strong>
+            <strong>${isClient ? escapeHTML(currentProject()?.title || "Cliente") : "Menchë Interiores"}</strong>
             <span>
               ${date}${message.editedAt ? " · editada" : ""}
             </span>

@@ -2211,3 +2211,28 @@ body.client-password-mode .modal--narrow {
   align-items: center;
   gap: 8px;
 }
+/* Ajuste para telas menores */
+@media (max-width: 760px) {
+  .sidebar-project {
+    align-items: flex-start;
+  }
+
+  .sidebar-cover {
+    flex: 0 0 80px;
+    width: 80px;
+    height: 65px;
+  }
+
+  .sidebar-project-info {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .sidebar-project-status {
+    width: 100%;
+  }
+
+  .sidebar-actions {
+    width: 100%;
+  }
+}

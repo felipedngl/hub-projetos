@@ -1802,7 +1802,22 @@ function clientFilesHTML(files) {
     return '<div class="file-empty">Nenhum arquivo disponível nesta etapa.</div>';
   }
 
-  return files
+  const uniqueFiles = files.filter((file, index, array) => {
+  return (
+    index ===
+    array.findIndex(
+      (item) =>
+        item.id === file.id ||
+        (
+          item.name === file.name &&
+          item.dataUrl === file.dataUrl &&
+          item.value === file.value
+        )
+    )
+  );
+});
+
+return uniqueFiles
     .map((f) => {
       const isExternalLink = f.kind === "link" && f.value;
       const isImg =

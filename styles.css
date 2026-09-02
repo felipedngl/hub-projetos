@@ -2427,33 +2427,3 @@ body.client-password-mode .modal--narrow {
 .conversation-message.designer .conversation-message-text {
   color: var(--accent);
 }
-/* ---------- Ajuste da caixa de acesso do cliente no mobile ---------- */
-
-@media (max-width: 600px) {
-  body.client-password-mode .modal--narrow {
-    width: 92vw !important;
-    max-width: 360px !important;
-    min-width: 0 !important;
-    box-sizing: border-box;
-    overflow-x: hidden;
-  }
-
-  body.client-password-mode .modal-header {
-    padding: 16px;
-  }
-
-  body.client-password-mode .modal form {
-    padding: 16px;
-  }
-
-  body.client-password-mode .modal-footer {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  body.client-password-mode .modal-footer button {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-}

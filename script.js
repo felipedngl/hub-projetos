@@ -189,10 +189,10 @@ function rememberClientAccess(projectId) {
     if (!btn) return;
     if (designerUnlocked) {
       btn.classList.add("active");
-      btn.textContent = btn.dataset.unlockedLabel || "Bloquear acesso do Designer";
+      btn.textContent = btn.dataset.unlockedLabel || "Bloquear acesso";
     } else {
       btn.classList.remove("active");
-      btn.textContent = btn.dataset.lockedLabel || "Acesso Restrito do Designer";
+      btn.textContent = btn.dataset.lockedLabel || "Acesso Restrito";
     }
   }
 

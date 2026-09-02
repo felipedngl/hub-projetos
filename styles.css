@@ -2147,3 +2147,6 @@ body.client-password-mode .modal--narrow {
   min-width: 0;
   box-sizing: border-box;
 }
+#btnClientView {
+  display: none !important;
+}

@@ -1283,7 +1283,7 @@ function openProject(id) {
       </div>
 
       <div class="panel client-conversation-panel">
-        <h3>💬 Conversa com o cliente</h3>
+        <h3>💬 Chat e Observações</h3>
 
         <div id="stageConversation">
           ${stageConversationHTML(s.clientMessages || [])}
@@ -1539,7 +1539,7 @@ container.innerHTML = header + `
     </div>
 
     <div class="panel client-conversation-panel">
-      <h3>💬 Observações e conversa</h3>
+      <h3>💬 Chat e Observações</h3>
       <p class="conversation-hint">
         Envie uma observação, dúvida ou solicitação sobre esta etapa.
       </p>

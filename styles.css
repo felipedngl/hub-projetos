@@ -2427,3 +2427,39 @@ body.client-password-mode .modal--narrow {
 .conversation-message.designer .conversation-message-text {
   color: var(--accent);
 }
+/* ---------- Modal de senha no mobile ---------- */
+
+@media (max-width: 600px) {
+  #passwordModal {
+    padding: 10px !important;
+    box-sizing: border-box;
+  }
+
+  #passwordModal > .modal {
+    width: 100% !important;
+    max-width: 360px !important;
+    min-width: 0 !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+  }
+
+  #passwordModal .modal-header {
+    padding: 16px !important;
+  }
+
+  #passwordModal .share-body {
+    padding: 16px !important;
+    box-sizing: border-box;
+  }
+
+  #passwordModal .modal-footer {
+    display: flex !important;
+    gap: 8px !important;
+  }
+
+  #passwordModal .modal-footer button {
+    flex: 1 !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+}

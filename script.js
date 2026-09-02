@@ -994,17 +994,21 @@ function renderDashboard() {
   }
 
   /* ---------------- Render: visão interna ---------------- */
-  function stageHasContent(project, stage) {
-    if (stage.special === "contracts") return (project.contracts || []).length > 0;
-    if (stage.special === "memorial") {
-      const m = project.memorial || {};
-      const hasRows = Object.values(m).some((rows) => rows.length > 0);
-      return hasRows || (project.memorialFiles || []).length > 0;
-    }
-    const s = project.stages[stage.id];
-    return s && (s.text.trim().length > 0 || (s.files || []).length > 0);
+function stageHasContent(project, stage) {
+  if (stage.special === "schedule") {
+    return Array.isArray(project.schedule) && project.schedule.length > 0;
   }
 
+  if (stage.special === "contracts") return (project.contracts || []).length > 0;
+  if (stage.special === "memorial") {
+    const m = project.memorial || {};
+    const hasRows = Object.values(m).some((rows) => rows.length > 0);
+    return hasRows || (project.memorialFiles || []).length > 0;
+  }
+
+  const s = project.stages[stage.id];
+  return s && (s.text.trim().length > 0 || (s.files || []).length > 0);
+}
   function renderSidebar() {
     const p = currentProject();
     if (!p) return;

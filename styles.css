@@ -2410,3 +2410,20 @@ body.client-password-mode .modal--narrow {
     flex: 1;
   }
 }
+/* Cores das mensagens da conversa */
+
+.conversation-message.client {
+  color: #ffffff;
+}
+
+.conversation-message.client .conversation-message-text {
+  color: #ffffff;
+}
+
+.conversation-message.designer {
+  color: var(--accent);
+}
+
+.conversation-message.designer .conversation-message-text {
+  color: var(--accent);
+}

@@ -1244,6 +1244,82 @@ function openProject(id) {
         </div>
       </div>`;
 
+    const btnAddExternalLink = $("#btnAddExternalLink");
+    const externalLinkForm = $("#externalLinkForm");
+    const btnSaveExternalLink = $("#btnSaveExternalLink");
+    const btnCancelExternalLink = $("#btnCancelExternalLink");
+
+    if (btnAddExternalLink) {
+      btnAddExternalLink.addEventListener("click", () => {
+        externalLinkForm.hidden = false;
+        $("#externalLinkName").value = "";
+        $("#externalLinkUrl").value = "";
+        $("#externalLinkName").focus();
+      });
+    }
+
+    if (btnCancelExternalLink) {
+      btnCancelExternalLink.addEventListener("click", () => {
+        externalLinkForm.hidden = true;
+      });
+    }
+
+    if (btnSaveExternalLink) {
+      btnSaveExternalLink.addEventListener("click", async () => {
+        const name = $("#externalLinkName").value.trim();
+        const url = $("#externalLinkUrl").value.trim();
+
+        if (!name) {
+          showToast("Informe o nome do arquivo.", true);
+          return;
+        }
+
+        if (!url) {
+          showToast("Cole o link do arquivo.", true);
+          return;
+        }
+
+        let parsedUrl;
+
+        try {
+          parsedUrl = new URL(url);
+        } catch {
+          showToast("Informe um link válido.", true);
+          return;
+        }
+
+        if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+          showToast("O link precisa começar com http:// ou https://.", true);
+          return;
+        }
+
+        const s = project.stages[stage.id];
+
+        if (!Array.isArray(s.files)) {
+          s.files = [];
+        }
+
+        s.files.push({
+          id: uid(),
+          name,
+          kind: "link",
+          value: url,
+          type: "link",
+          size: 0,
+          allowClientDownload: false
+        });
+
+        const saved = await saveProjects([project]);
+
+        if (!saved) return;
+
+        showToast("Link adicionado.");
+        externalLinkForm.hidden = true;
+
+        renderStage();
+      });
+    }
+
     const dz = $("[data-dropzone]", container);
     attachDropzone(dz, s.files, () => renderStage());
 

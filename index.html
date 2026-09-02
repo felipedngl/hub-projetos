@@ -74,72 +74,81 @@
       </div>
     </section>
 
-    <!-- ============ VISÃO INTERNA DO PROJETO ============ -->
-    <section class="view" id="view-project" hidden>
-      <div class="project-layout">
-        <aside class="project-sidebar" id="projectSidebar">
-<div class="sidebar-project">
+<!-- ============ VISÃO INTERNA DO PROJETO ============ -->
+<section class="view" id="view-project" hidden>
 
-  <div class="sidebar-cover">
-    <img id="projCover" alt="Capa do projeto" />
+  <!-- Cabeçalho do projeto -->
+  <div class="project-header">
+
+    <div class="sidebar-project">
+
+      <div class="sidebar-cover">
+        <img id="projCover" alt="Capa do projeto" />
+      </div>
+
+      <div class="sidebar-project-info">
+
+        <div class="sidebar-project-main">
+          <h2 id="projTitle"></h2>
+          <p id="projMeta" class="proj-meta"></p>
+        </div>
+
+        <div class="sidebar-project-status">
+          <span class="status-tag" id="projStatusTag" hidden></span>
+
+          <label class="status-select">
+            <span>Status</span>
+            <select id="projStatus">
+              <option value="em andamento">Em Andamento</option>
+              <option value="concluido">Concluído</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="sidebar-actions">
+
+          <button class="btn-share" id="btnShareProject">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" />
+            </svg>
+            Compartilhar
+          </button>
+
+          <button class="btn-delete" id="btnDeleteProject">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18" />
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+            </svg>
+            Excluir
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
 
-  <div class="sidebar-project-info">
+  <!-- Etapas + conteúdo -->
+  <div class="project-layout">
 
-    <div class="sidebar-project-main">
-      <h2 id="projTitle"></h2>
-      <p id="projMeta" class="proj-meta"></p>
-    </div>
+    <aside class="project-sidebar" id="projectSidebar">
+      <nav class="stage-nav" id="stageNav" aria-label="Etapas do projeto"></nav>
+    </aside>
 
-    <div class="sidebar-project-status">
-      <span class="status-tag" id="projStatusTag" hidden></span>
-
-      <label class="status-select">
-        <span>Status</span>
-        <select id="projStatus">
-          <option value="em andamento">Em Andamento</option>
-          <option value="concluido">Concluído</option>
-        </select>
-      </label>
-    </div>
-
-    <div class="sidebar-actions">
-
-      <button class="btn-share" id="btnShareProject">
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="18" cy="5" r="3" />
-          <circle cx="6" cy="12" r="3" />
-          <circle cx="18" cy="19" r="3" />
-          <path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" />
-        </svg>
-        Compartilhar
-      </button>
-
-      <button class="btn-delete" id="btnDeleteProject">
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 6h18" />
-          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-        </svg>
-        Excluir
-      </button>
-
-    </div>
+    <section class="project-content">
+      <div id="stageContainer"></div>
+    </section>
 
   </div>
-
-</div>
-          <nav class="stage-nav" id="stageNav" aria-label="Etapas do projeto"></nav>
-        </aside>
-
-        <section class="project-content">
-
-  <div id="stageContainer"></div>
 
 </section>
-      </div>
-    </section>
-  </main>
+</main>
 
   <!-- ============ MODAL NOVO PROJETO ============ -->
   <div class="modal-overlay" id="modalOverlay" hidden>

@@ -2436,12 +2436,13 @@ body.client-password-mode .modal--narrow {
   }
 
   #passwordModal > .modal {
-    width: 100% !important;
-    max-width: 360px !important;
-    min-width: 0 !important;
-    margin: 0 auto !important;
-    box-sizing: border-box !important;
-  }
+  width: min(360px, calc(100vw - 20px)) !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
 
   #passwordModal .modal-header {
     padding: 16px !important;

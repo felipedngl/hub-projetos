@@ -49,15 +49,15 @@ function rememberClientAccess(projectId) {
 
   /* ---------------- Configuração de etapas ---------------- */
   const STAGES = [
-    { id: "briefing", label: "Briefing", hint: "Coletar informações, necessidades e objetivos do cliente." },
-    { id: "levantamento", label: "Levantamento", hint: "Medidas, condições do local e levantamento técnico." },
+    { id: "briefing", label: "Briefing & Alinhamento", hint: "Coleta de preferências, necessidades, estilo de vida e orçamento." },
+    { id: "levantamento", label: "Levantamento Técnico", hint: "Medição precisa do espaço, registro fotográfico e análise estrutural." },
     { id: "estudo", label: "Estudo Preliminar", hint: "Primeiras propostas conceituais e distribuição de ambientes." },
-    { id: "anteprojeto", label: "Anteprojeto", hint: "Desenvolvimento das soluções, plantas, cortes e materiais." },
+    { id: "anteprojeto", label: "Anteprojeto", hint: "Detalhamento de acabamentos, iluminação, revestimentos e imagens 3D." },
     { id: "executivo", label: "Projeto Executivo", hint: "Detalhamento técnico para execução, compatibilização e orçamento." },
-    { id: "pos", label: "Pós-projeto", hint: "Acompanhamento de obra, decoração, as-built e entrega." },
-    { id: "contratos", label: "Contratos", hint: "Registre e visualize contratos, aditivos, documentos e links.", special: "contracts" },
-    { id: "memorial", label: "Memorial Descritivo", hint: "Planilhas de móveis soltos, marcenaria e fornecedores com preços e links de produtos.", special: "memorial" },
-    { id: "cronograma", label: "Cronograma de Obra", hint: "Visualize o planejamento e a duração dos serviços da obra.", special: "schedule" },
+    { id: "pos", label: "Pós-projeto", hint: "Acompanhamento de obra, decoração, as-built e entrega final." },
+    { id: "memorial", label: "Memorial Descritivo", hint: "Lista de compras com especificações de produtos, fornecedores e links diretos.", special: "memorial" },
+    { id: "cronograma", label: "Cronograma de Obra", hint: "Planejamento das fases de execução, prazos de fornecedores e datas de entrega.", special: "schedule" },
+	{ id: "contratos", label: "Contratos & Documentos", hint: "Registre e visualize contratos, aditivos, documentos e links.", special: "contracts" },
   ];
 
   const MEMORIAL_TABLES = {

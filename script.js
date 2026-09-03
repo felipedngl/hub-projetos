@@ -4157,8 +4157,6 @@ openPasswordModal({
 
       closePasswordModal(true);
 
-      window.location.reload();
-
     } catch (error) {
       console.error(
         "Erro ao autenticar cliente:",

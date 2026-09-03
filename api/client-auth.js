@@ -99,12 +99,58 @@ export default async function handler(req, res) {
 
     const project = projectDoc.data();
 
-    const passwordHash = crypto
-  .createHash("sha256")
-  .update(String(password))
-  .digest("hex");
+    const storedPassword = String(project.clientPassword || "");
 
-      if (passwordHash !== project.clientPassword) {
+let passwordIsValid = false;
+
+if (storedPassword.startsWith("pbkdf2$")) {
+  const [, iterationsValue, saltBase64, hashBase64] = storedPassword.split("$");
+  const iterations = Number(iterationsValue);
+
+  if (
+    Number.isInteger(iterations) &&
+    iterations > 0 &&
+    saltBase64 &&
+    hashBase64
+  ) {
+    const salt = Buffer.from(saltBase64, "base64");
+    const storedHash = Buffer.from(hashBase64, "base64");
+
+    const derivedKey = crypto.pbkdf2Sync(
+      String(password),
+      salt,
+      iterations,
+      storedHash.length,
+      "sha256"
+    );
+
+    passwordIsValid =
+      storedHash.length === derivedKey.length &&
+      crypto.timingSafeEqual(storedHash, derivedKey);
+  }
+} else {
+  passwordIsValid = String(password) === storedPassword;
+}
+
+if (!storedPassword.startsWith("pbkdf2$")) {
+  const iterations = 310000;
+  const salt = crypto.randomBytes(16);
+
+  const derivedKey = crypto.pbkdf2Sync(
+    String(password),
+    salt,
+    iterations,
+    32,
+    "sha256"
+  );
+
+  const newPasswordHash =
+    `pbkdf2$${iterations}$${salt.toString("base64")}$${derivedKey.toString("base64")}`;
+
+  await projectDoc.ref.update({
+    clientPassword: newPasswordHash,
+  });
+}
       return res.status(401).json({
         error: "Senha incorreta",
       });

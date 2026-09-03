@@ -1245,6 +1245,58 @@ function openProject(id) {
         <p class="stage-hint">${stage.hint}</p>
       </div>
 
+      <div class="panel stage-progress-panel">
+        <h3>📊 Status da Etapa</h3>
+
+        <div class="stage-progress-grid">
+          <div>
+            <label for="stageStatus">Situação</label>
+            <select id="stageStatus">
+              <option value="nao-iniciado" ${s.status === "nao-iniciado" ? "selected" : ""}>
+                Não iniciado
+              </option>
+              <option value="em-producao" ${s.status === "em-producao" ? "selected" : ""}>
+                Em Produção
+              </option>
+              <option value="aguardando-aprovacao" ${s.status === "aguardando-aprovacao" ? "selected" : ""}>
+                Aguardando sua Aprovação
+              </option>
+              <option value="concluida" ${s.status === "concluida" ? "selected" : ""}>
+                Concluída
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label for="stageDeadline">Entrega prevista</label>
+            <input
+              type="date"
+              id="stageDeadline"
+              value="${s.deadline || ""}"
+            />
+          </div>
+
+          <div>
+            <label for="stageProgress">Progresso (%)</label>
+            <input
+              type="number"
+              id="stageProgress"
+              min="0"
+              max="100"
+              value="${Number(s.progress) || 0}"
+            />
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn-primary"
+          id="btnSaveStageProgress"
+        >
+          Salvar status da etapa
+        </button>
+      </div>
+
       <div class="panel">
         <h3>${ICONS.upload} Arquivos da etapa</h3>
         <label>Upload de PDFs, imagens de renders, plantas e documentos</label>

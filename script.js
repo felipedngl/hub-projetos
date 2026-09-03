@@ -1615,6 +1615,46 @@ function renderStageClient(project, stage) {
   }
 
   const s = project.stages[stage.id];
+  const stageStatus = STATUS_LABELS[s.status] || "Não iniciado";
+  const stageProgress = Math.min(100, Math.max(0, Number(s.progress) || 0));
+
+  const deadlineText = s.deadline
+    ? new Date(`${s.deadline}T00:00:00`).toLocaleDateString("pt-BR")
+    : "";
+
+  const stageStatusHTML = `
+    <div class="panel stage-status-card">
+      <div class="stage-status-top">
+        <div>
+          <span class="stage-status-label">Status da etapa</span>
+          <strong>${stageStatus}</strong>
+        </div>
+
+        ${
+          deadlineText
+            ? `<div class="stage-deadline">
+                <span>Entrega prevista</span>
+                <strong>📅 ${deadlineText}</strong>
+              </div>`
+            : ""
+        }
+      </div>
+
+      <div class="stage-progress-wrap">
+        <div class="stage-progress-info">
+          <span>Progresso</span>
+          <strong>${stageProgress}% concluído</strong>
+        </div>
+
+        <div class="stage-progress-bar">
+          <div
+            class="stage-progress-fill"
+            style="width: ${stageProgress}%"
+          ></div>
+        </div>
+      </div>
+    </div>
+  `;
 
 container.innerHTML = header + `
     <div class="panel">

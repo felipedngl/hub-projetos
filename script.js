@@ -4074,11 +4074,9 @@ async function init() {
   // ============================================================
 
 	if (isClientLink) {
-	
-    // Se já existe uma sessão de cliente neste navegador,
-    // tenta recuperar o projeto autorizado.
-    const authenticatedProjectId =
-      sessionStorage.getItem("authenticatedClientProjectId");
+  const authenticatedProjectId =
+    currentProjectId ||
+    sessionStorage.getItem("authenticatedClientProjectId");
 
     if (authenticatedProjectId) {
 

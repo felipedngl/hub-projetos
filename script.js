@@ -1819,8 +1819,7 @@ const checklistHTML = checklist.length
   `
   : "";
   const stageStatus = STATUS_LABELS[s.status] || "Não iniciado";
-  const stageProgress = Math.min(100, Math.max(0, Number(s.progress) || 0));
-
+  const stageProgress = getStageProgress(s);
   const deadlineText = s.deadline
     ? new Date(`${s.deadline}T00:00:00`).toLocaleDateString("pt-BR")
     : "";

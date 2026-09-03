@@ -104,7 +104,7 @@ export default async function handler(req, res) {
   .update(String(password))
   .digest("hex");
 
-      if (String(password) !== String(project.clientPassword)) {
+      if (passwordHash !== project.clientPassword) {
       return res.status(401).json({
         error: "Senha incorreta",
       });

@@ -343,6 +343,107 @@ async function markClientMessagesAsReadByDesigner(stage) {
   }
 
   /* ---------------- Modelo ---------------- */
+const DEFAULT_STAGE_CHECKLISTS = {
+  briefing: [
+    "Dados e contatos do cliente registrados",
+    "Perfil e rotina dos moradores levantados",
+    "Necessidades e prioridades identificadas",
+    "Ambientes e necessidades de cada ambiente definidos",
+    "Problemas e pontos de atenção identificados",
+    "Estilo e preferências definidos",
+    "Referências visuais recebidas",
+    "Móveis e equipamentos existentes identificados",
+    "Orçamento e prioridades alinhados",
+    "Briefing revisado",
+    "Briefing concluído"
+  ],
+
+  levantamento: [
+    "Medidas gerais dos ambientes levantadas",
+    "Pé-direito e alturas relevantes conferidos",
+    "Portas e janelas levantadas",
+    "Paredes, pilares e elementos construtivos conferidos",
+    "Pontos elétricos levantados",
+    "Pontos hidráulicos levantados",
+    "Pontos de gás e esgoto levantados",
+    "Pontos de ar-condicionado levantados",
+    "Equipamentos e mobiliários existentes registrados",
+    "Registro fotográfico e em vídeo realizado",
+    "Planta base do imóvel elaborada",
+    "Levantamento conferido e concluído"
+  ],
+
+  estudo: [
+    "Briefing analisado e diretrizes definidas",
+    "Conceito do projeto desenvolvido",
+    "Estudos de layout realizados",
+    "Circulação e distribuição dos ambientes definidas",
+    "Modelagem 3D dos ambientes desenvolvida",
+    "Mobiliário e elementos decorativos definidos",
+    "Iluminação e elementos do ambiente incorporados",
+    "Materiais e revestimentos aplicados ao projeto",
+    "Equipamentos e elementos existentes incorporados",
+    "Moodboards dos ambientes desenvolvidos",
+    "Materiais e acabamentos definidos",
+    "Mobiliário e peças especificadas",
+    "Moodboard completo",
+    "Plantas de layout finalizadas",
+    "Imagens 3D produzidas",
+    "Apresentação do estudo preparada",
+    "Estudo Preliminar apresentado ao cliente",
+    "Ajustes após apresentação concluídos",
+    "Estudo Preliminar aprovado pelo cliente"
+  ],
+
+  anteprojeto: [
+    "Desenvolvimento criativo concluído",
+    "Layout dos ambientes desenvolvido",
+    "Layout revisado e definido",
+    "Materiais e acabamentos definidos",
+    "Moodboards atualizados",
+    "Vistas humanizadas produzidas",
+    "Perspectivas dos ambientes produzidas",
+    "Imagens renderizadas produzidas",
+    "Modelos de marcenaria desenvolvidos",
+    "Considerações e informações complementares incluídas",
+    "Apresentação do Anteprojeto preparada",
+    "Anteprojeto apresentado ao cliente",
+    "Ajustes após apresentação concluídos",
+    "Anteprojeto aprovado pelo cliente"
+  ],
+
+  executivo: [
+    "Planta de layout finalizada",
+    "Planta de demolição finalizada",
+    "Documentação construtiva geral concluída",
+    "Pontos elétricos definidos",
+    "Projeto de forro definido",
+    "Projeto luminotécnico definido",
+    "Circuitos elétricos definidos",
+    "Acabamentos de pisos e paredes definidos",
+    "Paginação e detalhamentos de acabamentos concluídos",
+    "Rodapés definidos",
+    "Vistas e detalhamentos de acabamentos concluídos",
+    "Projeto de marmoraria concluído",
+    "Projeto de marcenaria concluído",
+    "Documentação executiva revisada",
+    "Projeto Executivo concluído",
+    "Documentação final preparada para execução"
+  ],
+
+  pos: [
+    "Projeto entregue para execução",
+    "Acompanhamento da execução iniciado",
+    "Conferência da execução realizada",
+    "Pendências identificadas",
+    "Pendências acompanhadas",
+    "Ajustes finais realizados",
+    "Projeto conferido após execução",
+    "Registro final do projeto realizado",
+    "Entrega final concluída"
+  ]
+};
+
 function emptyStage() {
   return {
     text: "",
@@ -388,7 +489,13 @@ function getStageProgress(stage) {
       p.stages[k] = Object.assign(emptyStage(), p.stages[k] || {});
       p.stages[k].files = p.stages[k].files || [];
       p.stages[k].text = p.stages[k].text || "";
-	  p.stages[k].checklist = p.stages[k].checklist || [];
+	  p.stages[k].checklist =
+  Array.isArray(p.stages[k].checklist) && p.stages[k].checklist.length
+    ? p.stages[k].checklist
+    : (DEFAULT_STAGE_CHECKLISTS[k] || []).map((label) => ({
+        label,
+        done: false
+      }));
     });
     p.memorial = Object.assign({ moveis: [], marcenaria: [], fornecedores: [] }, p.memorial || {});
     if (Array.isArray(p.memorial.acabamentos) && !Array.isArray(p.memorial.fornecedores)) {

@@ -4210,8 +4210,7 @@ return;
             return;
           }
 
-          showToast(
-          showToast(
+			showToast(
             "Não foi possível validar o acesso.",
             true
           );

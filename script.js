@@ -348,7 +348,8 @@ function emptyStage() {
     text: "",
     files: [],
     status: "nao-iniciado",
-    deadline: ""
+    deadline: "",
+    progress: 0
   };
 }
 

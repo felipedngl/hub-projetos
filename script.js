@@ -3980,3 +3980,4 @@ if (Notification.permission === "granted") {
 });
 
 })();
+

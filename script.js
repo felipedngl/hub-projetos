@@ -349,7 +349,7 @@ function emptyStage() {
     files: [],
     status: "nao-iniciado",
     deadline: "",
-    progress: 0
+    checklist: []
   };
 }
 

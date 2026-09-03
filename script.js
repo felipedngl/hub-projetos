@@ -4210,30 +4210,6 @@ return;
             return;
           }
 
-          // Autentica este navegador como o cliente
-          // usando o token criado pela API.
-          await window.auth.signInWithCustomToken(
-            result.token
-          );
-
-          sessionStorage.setItem(
-            "authenticatedClientProjectId",
-            result.projectId
-          );
-
-          closePasswordModal(true);
-
-          // Recarrega agora que o Firebase já reconhece
-          // este navegador como cliente autenticado.
-          window.location.reload();
-
-        } catch (error) {
-
-          console.error(
-            "Erro ao autenticar cliente:",
-            error
-          );
-
           showToast(
             "Não foi possível validar o acesso.",
             true

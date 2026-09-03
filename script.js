@@ -1375,7 +1375,7 @@ function openProject(id) {
   class="btn-secondary"
   id="btnAddChecklistItem"
 >
-  + Adicionar entrega
+  Adicionar entrega
 </button>
 
   ${

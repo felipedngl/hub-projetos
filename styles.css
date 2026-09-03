@@ -2761,3 +2761,78 @@ body.client-password-mode .modal--narrow {
     font-size: 0.76rem;
   }
 }
+/* ---------- Checklist do Designer ---------- */
+
+.stage-checklist {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(241, 234, 227, 0.025);
+}
+
+.stage-checklist h4 {
+  margin-bottom: 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.stage-checklist .btn-secondary {
+  margin-bottom: 16px;
+}
+
+.stage-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-size: 0.86rem;
+  line-height: 1.35;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.stage-checklist-item:hover {
+  background: rgba(232, 106, 68, 0.06);
+  color: var(--text);
+}
+
+.stage-checklist-item input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* Desktop: duas colunas */
+.stage-checklist {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 28px;
+  row-gap: 2px;
+}
+
+.stage-checklist h4 {
+  grid-column: 1 / -1;
+}
+
+.stage-checklist .btn-secondary {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+/* Mobile: uma coluna */
+@media (max-width: 640px) {
+  .stage-checklist {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+  }
+}

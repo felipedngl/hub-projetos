@@ -1,6 +1,7 @@
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
+import { getAuth } from "firebase-admin/auth";
 
 function getFirebaseApp() {
   if (getApps().length > 0) {
@@ -25,6 +26,31 @@ export default async function handler(req, res) {
     });
   }
 
+  const authorization = req.headers.authorization || "";
+
+  if (!authorization.startsWith("Bearer ")) {
+    return res.status(401).json({
+      error: "Não autenticado",
+    });
+  }
+
+  try {
+    const idToken = authorization.slice(7);
+    const decodedToken = await getAuth(getFirebaseApp()).verifyIdToken(idToken);
+
+    if (decodedToken.role !== "designer") {
+      return res.status(403).json({
+        error: "Acesso negado",
+      });
+    }
+  } catch (error) {
+    console.error("Erro ao validar autenticação:", error);
+
+    return res.status(401).json({
+      error: "Token inválido ou expirado",
+    });
+  }
+  
   try {
     const { projectId, title, body } = req.body || {};
 

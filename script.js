@@ -1656,7 +1656,7 @@ function renderStageClient(project, stage) {
     </div>
   `;
 
-container.innerHTML = header + `
+container.innerHTML = header + stageStatusHTML + `
     <div class="panel">
       <h3>${ICONS[stage.id]} Arquivos da etapa</h3>
       <label>Renders, plantas e documentos desta etapa</label>

@@ -4344,21 +4344,38 @@ if (Notification.permission === "granted") {
   // Inicializa o app ao carregar a página
   document.addEventListener("DOMContentLoaded", () => {
   if (window.auth) {
-    window.auth.onAuthStateChanged((user) => {
-      authStateUser = user;
-      authStateReady = true;
-      designerUnlocked = !!user;
+    window.auth.onAuthStateChanged(async (user) => {
+  let role = null;
+  let projectId = null;
 
-      if (designerUnlocked) {
-        sessionStorage.setItem(DESIGNER_KEY, "true");
-      } else {
-        sessionStorage.removeItem(DESIGNER_KEY);
-      }
+  if (user) {
+    try {
+      const result = await user.getIdTokenResult(true);
 
-      applyAccessUI();
+      role = result.claims.role || null;
+      projectId = result.claims.projectId || null;
+    } catch (error) {
+      console.error("Erro ao obter permissões do usuário:", error);
+    }
+  }
 
-      init();
-    });
+  authStateUser = user;
+  designerUnlocked = role === "designer";
+
+  if (user && role === "client") {
+    clientMode = true;
+
+    if (projectId) {
+      currentProjectId = projectId;
+      rememberClientAccess(projectId);
+    }
+  }
+
+  applyAccessUI();
+  authStateReady = true;
+
+  await init();
+});
   } else {
     authStateReady = true;
     init();

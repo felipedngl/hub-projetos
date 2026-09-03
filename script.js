@@ -1529,6 +1529,23 @@ function openProject(id) {
       });
     }
 
+	const checklistInputs = $$("[data-checklist-index]", container);
+
+	checklistInputs.forEach((input) => {
+      input.addEventListener("change", async () => {
+        const index = Number(input.dataset.checklistIndex);
+
+ 	    if (!Array.isArray(s.checklist) || !s.checklist[index]) return;
+
+    	s.checklist[index].done = input.checked;
+	    s.progress = getStageProgress(s);
+
+    	if (await saveProjects([project])) {
+      	  renderStage();
+    	}
+  	  });
+	});
+	  
     $$("#stageFiles .file-remove").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = btn.closest(".file-item").dataset.fileId;

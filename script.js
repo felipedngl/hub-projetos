@@ -376,6 +376,7 @@ function emptyStage() {
       p.stages[k] = Object.assign(emptyStage(), p.stages[k] || {});
       p.stages[k].files = p.stages[k].files || [];
       p.stages[k].text = p.stages[k].text || "";
+	  p.stages[k].checklist = p.stages[k].checklist || [];
     });
     p.memorial = Object.assign({ moveis: [], marcenaria: [], fornecedores: [] }, p.memorial || {});
     if (Array.isArray(p.memorial.acabamentos) && !Array.isArray(p.memorial.fornecedores)) {

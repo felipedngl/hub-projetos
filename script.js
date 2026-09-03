@@ -1817,18 +1817,6 @@ const checklistHTML = checklist.length
           Ver entregas ›
         </button>
       </div>
-
-      <div class="stage-checklist-client-progress">
-        <div class="stage-checklist-client-progress-bar">
-          <div
-            class="stage-checklist-client-progress-fill"
-            style="width: ${getStageProgress(s)}%"
-          ></div>
-        </div>
-
-        <strong>${getStageProgress(s)}%</strong>
-      </div>
-    </div>
   `
   : "";
   const stageStatus = STATUS_LABELS[s.status] || "Não iniciado";

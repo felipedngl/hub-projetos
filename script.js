@@ -1800,31 +1800,37 @@ function renderStageClient(project, stage) {
   const s = project.stages[stage.id];
   const checklist = Array.isArray(s.checklist) ? s.checklist : [];
 
-  const checklistHTML = checklist.length
-    ? `
-      <div class="panel stage-checklist-client">
-        <div class="stage-checklist-client-title">
-          <span>Entregas da etapa</span>
-          <strong>${checklist.filter(item => item.done).length}/${checklist.length}</strong>
+const checklistHTML = checklist.length
+  ? `
+    <div class="panel stage-checklist-client">
+      <div class="stage-checklist-client-header">
+        <div>
+          <span class="stage-checklist-client-label">Entregas da etapa</span>
+          <strong>${checklist.filter(item => item.done).length}/${checklist.length} concluídas</strong>
         </div>
 
-        <div class="stage-checklist-client-list">
-          ${checklist
-            .map(
-              (item) => `
-                <div class="stage-checklist-client-item ${item.done ? "done" : ""}">
-                  <span class="stage-checklist-client-check">
-                    ${item.done ? "✓" : ""}
-                  </span>
-                  <span>${escapeHTML(item.label)}</span>
-                </div>
-              `
-            )
-            .join("")}
-        </div>
+        <button
+          type="button"
+          class="stage-checklist-client-button"
+          id="btnViewChecklist"
+        >
+          Ver entregas ›
+        </button>
       </div>
-    `
-    : "";
+
+      <div class="stage-checklist-client-progress">
+        <div class="stage-checklist-client-progress-bar">
+          <div
+            class="stage-checklist-client-progress-fill"
+            style="width: ${getStageProgress(s)}%"
+          ></div>
+        </div>
+
+        <strong>${getStageProgress(s)}%</strong>
+      </div>
+    </div>
+  `
+  : "";
   const stageStatus = STATUS_LABELS[s.status] || "Não iniciado";
   const stageProgress = Math.min(100, Math.max(0, Number(s.progress) || 0));
 

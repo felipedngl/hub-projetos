@@ -3729,16 +3729,28 @@ $("#btnNewProject").addEventListener("click", () => {
     }
   });
 
-  $("#btnDeleteProject").addEventListener("click", () => {
-    const p = currentProject();
-    if (!p) return;
-    if (confirm(`Excluir o projeto "${p.title}" e todos os seus dados?`)) {
-      projects = projects.filter((x) => x.id !== p.id);
-      saveProjects();
-      showDashboard();
-      showToast("Projeto excluído.");
-    }
-  });
+  $("#btnDeleteProject").addEventListener("click", async () => {
+  const p = currentProject();
+  if (!p) return;
+
+  if (!confirm(`Excluir o projeto "${p.title}" e todos os seus dados?`)) {
+    return;
+  }
+
+  try {
+    await db.collection("projects").doc(String(p.id)).delete();
+
+    projects = projects.filter((x) => x.id !== p.id);
+
+    currentProjectId = null;
+
+    showDashboard();
+    showToast("Projeto excluído.");
+  } catch (error) {
+    console.error("Erro ao excluir projeto:", error);
+    showToast("Não foi possível excluir o projeto na nuvem.", true);
+  }
+});
 
   /* ---------------- Botão Visualizar como Cliente ---------------- */
   $("#btnClientView").addEventListener("click", () => {

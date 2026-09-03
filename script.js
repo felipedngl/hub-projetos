@@ -1588,15 +1588,10 @@ function openProject(id) {
 
     if (btnSaveStageProgress) {
       btnSaveStageProgress.addEventListener("click", async () => {
-        const progress = Math.min(
-          100,
-          Math.max(0, Number(stageProgress.value) || 0)
-        );
-
         s.status = stageStatus.value;
-        s.deadline = stageDeadline.value;
-        s.progress = progress;
-
+		s.deadline = stageDeadline.value;
+		s.progress = getStageProgress(s);
+		  
         if (await saveProjects([project])) {
           showToast("Status da etapa atualizado.");
           renderStage();

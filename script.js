@@ -1635,7 +1635,10 @@ if (progress === 0) {
   s.status = "nao-iniciado";
 } else if (progress === 100) {
   s.status = "concluida";
-} else if (s.status === "nao-iniciado") {
+} else if (
+  s.status === "nao-iniciado" ||
+  s.status === "concluida"
+) {
   s.status = "em-producao";
 }
 

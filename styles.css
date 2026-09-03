@@ -2640,8 +2640,9 @@ body.client-password-mode .modal--narrow {
 }
 
 .checklist-modal-item.done .checklist-modal-check {
-  border-color: var(--success);
-  background: rgba(111, 180, 137, 0.12);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 /* ---------- Modal de entregas — mobile ---------- */

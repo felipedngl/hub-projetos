@@ -4342,8 +4342,9 @@ if (Notification.permission === "granted") {
   }
 
   authStateUser = user;
-  designerUnlocked = role === "designer";
-
+  designerUnlocked =
+  role === "designer" ||
+  (user && user.email === DESIGNER_EMAIL);
   if (user && role === "client") {
     clientMode = true;
 

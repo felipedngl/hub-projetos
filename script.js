@@ -1634,7 +1634,17 @@ function openProject(id) {
  	    if (!Array.isArray(s.checklist) || !s.checklist[index]) return;
 
     	s.checklist[index].done = input.checked;
-	    s.progress = getStageProgress(s);
+	    const progress = getStageProgress(s);
+
+if (progress === 0) {
+  s.status = "nao-iniciado";
+} else if (progress === 100) {
+  s.status = "concluida";
+} else if (s.status === "nao-iniciado") {
+  s.status = "em-producao";
+}
+
+s.progress = progress;
 
     	if (await saveProjects([project])) {
       	  renderStage();

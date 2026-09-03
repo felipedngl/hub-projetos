@@ -353,6 +353,18 @@ function emptyStage() {
   };
 }
 
+function getStageProgress(stage) {
+  const checklist = Array.isArray(stage?.checklist)
+    ? stage.checklist
+    : [];
+
+  if (!checklist.length) return 0;
+
+  const completed = checklist.filter(item => item.done).length;
+
+  return Math.round((completed / checklist.length) * 100);
+}
+
   function seedProject(data) {
     const p = Object.assign(
       {
@@ -1248,7 +1260,32 @@ function openProject(id) {
 
       <div class="panel stage-progress-panel">
         <h3>📊 Status da Etapa</h3>
+<div class="stage-checklist">
+  <h4>Entregas da etapa</h4>
+  
+  <button
+  type="button"
+  class="btn-secondary"
+  id="btnAddChecklistItem"
+>
+  + Adicionar entrega
+</button>
 
+  ${
+    (s.checklist || []).length
+      ? s.checklist.map((item, index) => `
+          <label class="stage-checklist-item">
+            <input
+              type="checkbox"
+              data-checklist-index="${index}"
+              ${item.done ? "checked" : ""}
+            />
+            <span>${item.label}</span>
+          </label>
+        `).join("")
+      : `<p class="stage-checklist-empty">Nenhuma entrega adicionada ainda.</p>`
+  }
+</div>
         <div class="stage-progress-grid">
           <div>
             <label for="stageStatus">Situação</label>
@@ -1466,6 +1503,27 @@ function openProject(id) {
 
         if (await saveProjects([project])) {
           showToast("Status da etapa atualizado.");
+          renderStage();
+        }
+      });
+    }
+	    const btnAddChecklistItem = $("#btnAddChecklistItem");
+
+    if (btnAddChecklistItem) {
+      btnAddChecklistItem.addEventListener("click", async () => {
+        const label = prompt("Nome da entrega:");
+
+        if (!label || !label.trim()) return;
+
+        s.checklist = Array.isArray(s.checklist) ? s.checklist : [];
+
+        s.checklist.push({
+          label: label.trim(),
+          done: false
+        });
+
+        if (await saveProjects([project])) {
+          showToast("Entrega adicionada.");
           renderStage();
         }
       });

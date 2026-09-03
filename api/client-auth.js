@@ -99,11 +99,10 @@ export default async function handler(req, res) {
 
     const project = projectDoc.data();
 
-    if (!project.clientPassword) {
-      return res.status(400).json({
-        error: "Este projeto não possui senha de acesso",
-      });
-    }
+    const passwordHash = crypto
+  .createHash("sha256")
+  .update(String(password))
+  .digest("hex");
 
       if (String(password) !== String(project.clientPassword)) {
       return res.status(401).json({

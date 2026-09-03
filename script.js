@@ -1584,7 +1584,6 @@ function openProject(id) {
 
 	const stageStatus = $("#stageStatus");
     const stageDeadline = $("#stageDeadline");
-    const stageProgress = $("#stageProgress");
     const btnSaveStageProgress = $("#btnSaveStageProgress");
 
     if (btnSaveStageProgress) {

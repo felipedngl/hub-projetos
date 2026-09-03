@@ -1447,6 +1447,29 @@ function openProject(id) {
     const dz = $("[data-dropzone]", container);
     attachDropzone(dz, s.files, () => renderStage());
 
+	const stageStatus = $("#stageStatus");
+    const stageDeadline = $("#stageDeadline");
+    const stageProgress = $("#stageProgress");
+    const btnSaveStageProgress = $("#btnSaveStageProgress");
+
+    if (btnSaveStageProgress) {
+      btnSaveStageProgress.addEventListener("click", async () => {
+        const progress = Math.min(
+          100,
+          Math.max(0, Number(stageProgress.value) || 0)
+        );
+
+        s.status = stageStatus.value;
+        s.deadline = stageDeadline.value;
+        s.progress = progress;
+
+        if (await saveProjects([project])) {
+          showToast("Status da etapa atualizado.");
+          renderStage();
+        }
+      });
+    }
+
     $$("#stageFiles .file-remove").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = btn.closest(".file-item").dataset.fileId;

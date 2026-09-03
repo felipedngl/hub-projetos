@@ -1906,6 +1906,67 @@ container.innerHTML = header + stageStatusHTML + checklistHTML + `
       </div>
     </div>`;
 
+const btnViewChecklist = $("#btnViewChecklist");
+
+if (btnViewChecklist) {
+  btnViewChecklist.addEventListener("click", () => {
+    const completed = checklist.filter(item => item.done).length;
+
+    const modal = document.createElement("div");
+    modal.className = "checklist-modal-overlay";
+
+    modal.innerHTML = `
+      <div class="checklist-modal">
+        <div class="checklist-modal-header">
+          <div>
+            <span class="checklist-modal-label">Entregas da etapa</span>
+            <h3>${completed}/${checklist.length} concluídas</h3>
+          </div>
+
+          <button
+            type="button"
+            class="checklist-modal-close"
+            aria-label="Fechar"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="checklist-modal-list">
+          ${checklist
+            .map(
+              (item) => `
+                <div class="checklist-modal-item ${item.done ? "done" : ""}">
+                  <span class="checklist-modal-check">
+                    ${item.done ? "✓" : ""}
+                  </span>
+                  <span>${escapeHTML(item.label)}</span>
+                </div>
+              `
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeModal = () => {
+      modal.remove();
+    };
+
+    modal
+      .querySelector(".checklist-modal-close")
+      .addEventListener("click", closeModal);
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+  });
+}
+	
   const input = $("#clientMessageInput");
   const sendButton = $("#btnSendClientMessage");
   // Liga os botões de arquivo do cliente

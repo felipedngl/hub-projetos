@@ -2464,3 +2464,73 @@ body.client-password-mode .modal--narrow {
     box-sizing: border-box !important;
   }
 }
+/* ---------- Status e progresso da etapa ---------- */
+
+.stage-status-card {
+  margin-top: 18px;
+}
+
+.stage-status-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.stage-status-top > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stage-status-label,
+.stage-deadline span,
+.stage-progress-info span {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.stage-status-top strong {
+  font-size: 0.96rem;
+  font-weight: 600;
+}
+
+.stage-deadline {
+  text-align: right;
+}
+
+.stage-progress-wrap {
+  margin-top: 18px;
+}
+
+.stage-progress-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.stage-progress-info strong {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.stage-progress-bar {
+  width: 100%;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(241, 234, 227, 0.08);
+}
+
+.stage-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.4s ease;
+  box-shadow: 0 0 12px rgba(232, 106, 68, 0.25);
+}

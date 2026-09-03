@@ -1421,16 +1421,6 @@ function openProject(id) {
             />
           </div>
 
-          <div>
-            <label for="stageProgress">Progresso (%)</label>
-            <input
-              type="number"
-              id="stageProgress"
-              min="0"
-              max="100"
-              value="${Number(s.progress) || 0}"
-            />
-          </div>
         </div>
 
         <button

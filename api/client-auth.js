@@ -132,6 +132,12 @@ if (storedPassword.startsWith("pbkdf2$")) {
   passwordIsValid = String(password) === storedPassword;
 }
 
+if (!passwordIsValid) {
+  return res.status(401).json({
+    error: "Senha incorreta",
+  });
+}
+
 if (!storedPassword.startsWith("pbkdf2$")) {
   const iterations = 310000;
   const salt = crypto.randomBytes(16);
@@ -151,10 +157,6 @@ if (!storedPassword.startsWith("pbkdf2$")) {
     clientPassword: newPasswordHash,
   });
 }
-      return res.status(401).json({
-        error: "Senha incorreta",
-      });
-    }
 
     const resolvedProjectId = String(projectDoc.id);
     const uid = `client_${resolvedProjectId}`;

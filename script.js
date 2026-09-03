@@ -339,9 +339,14 @@ async function markClientMessagesAsReadByDesigner(stage) {
   }
 
   /* ---------------- Modelo ---------------- */
-  function emptyStage() {
-    return { text: "", files: [] };
-  }
+function emptyStage() {
+  return {
+    text: "",
+    files: [],
+    status: "nao-iniciado",
+    deadline: ""
+  };
+}
 
   function seedProject(data) {
     const p = Object.assign(

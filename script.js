@@ -4211,6 +4211,17 @@ return;
           }
 
           showToast(
+          showToast(
+            "Não foi possível validar o acesso.",
+            true
+          );
+        } catch (error) {
+          console.error(
+            "Erro ao autenticar cliente:",
+            error
+          );
+
+          showToast(
             "Não foi possível validar o acesso.",
             true
           );

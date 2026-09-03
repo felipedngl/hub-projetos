@@ -104,21 +104,11 @@ export default async function handler(req, res) {
       });
     }
 
-        const passwordHash = project.clientPasswordHash;
-
-    if (!passwordHash) {
-      return res.status(500).json({
-        error: "Senha do cliente não configurada corretamente",
-      });
-    }
-
-    const isValidPassword = await getAuth().verifyIdToken(passwordHash);
-
-    if (!isValidPassword) {
+      if (String(password) !== String(project.clientPassword)) {
       return res.status(401).json({
         error: "Senha incorreta",
       });
-    } 
+    }
 
     const resolvedProjectId = String(projectDoc.id);
     const uid = `client_${resolvedProjectId}`;

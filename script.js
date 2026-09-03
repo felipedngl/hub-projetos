@@ -127,15 +127,19 @@ function rememberClientAccess(projectId) {
       `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B4B52"/><stop offset="1" stop-color="#1f292d"/></linearGradient></defs><rect width="800" height="600" fill="url(#g)"/><g fill="none" stroke="#F1EAE3" stroke-opacity="0.25" stroke-width="3"><rect x="160" y="130" width="480" height="340" rx="8"/><path d="M160 380 L320 260 L420 330 L520 250 L640 340"/><circle cx="520" cy="200" r="22"/></g></svg>`
     );
 
-  const STATUS_LABELS = {
-    "em andamento": "Em Andamento",
-    concluido: "Concluído",
-  };
+const STATUS_LABELS = {
+  "nao-iniciado": "Não iniciado",
+  "em-producao": "Em Produção",
+  "aguardando-aprovacao": "Aguardando sua Aprovação",
+  concluida: "Concluída",
+};
 
-  const STATUS_CLASS = {
-    "em andamento": "status-em-andamento",
-    concluido: "status-concluido",
-  };
+const STATUS_CLASS = {
+  "nao-iniciado": "status-nao-iniciado",
+  "em-producao": "status-em-producao",
+  "aguardando-aprovacao": "status-aguardando-aprovacao",
+  concluida: "status-concluida",
+};
 
   /* ---------------- Estado ---------------- */
   let projects = [];

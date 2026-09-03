@@ -676,15 +676,44 @@ body.client-mode.project-restricted .btn-back {
 
 .status-select select {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: var(--bg-dark);
+  padding: 11px 38px 11px 13px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface-2);
   color: var(--text);
   font-family: inherit;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
+  font-weight: 500;
   outline: none;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-dim) 50%),
+    linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) 50%,
+    calc(100% - 11px) 50%;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.status-select select:hover {
+  border-color: var(--border-strong);
+  background-color: var(--primary-dark);
+}
+
+.status-select select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.status-select option {
+  background: var(--surface);
+  color: var(--text);
 }
 
 .status-select select:focus {
@@ -2864,4 +2893,37 @@ body.client-password-mode .modal--narrow {
 .stage-checklist-client-button {
   flex: 0 0 auto;
   width: auto;
+}
+/* ---------- Campo de prazo da etapa ---------- */
+
+#stageDeadline {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  color-scheme: dark;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+#stageDeadline:hover {
+  border-color: var(--border-strong);
+  background: var(--primary-dark);
+}
+
+#stageDeadline:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+#stageDeadline::-webkit-calendar-picker-indicator {
+  opacity: 0.65;
+  cursor: pointer;
+  filter: invert(1);
 }

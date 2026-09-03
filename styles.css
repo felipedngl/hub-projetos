@@ -2840,6 +2840,7 @@ body.client-password-mode .modal--narrow {
 /* ---------- Checklist do cliente ---------- */
 
 .stage-checklist-client {
+  margin-top: 20px;
   margin-bottom: 20px;
 }
 

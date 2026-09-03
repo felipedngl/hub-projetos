@@ -1623,7 +1623,7 @@ function renderStageClient(project, stage) {
     : "";
 
   const stageStatusHTML = `
-    <div class="panel stage-status-card">
+    <div class="panel stage-status-card ${STATUS_CLASS[s.status] || "status-nao-iniciado"}">
       <div class="stage-status-top">
         <div>
           <span class="stage-status-label">Status da etapa</span>

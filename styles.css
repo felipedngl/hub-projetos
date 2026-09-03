@@ -2837,3 +2837,30 @@ body.client-password-mode .modal--narrow {
     column-gap: 0;
   }
 }
+/* ---------- Checklist do cliente ---------- */
+
+.stage-checklist-client {
+  margin-bottom: 20px;
+}
+
+.stage-checklist-client-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 18px;
+}
+
+.stage-checklist-client-header > div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.stage-checklist-client-label {
+  display: block;
+}
+
+.stage-checklist-client-button {
+  flex: 0 0 auto;
+  width: auto;
+}

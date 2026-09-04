@@ -71,10 +71,15 @@ export default async function handler(req, res) {
     const db = getFirestore();
 
     const snapshot = await db
-      .collection("fcmTokens")
-      .where("projectId", "==", projectId)
-      .limit(1)
-      .get();
+  .collection("fcmTokens")
+  .where("projectId", "==", projectId)
+  .get();
+
+if (snapshot.empty) {
+  return res.status(404).json({
+    error: "Nenhum token encontrado para este projeto",
+  });
+}
 
     if (snapshot.empty) {
       return res.status(404).json({

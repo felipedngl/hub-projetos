@@ -615,21 +615,24 @@ async function loadClientProject(projectId) {
 }
 
 async function loadProjects() {
-    try {
-      const snapshot = await db.collection("projects").get();
-      if (snapshot.empty) {
-        return Array.isArray(initialProjects) ? initialProjects : [];
-      }
-      const projectsList = [];
-      snapshot.forEach((doc) => {
-        projectsList.push({ id: doc.id, ...doc.data() });
+  try {
+    const snapshot = await db.collection("projects").get();
+
+    const projectsList = [];
+
+    snapshot.forEach((doc) => {
+      projectsList.push({
+        id: doc.id,
+        ...doc.data(),
       });
-      return projectsList;
-    } catch (error) {
-      console.error("Erro ao carregar do Firebase:", error);
-      return Array.isArray(initialProjects) ? initialProjects : [];
-    }
+    });
+
+    return projectsList;
+  } catch (error) {
+    console.error("Erro ao carregar do Firebase:", error);
+    return null;
   }
+}
 
 let unsubscribeProjectListener = null;
 let projectListenerSnapshot = null;

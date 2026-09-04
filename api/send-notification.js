@@ -108,6 +108,23 @@ if (!tokens.length) {
     };
 
     const response = await getMessaging().sendEachForMulticast(message);
+    const invalidTokenIndexes = response.responses
+  .map((result, index) =>
+    !result.success &&
+    (
+      result.error?.code === "messaging/registration-token-not-registered" ||
+      result.error?.code === "messaging/invalid-registration-token"
+    )
+      ? index
+      : -1
+  )
+  .filter((index) => index >= 0);
+
+await Promise.all(
+  invalidTokenIndexes.map((index) =>
+    snapshot.docs[index].ref.delete()
+  )
+);
 
     console.log("Notificação enviada:", response);
 

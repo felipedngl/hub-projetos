@@ -3,6 +3,21 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import crypto from "crypto";
 
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const RATE_LIMIT_MAX_ATTEMPTS = 5;
+
+const loginAttempts = new Map();
+
+function getClientIp(req) {
+  const forwarded = req.headers["x-forwarded-for"];
+
+  if (forwarded) {
+    return String(forwarded).split(",")[0].trim();
+  }
+
+  return req.socket?.remoteAddress || "unknown";
+}
+
 function getFirebaseApp() {
   if (getApps().length > 0) {
     return getApps()[0];

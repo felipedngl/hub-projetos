@@ -163,7 +163,9 @@ if (storedPassword.startsWith("pbkdf2$")) {
       crypto.timingSafeEqual(storedHash, derivedKey);
   }
 } else {
-  passwordIsValid = String(password) === storedPassword;
+  return res.status(401).json({
+    error: "Senha do projeto não está configurada com segurança.",
+  });
 }
 
 if (!passwordIsValid) {

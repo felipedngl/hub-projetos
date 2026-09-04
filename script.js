@@ -951,7 +951,7 @@ if (window.messaging) {
       arr.push({ id: uid(), name: file.name, type: file.type, size: file.size, dataUrl });
       added++;
     }
-    return added > 0 && saveProjects();
+    return added > 0 && await saveProjects();
   }
 
   function makeDropzoneHTML(accept) {

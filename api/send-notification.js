@@ -81,9 +81,14 @@ if (snapshot.empty) {
   });
 }
 
-const tokens = snapshot.docs
-  .map((doc) => doc.data().token)
-  .filter(Boolean);
+const tokenDocs = snapshot.docs
+  .map((doc) => ({
+    doc,
+    token: doc.data().token,
+  }))
+  .filter(({ token }) => Boolean(token));
+
+const tokens = tokenDocs.map(({ token }) => token);
 
 if (!tokens.length) {
   return res.status(404).json({
@@ -122,7 +127,7 @@ if (!tokens.length) {
 
 await Promise.all(
   invalidTokenIndexes.map((index) =>
-    snapshot.docs[index].ref.delete()
+    tokenDocs[index].ref.delete()
   )
 );
 

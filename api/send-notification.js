@@ -137,7 +137,7 @@ await Promise.all(
 
     return res.status(500).json({
       success: false,
-      error: error.message || "Erro ao enviar notificação",
+      error: "Erro ao enviar notificação",
     });
   }
 }

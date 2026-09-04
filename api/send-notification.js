@@ -81,20 +81,15 @@ if (snapshot.empty) {
   });
 }
 
-    if (snapshot.empty) {
-      return res.status(404).json({
-        error: "Nenhum token encontrado para este projeto",
-      });
-    }
+const tokens = snapshot.docs
+  .map((doc) => doc.data().token)
+  .filter(Boolean);
 
-    const tokenData = snapshot.docs[0].data();
-    const token = tokenData.token;
-
-    if (!token) {
-      return res.status(404).json({
-        error: "O projeto não possui um token FCM válido",
-      });
-    }
+if (!tokens.length) {
+  return res.status(404).json({
+    error: "O projeto não possui tokens FCM válidos",
+  });
+}
 
     const message = {
       tokens,

@@ -2707,7 +2707,7 @@ function contractListHTML(contracts) {
       const table = MEMORIAL_TABLES[key];
       const rows = project.memorial[key];
 
-      $("#btnAddRow-" + key).addEventListener("click", () => {
+      $("#btnAddRow-" + key).addEventListener("click", async () => {
 const row = {};
 
 table.cols.forEach((col) => {
@@ -2727,7 +2727,7 @@ const proximoNumero =
 row.item = String(proximoNumero).padStart(3, "0");
 
 rows.push(row);
-        saveProjects();
+        await saveProjects();
         renderMemorial(project);
       });
 

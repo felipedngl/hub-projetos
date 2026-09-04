@@ -41,6 +41,25 @@ export default async function handler(req, res) {
     });
   }
 
+  const clientIp = getClientIp(req);
+const rateLimitKey = `${clientIp}:${String(req.body?.projectId || "")}`;
+
+const now = Date.now();
+const attempts = loginAttempts.get(rateLimitKey) || [];
+
+const recentAttempts = attempts.filter(
+  (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS
+);
+
+if (recentAttempts.length >= RATE_LIMIT_MAX_ATTEMPTS) {
+  return res.status(429).json({
+    error: "Muitas tentativas. Aguarde alguns minutos e tente novamente.",
+  });
+}
+
+recentAttempts.push(now);
+loginAttempts.set(rateLimitKey, recentAttempts);
+
   try {
     const {
       projectId,

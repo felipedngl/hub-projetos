@@ -2446,18 +2446,18 @@ ${qtyTotal > 0 || priceTotal > 0
         };
       }
 
-      project.contracts.push(item);
-      if (saveProjects()) {
-        $("#cName").value = "";
-        $("#cLink").value = "";
-        fileInput.value = "";
-        renderContracts(project);
-        showToast("Documento adicionado.");
-      }
+		project.contracts.push(item);
+		if (await saveProjects()) {
+  		$("#cName").value = "";
+  		$("#cLink").value = "";
+  		fileInput.value = "";
+  		renderContracts(project);
+  		showToast("Documento adicionado.");
+		}
     });
 
     $$("#contractList .contract-download-toggle").forEach((checkbox) => {
-      checkbox.addEventListener("change", () => {
+      checkbox.addEventListener("change", async () => {
         const id = checkbox.dataset.contractId;
         const contract = project.contracts.find((c) => c.id === id);
 
@@ -2465,7 +2465,7 @@ ${qtyTotal > 0 || priceTotal > 0
 
         contract.allowClientDownload = checkbox.checked;
 
-        if (saveProjects()) {
+        if (await saveProjects()) {
           showToast(
             checkbox.checked
               ? "Download liberado para o cliente."
@@ -2475,7 +2475,7 @@ ${qtyTotal > 0 || priceTotal > 0
       });
     });
 	$$("#contractList .contract-download-checkbox").forEach((checkbox) => {
- 	checkbox.addEventListener("change", () => {
+ 	checkbox.addEventListener("change", async () => {
      const id = checkbox.dataset.contractId;
      const contract = project.contracts.find((c) => c.id === id);
 
@@ -2483,7 +2483,7 @@ ${qtyTotal > 0 || priceTotal > 0
 
      contract.allowClientDownload = checkbox.checked;
 
-     if (saveProjects()) {
+     if (await saveProjects()) {
        showToast(
          checkbox.checked
           ? "Download liberado para o cliente."
@@ -3665,8 +3665,7 @@ $("#btnNewProject").addEventListener("click", () => {
     field.closest(".field").classList.toggle("invalid", invalid);
   }
 
-  projectForm.addEventListener("submit", (e) => {
-    e.preventDefault();
+  projectForm.addEventListener("submit", async (e) => {    e.preventDefault();
 
     const name = $("#fieldName").value.trim();
     const client = $("#fieldClient").value.trim();
@@ -3695,7 +3694,7 @@ $("#btnNewProject").addEventListener("click", () => {
     });
 
     projects.unshift(newProject);
-    if (saveProjects()) {
+    if (await saveProjects()) {
       closeModal();
       renderDashboard();
       showToast("Projeto criado com sucesso!");

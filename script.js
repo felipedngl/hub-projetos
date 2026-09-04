@@ -2740,10 +2740,10 @@ rows.push(row);
       });
 
       $$(`#memTable-${key} .row-del`).forEach((btn) => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
           const { row } = btn.dataset;
           rows.splice(Number(row), 1);
-          saveProjects();
+          await saveProjects();
           renderMemorial(project);
         });
       });

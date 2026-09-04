@@ -174,26 +174,6 @@ if (!passwordIsValid) {
   });
 }
 
-if (!storedPassword.startsWith("pbkdf2$")) {
-  const iterations = 310000;
-  const salt = crypto.randomBytes(16);
-
-  const derivedKey = crypto.pbkdf2Sync(
-    String(password),
-    salt,
-    iterations,
-    32,
-    "sha256"
-  );
-
-  const newPasswordHash =
-    `pbkdf2$${iterations}$${salt.toString("base64")}$${derivedKey.toString("base64")}`;
-
-  await projectDoc.ref.update({
-    clientPassword: newPasswordHash,
-  });
-}
-
     const resolvedProjectId = String(projectDoc.id);
     const uid = `client_${resolvedProjectId}`;
 

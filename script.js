@@ -2732,10 +2732,10 @@ rows.push(row);
       });
 
       $$(`#memTable-${key} input[data-row]`).forEach((input) => {
-        input.addEventListener("input", () => {
+        input.addEventListener("input", async () => {
           const { row, col } = input.dataset;
           rows[Number(row)][col] = input.value;
-          saveProjects();
+          await saveProjects();
         });
       });
 

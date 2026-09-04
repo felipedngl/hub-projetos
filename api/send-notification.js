@@ -97,7 +97,7 @@ if (snapshot.empty) {
     }
 
     const message = {
-      token,
+      tokens,
       notification: {
         title,
         body,
@@ -112,7 +112,7 @@ if (snapshot.empty) {
       },
     };
 
-    const response = await getMessaging().send(message);
+    const response = await getMessaging().sendEachForMulticast(message);
 
     console.log("Notificação enviada:", response);
 

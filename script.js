@@ -4250,12 +4250,11 @@ return;
     const loadedProjects = await loadProjects();
 
     if (Array.isArray(loadedProjects)) {
-      projects = loadedProjects;
-    } else {
-      projects = Array.isArray(initialProjects)
-        ? initialProjects
-        : [];
-    }
+  projects = loadedProjects;
+} else {
+  projects = [];
+  showToast("Não foi possível carregar os projetos.", true);
+}
 
     applyAccessUI();
     renderDashboard();

@@ -127,7 +127,7 @@ if (!tokens.length) {
 
 await Promise.all(
   invalidTokenIndexes.map((index) =>
-    tokenDocs[index].ref.delete()
+    tokenDocs[index].doc.ref.delete()
   )
 );
 

@@ -2044,19 +2044,32 @@ if (btnViewChecklist) {
 	
   const input = $("#clientMessageInput");
   const sendButton = $("#btnSendClientMessage");
+	
   // Liga os botões de arquivo do cliente
-  $$("#stageContainer .client-file-download").forEach((button) => {
+$$("#stageContainer .client-file-download").forEach((button) => {
     button.addEventListener("click", () => {
       const fileId = button.dataset.fileId;
       const file = (s.files || []).find((f) => f.id === fileId);
 
-	  const fileUrl = file ? (file.dataUrl || file.url || file.fileUrl) : null;
-      if (!file || !file.dataUrl) {
+      const targetUrl = file ? (file.url || file.dataUrl || file.fileUrl || file.value) : null;
+
+      if (!file || !targetUrl) {
         showToast("Arquivo não encontrado.", true);
         return;
       }
 
-      openClientFile(file.dataUrl, file.name, true);
+      if (targetUrl.startsWith("http")) {
+        // Cria um link temporário para forçar o download direto do Supabase
+        const a = document.createElement("a");
+        a.href = targetUrl;
+        a.target = "_blank";
+        a.download = file.name || "download";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } else {
+        openClientFile(targetUrl, file.name, true);
+      }
     });
   });
 

@@ -982,7 +982,7 @@ async function importFiles(files, arr) {
       }
 
       // URL pública do arquivo
-      const publicUrl = `${cleanBaseUrl}/storage/v1/object/public/${bucketName}/${fileNameOnStorage}`;
+	  const publicUrl = `${cleanBaseUrl}/storage/v1/object/public/menche-files/${fileNameOnStorage}`;
 
       // Objeto formatado com a notificação em laranja
       const fileObj = {

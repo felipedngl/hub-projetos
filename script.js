@@ -940,19 +940,22 @@ if (window.messaging) {
   }
 
 async function importFiles(files, arr) {
+    if (!files || !files.length) return false;
     let count = 0;
+
     for (const file of files) {
-      if (file.size > MAX_FILE_SIZE) {
-        showToast(`O arquivo ${file.name} excede o limite de ${MAX_FILE_SIZE / 1024 / 1024}MB.`, true);
+      if (typeof MAX_FILE_SIZE !== 'undefined' && file.size > MAX_FILE_SIZE) {
+        showToast(`O arquivo ${file.name} excede o limite permitido.`, true);
         continue;
       }
+
       try {
         showToast(`Enviando ${file.name}...`, false);
 
-        // Converte temporariamente o arquivo para enviar para a API
+        // Converte temporariamente o arquivo para enviar à API Serverless
         const base64Content = await readFileAsDataUrl(file);
 
-        // Envia o arquivo para a API no Supabase
+        // Envia para o Supabase Storage via Vercel API
         const response = await fetch('/api/upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -966,40 +969,47 @@ async function importFiles(files, arr) {
         const result = await response.json();
 
         if (!result.success) {
-          throw new Error(result.error || "Erro no upload");
+          throw new Error(result.error || "Erro no upload para o Supabase");
         }
 
-        // Guarda no projeto APENAS a URL do arquivo no Supabase (não guarda o Base64 pesado)
-        arr.push({
-          id: uid("file"),
+        // Cria o objeto do arquivo com as flags de notificação
+        const fileObj = {
+          id: typeof uid === 'function' ? uid("file") : "file_" + Date.now(),
           name: file.name,
           type: file.type || "application/octet-stream",
           size: file.size,
           url: result.url,
           allowClientDownload: true,
-          unreadByClient: true,   // Ativa a luz laranja para o cliente
-          unreadByDesigner: false // Já foi lido pelo designer que acabou de enviar
-        });
+          unreadByClient: true,   // Ativa a notificação no painel do cliente
+          unreadByDesigner: false,
+          uploadedAt: new Date().toISOString()
+        };
 
-        // Marca que a etapa atual tem novidade para acender a notificação laranja na barra lateral
-        if (typeof currentStep !== 'undefined' && currentStep) {
-          currentStep.hasUnread = true;
-          currentStep.updatedAt = new Date().toISOString();
-        } else if (typeof activeStepId !== 'undefined' && project && project.steps) {
-          const step = project.steps.find(s => s.id === activeStepId);
-          if (step) {
-            step.hasUnread = true;
-            step.updatedAt = new Date().toISOString();
-          }
+        // Garante a inserção no array alvo da etapa
+        if (Array.isArray(arr)) {
+          arr.push(fileObj);
         }
 
         showToast(`${file.name} enviado com sucesso!`, false);
         count++;
+
       } catch (err) {
-        console.error("Erro no upload do arquivo:", err);
+        console.error("Erro no processamento do arquivo:", err);
         showToast("Erro ao processar " + file.name, true);
       }
     }
+
+    if (!count) return false;
+
+    // Salva o projeto no Firestore garantindo o tratamento da Promise
+    try {
+      await saveProjects();
+      return true;
+    } catch (err) {
+      console.error("Erro ao salvar o projeto após o upload:", err);
+      return false;
+    }
+  }
     if (!count) return false;
     
     // Salva o projeto garantindo que a Promise do Firebase seja resolvida corretamente

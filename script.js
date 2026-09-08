@@ -940,8 +940,8 @@ if (window.messaging) {
   }
 
 // Substitua pelas suas credenciais reais do Supabase
-const SUPABASE_URL = "https://SEU_PROJETO.supabase.co"; // Cole a URL do seu Supabase aqui
-const SUPABASE_KEY = "SUA_CHAVE_PUBLICA_ANON"; // Cole a chave pública/anon do seu Supabase aqui
+const SUPABASE_URL = "https://mmdruvmhkjyiywpeagkr.supabase.co/rest/v1/"; // Cole a URL do seu Supabase aqui
+const SUPABASE_KEY = "sb_publishable_g6hxFIxf-_-xjmJ5PKYR5Q_BMiJhu41"; // Cole a chave pública/anon do seu Supabase aqui
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 

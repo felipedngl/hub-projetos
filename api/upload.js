@@ -33,21 +33,19 @@ export default async function handler(req, res) {
     const base64Data = fileBase64.replace(/^data:.*;base64,/, "");
     const buffer = Buffer.from(base64Data, 'base64');
 
-    // Sanitiza o nome do arquivo (remove acentos, espaços e caracteres especiais)
+    // Limpa o nome do arquivo (remove acentos, espaços e caracteres especiais)
     const rawFileName = fileName
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9.-]/g, "_");
 
+    // Nome final gravado diretamente na raiz do bucket
     const cleanFileName = `${Date.now()}_${rawFileName}`;
-    
-    // Garante que o caminho não tenha barra inicial e codifica para URL
     const bucketName = "menche-files";
-    const objectPath = `uploads/${cleanFileName}`;
 
     // Monta a URL limpa da API REST do Supabase
     const baseUrl = supabaseUrl.replace(/\/$/, "");
-    const uploadEndpoint = `${baseUrl}/storage/v1/object/${bucketName}/${objectPath}`;
+    const uploadEndpoint = `${baseUrl}/storage/v1/object/${bucketName}/${cleanFileName}`;
 
     const supabaseResponse = await fetch(uploadEndpoint, {
       method: 'POST',
@@ -71,7 +69,7 @@ export default async function handler(req, res) {
     }
 
     // Monta a URL pública final para acesso ao arquivo
-    const publicUrl = `${baseUrl}/storage/v1/object/public/${bucketName}/${objectPath}`;
+    const publicUrl = `${baseUrl}/storage/v1/object/public/${bucketName}/${cleanFileName}`;
 
     return res.status(200).json({
       success: true,

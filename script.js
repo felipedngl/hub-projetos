@@ -2049,7 +2049,7 @@ if (btnViewChecklist) {
 	
   // Liga os botões de arquivo do cliente
 $$("#stageContainer .client-file-download").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const fileId = button.dataset.fileId;
       const file = (s.files || []).find((f) => f.id === fileId);
 
@@ -2060,15 +2060,28 @@ $$("#stageContainer .client-file-download").forEach((button) => {
         return;
       }
 
+      showToast("Iniciando download...", false);
+
       if (targetUrl.startsWith("http")) {
-        // Cria um link temporário para forçar o download direto do Supabase
-        const a = document.createElement("a");
-        a.href = targetUrl;
-        a.target = "_blank";
-        a.download = file.name || "download";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        try {
+          // Baixa o arquivo em segundo plano para forçar a transferência local (evita abrir aba nova)
+          const resp = await fetch(targetUrl);
+          const blob = await resp.blob();
+          const blobUrl = URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = file.name || "arquivo";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(blobUrl);
+
+        } catch (err) {
+          console.error("Erro no download direto via Blob:", err);
+          // Fallback caso ocorra restrição de CORS no fetch
+          window.open(targetUrl, "_blank");
+        }
       } else {
         openClientFile(targetUrl, file.name, true);
       }

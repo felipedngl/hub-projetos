@@ -980,24 +980,26 @@ async function importFiles(files, arr) {
         throw new Error(errData.message || errData.error || `Erro HTTP ${response.status}`);
       }
 
-	  // URL pública do Supabase
+// URL pública com encode para caracteres especiais
       const publicUrl = `${cleanBaseUrl}/storage/v1/object/public/${bucketName}/${encodeURIComponent(fileNameOnStorage)}`;
 
-      // Objeto com todas as propriedades de URL para compatibilidade com a sua interface
+      // Objeto com todas as variações de propriedade para garantir a renderização do preview (<img>) e suporte aos botões
       const fileObj = {
         id: typeof uid === 'function' ? uid("file") : "file_" + Date.now(),
         name: file.name,
         type: file.type || "application/octet-stream",
         size: file.size,
         url: publicUrl,
-        fileUrl: publicUrl,       // Garante suporte se a interface buscar .fileUrl
-        link: publicUrl,          // Garante suporte se a interface buscar .link
+        fileUrl: publicUrl,
+        dataUrl: publicUrl,       
+        value: publicUrl,
+        src: publicUrl,           // Adicionado para cobrir a tag <img>
+        thumb: publicUrl,         // Adicionado para sistemas de miniaturas
         allowClientDownload: true,
-        unreadByClient: true,     // Indicador laranja
+        unreadByClient: true,     // Notificação em laranja no sidebar
         unreadByDesigner: false,
         uploadedAt: new Date().toISOString()
       };
-
       if (Array.isArray(arr)) {
         arr.push(fileObj);
       }

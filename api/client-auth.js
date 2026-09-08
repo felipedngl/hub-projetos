@@ -101,22 +101,12 @@ if (projectId) {
     projectDoc = snapshot.docs[0];
   }
 }
-    else {
-      const snapshot = await db
-        .collection("projects")
-        .where("client", "==", String(clientName))
-        .limit(1)
-        .get();
 
-      if (!snapshot.empty) {
-        projectDoc = snapshot.docs[0];
-      }
-    }
-    if (!projectDoc || !projectDoc.exists) {
-      return res.status(404).json({
-        error: "Projeto não encontrado",
-      });
-    }
+if (!projectDoc || !projectDoc.exists) {
+  return res.status(404).json({
+    error: "Projeto não encontrado",
+  });
+}
 
     const project = projectDoc.data();
 

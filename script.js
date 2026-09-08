@@ -939,19 +939,76 @@ if (window.messaging) {
     });
   }
 
-  async function importFiles(files, arr) {
-    const MAX_SIZE = 4 * 1024 * 1024;
-    let added = 0;
+async function importFiles(files, arr) {
+    let count = 0;
     for (const file of files) {
-      if (file.size > MAX_SIZE) {
-        showToast(`"${file.name}" excede 4MB e não foi adicionado.`, true);
+      if (file.size > MAX_FILE_SIZE) {
+        showToast(`O arquivo ${file.name} excede o limite de ${MAX_FILE_SIZE / 1024 / 1024}MB.`, true);
         continue;
       }
-      const dataUrl = await readFileAsDataUrl(file);
-      arr.push({ id: uid(), name: file.name, type: file.type, size: file.size, dataUrl });
-      added++;
+      try {
+        showToast(`Enviando ${file.name}...`, false);
+
+        // Converte temporariamente o arquivo para enviar para a API
+        const base64Content = await readFileAsDataUrl(file);
+
+        // Envia o arquivo para a API no Supabase
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName: file.name,
+            fileType: file.type || "application/octet-stream",
+            fileBase64: base64Content
+          })
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.error || "Erro no upload");
+        }
+
+        // Guarda no projeto APENAS a URL do arquivo no Supabase (não guarda o Base64 pesado)
+        arr.push({
+          id: uid("file"),
+          name: file.name,
+          type: file.type || "application/octet-stream",
+          size: file.size,
+          url: result.url,
+          allowClientDownload: true,
+          uploadedAt: new Date().toISOString()
+        });
+
+        // Marca que a etapa atual tem novidade para acender a notificação laranja na barra lateral
+        if (typeof currentStep !== 'undefined' && currentStep) {
+          currentStep.hasUnread = true;
+          currentStep.updatedAt = new Date().toISOString();
+        } else if (typeof activeStepId !== 'undefined' && project && project.steps) {
+          const step = project.steps.find(s => s.id === activeStepId);
+          if (step) {
+            step.hasUnread = true;
+            step.updatedAt = new Date().toISOString();
+          }
+        }
+
+        showToast(`${file.name} enviado com sucesso!`, false);
+        count++;
+      } catch (err) {
+        console.error("Erro no upload do arquivo:", err);
+        showToast("Erro ao processar " + file.name, true);
+      }
     }
-    return added > 0 && await saveProjects();
+    if (!count) return false;
+    
+    // Salva o projeto garantindo que a Promise do Firebase seja resolvida corretamente
+    try {
+      await saveProjects();
+      return true;
+    } catch (err) {
+      console.error("Erro ao salvar projeto após upload:", err);
+      return false;	
+    }
   }
 
   function makeDropzoneHTML(accept) {

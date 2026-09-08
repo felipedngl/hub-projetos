@@ -85,42 +85,23 @@ loginAttempts.set(rateLimitKey, recentAttempts);
 
     let projectDoc = null;
 
-    if (projectId) {
-      projectDoc = await db
-        .collection("projects")
-        .doc(String(projectId))
-        .get();
+if (projectId) {
+  projectDoc = await db
+    .collection("projects")
+    .doc(String(projectId).trim())
+    .get();
+} else {
+  const snapshot = await db
+    .collection("projects")
+    .where("client", "==", String(clientName).trim())
+    .limit(1)
+    .get();
 
-      if (!projectDoc.exists) {
-        const snapshot = await db
-          .collection("projects")
-          .get();
-
-        const slug = String(projectId)
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/[^a-zA-Z0-9]+/g, "-")
-          .replace(/^-|-$/g, "")
-          .toLowerCase();
-
-        const match = snapshot.docs.find((doc) => {
-          const project = doc.data() || {};
-
-          const projectSlug = String(project.title || "")
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-zA-Z0-9]+/g, "-")
-            .replace(/^-|-$/g, "")
-            .toLowerCase();
-
-          return projectSlug === slug;
-        });
-
-        if (match) {
-          projectDoc = match;
-        }
-      }
-    } else {
+  if (!snapshot.empty) {
+    projectDoc = snapshot.docs[0];
+  }
+}
+    else {
       const snapshot = await db
         .collection("projects")
         .where("client", "==", String(clientName))
@@ -199,7 +180,7 @@ if (!passwordIsValid) {
 
     return res.status(500).json({
       success: false,
-      error: error.message || "Erro ao autenticar cliente",
+      error: "Erro ao autenticar cliente",
     });
   }
 }

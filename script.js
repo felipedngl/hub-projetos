@@ -1070,10 +1070,12 @@ function fileListHTML(files) {
       const isExternalLink = f.kind === "link" && f.value;
       const isImg = !isExternalLink && f.type && f.type.startsWith("image/");
 
-      const thumb = isImg
-        ? `<img src="${f.dataUrl}" alt="${escapeHTML(f.name)}" />`
-        : ICONS.fileDoc;
+const thumbUrl = f.dataUrl || f.url || f.fileUrl || f.src || f.value;
 
+const thumb = isImg
+  ? `<img src="${thumbUrl}" alt="${escapeHTML(f.name)}" onerror="this.onerror=null; this.src='${PLACEHOLDER}'" />`
+  : ICONS.fileDoc;
+		
       // Por segurança, arquivos antigos que ainda não possuem
       // a propriedade allowClientDownload começam bloqueados.
       const canDownload = f.allowClientDownload === true;
@@ -2305,10 +2307,12 @@ function clientFilesHTML(files) {
         f.type &&
         f.type.startsWith("image/");
 
-      const thumb = isImg
-        ? `<img src="${f.dataUrl}" alt="${escapeHTML(f.name)}" />`
-        : ICONS.fileDoc;
+const thumbUrl = f.dataUrl || f.url || f.fileUrl || f.src || f.value;
 
+const thumb = isImg
+  ? `<img src="${thumbUrl}" alt="${escapeHTML(f.name)}" onerror="this.onerror=null; this.src='${PLACEHOLDER}'" />`
+  : ICONS.fileDoc;
+		
       const canDownload = f.allowClientDownload === true;
 
       const action = isExternalLink

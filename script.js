@@ -999,7 +999,7 @@ async function importFiles(files, arr) {
       }
     }
 
-    if (!count) return false;
+if (!count) return false;
 
     // Salva o projeto no Firestore garantindo o tratamento da Promise
     try {
@@ -1008,17 +1008,6 @@ async function importFiles(files, arr) {
     } catch (err) {
       console.error("Erro ao salvar o projeto após o upload:", err);
       return false;
-    }
-  }
-    if (!count) return false;
-    
-    // Salva o projeto garantindo que a Promise do Firebase seja resolvida corretamente
-    try {
-      await saveProjects();
-      return true;
-    } catch (err) {
-      console.error("Erro ao salvar projeto após upload:", err);
-      return false;	
     }
   }
 

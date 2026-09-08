@@ -2158,21 +2158,21 @@ function clientFilesHTML(files) {
   }
 
   const uniqueFiles = files.filter((file, index, array) => {
-  return (
-    index ===
-    array.findIndex(
-      (item) =>
-        item.id === file.id ||
-        (
-          item.name === file.name &&
-          item.dataUrl === file.dataUrl &&
-          item.value === file.value
-        )
-    )
-  );
-});
+    return (
+      index ===
+      array.findIndex(
+        (item) =>
+          item.id === file.id ||
+          (
+            item.name === file.name &&
+            item.dataUrl === file.dataUrl &&
+            item.value === file.value
+          )
+      )
+    );
+  });
 
-return uniqueFiles
+  return uniqueFiles
     .map((f) => {
       const isExternalLink = f.kind === "link" && f.value;
       const isImg =

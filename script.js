@@ -977,7 +977,8 @@ async function importFiles(files, arr) {
           size: file.size,
           url: result.url,
           allowClientDownload: true,
-          uploadedAt: new Date().toISOString()
+          unreadByClient: true,   // Ativa a luz laranja para o cliente
+          unreadByDesigner: false // Já foi lido pelo designer que acabou de enviar
         });
 
         // Marca que a etapa atual tem novidade para acender a notificação laranja na barra lateral

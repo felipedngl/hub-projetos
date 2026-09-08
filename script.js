@@ -1255,81 +1255,99 @@ function stageHasContent(project, stage) {
     $("#btnShareProject").hidden = !fullAccess;
     $("#btnDeleteProject").hidden = !fullAccess;
 
-    const navStages = STAGES;
+const navStages = STAGES;
 
     $("#stageNav").innerHTML =
       '<div class="stage-nav-title">Etapas do projeto</div>' +
       navStages.map((stage, index) => {
-  const done = stageHasContent(p, stage);
+        const done = stageHasContent(p, stage);
+        const stageData = p.stages?.[stage.id];
 
-  const unread = clientMode
-    ? hasUnreadDesignerMessage(p.stages?.[stage.id])
-    : hasUnreadClientMessage(p.stages?.[stage.id]);
+        // Checa se há mensagens não lidas
+        const unreadMsg = clientMode
+          ? hasUnreadDesignerMessage(stageData)
+          : hasUnreadClientMessage(stageData);
 
-  return `
-    <button class="stage-link ${
-      stage.id === currentStage ? "active" : ""
-    } ${unread ? "has-unread-message" : ""}" data-stage="${stage.id}">
-      ${ICONS[stage.id]}
-      <span class="nav-label">${
-  index < 7 ? `${index + 1}. ` : ""
-}${stage.label}</span>
-      <span class="nav-dot ${done ? "done" : ""}" title="${done ? "Etapa com conteúdo" : "Etapa vazia"}"></span>
-    </button>`;
-}).join("");
+        // Checa se há arquivos novos não lidos na etapa
+        const unreadFiles = Array.isArray(stageData?.files) && stageData.files.some((f) => {
+          return clientMode ? f.unreadByClient === true : f.unreadByDesigner === true;
+        });
 
-$$("#stageNav .stage-link").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    currentStage = btn.dataset.stage;
+        const unread = unreadMsg || unreadFiles;
 
-    // Atualiza visualmente qual etapa está selecionada
-    $$("#stageNav .stage-link").forEach((item) => {
-      item.classList.toggle("active", item === btn);
-    });
+        return `
+          <button class="stage-link ${
+            stage.id === currentStage ? "active" : ""
+          } ${unread ? "has-unread-message" : ""}" data-stage="${stage.id}">
+            ${ICONS[stage.id]}
+            <span class="nav-label">${
+              index < 7 ? `${index + 1}. ` : ""
+            }${stage.label}</span>
+            <span class="nav-dot ${done ? "done" : ""}" title="${done ? "Etapa com conteúdo" : "Etapa vazia"}"></span>
+          </button>`;
+      }).join("");
 
-// Abre a etapa imediatamente
-renderStage();
+    $$("#stageNav .stage-link").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        currentStage = btn.dataset.stage;
 
-    // Marca como lidas somente as mensagens
-    // da etapa que acabou de ser aberta.
-    const p = currentProject();
-    const stage = p?.stages?.[currentStage];
+        // Atualiza visualmente qual etapa está selecionada
+        $$("#stageNav .stage-link").forEach((item) => {
+          item.classList.toggle("active", item === btn);
+        });
 
-    if (stage && Array.isArray(stage.clientMessages)) {
-      let changed = false;
+        // Abre a etapa imediatamente
+        renderStage();
 
-      stage.clientMessages.forEach((message) => {
-        if (clientMode) {
-          // Cliente abriu a etapa:
-          // marca mensagens do designer como lidas.
-          if (
-            message.author === "designer" &&
-            message.readByClient !== true
-          ) {
-            message.readByClient = true;
-            changed = true;
+        // Marca como lidas as mensagens E os arquivos
+        // da etapa que acabou de ser aberta.
+        const p = currentProject();
+        const stage = p?.stages?.[currentStage];
+
+        if (stage) {
+          let changed = false;
+
+          // 1. Limpa mensagens não lidas
+          if (Array.isArray(stage.clientMessages)) {
+            stage.clientMessages.forEach((message) => {
+              if (clientMode) {
+                if (message.author === "designer" && message.readByClient !== true) {
+                  message.readByClient = true;
+                  changed = true;
+                }
+              } else {
+                if (message.author === "client" && message.readByDesigner !== true) {
+                  message.readByDesigner = true;
+                  changed = true;
+                }
+              }
+            });
           }
-        } else {
-          // Designer abriu a etapa:
-          // marca mensagens do cliente como lidas.
-          if (
-            message.author === "client" &&
-            message.readByDesigner !== true
-          ) {
-            message.readByDesigner = true;
-            changed = true;
+
+          // 2. Limpa arquivos não lidos
+          if (Array.isArray(stage.files)) {
+            stage.files.forEach((file) => {
+              if (clientMode) {
+                if (file.unreadByClient === true) {
+                  file.unreadByClient = false;
+                  changed = true;
+                }
+              } else {
+                if (file.unreadByDesigner === true) {
+                  file.unreadByDesigner = false;
+                  changed = true;
+                }
+              }
+            });
+          }
+
+          if (changed) {
+            renderSidebar();
+            saveProjects();
           }
         }
       });
-
-      if (changed) {
-        renderSidebar();
-        saveProjects();
-      }
-    }
-  });
-});
-}
+    });
 
 function openProject(id) {
   currentProjectId = id;

@@ -1280,7 +1280,7 @@ const navStages = STAGES;
           <button class="stage-link ${
             stage.id === currentStage ? "active" : ""
           } ${unread ? "has-unread-message" : ""}" data-stage="${stage.id}">
-            ${ICONS[stage.id]}
+            ${ICONS[stage.id] || ""}
             <span class="nav-label">${
               index < 7 ? `${index + 1}. ` : ""
             }${stage.label}</span>
@@ -1300,8 +1300,7 @@ const navStages = STAGES;
         // Abre a etapa imediatamente
         renderStage();
 
-        // Marca como lidas as mensagens E os arquivos
-        // da etapa que acabou de ser aberta.
+        // Marca como lidas as mensagens E os arquivos da etapa que acabou de ser aberta
         const p = currentProject();
         const stage = p?.stages?.[currentStage];
 
@@ -1349,7 +1348,7 @@ const navStages = STAGES;
         }
       });
     });
-
+	  
 function openProject(id) {
   currentProjectId = id;
   listenToCurrentProject(id);

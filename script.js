@@ -1657,7 +1657,9 @@ s.progress = progress;
       btn.addEventListener("click", () => {
         const id = btn.closest(".file-item").dataset.fileId;
         s.files = s.files.filter((f) => f.id !== id);
-        if (saveProjects()) renderStage();
+        saveProjects().then(() => {
+  renderStage();
+}).catch((err) => console.error("Erro ao salvar estágio:", err));
       });
     });
 
@@ -2699,7 +2701,9 @@ function contractListHTML(contracts) {
       btn.addEventListener("click", () => {
         const id = btn.closest(".file-item").dataset.fileId;
         project.memorialFiles = project.memorialFiles.filter((f) => f.id !== id);
-        if (saveProjects()) renderMemorial(project);
+        saveProjects().then(() => {
+  renderMemorial(project);
+}).catch((err) => console.error("Erro ao salvar memorial:", err));
       });
     });
 

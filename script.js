@@ -939,11 +939,9 @@ if (window.messaging) {
     });
   }
 
-// Substitua pelas suas credenciais reais do Supabase
-const SUPABASE_URL = "https://mmdruvmhkjyiywpeagkr.supabase.co/rest/v1/"; // Cole a URL do seu Supabase aqui
-const SUPABASE_KEY = "sb_publishable_g6hxFIxf-_-xjmJ5PKYR5Q_BMiJhu41"; // Cole a chave pública/anon do seu Supabase aqui
-
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Insira sua chave pública/anon do Supabase entre as aspas:
+const SUPABASE_URL = "https://mmdruvmhkjyiywpeagkr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_g6hxFIxf-_-xjmJ5PKYR5Q_BMiJhu41"; 
 
 async function importFiles(files, arr) {
   if (!files || !files.length) return false;
@@ -953,38 +951,48 @@ async function importFiles(files, arr) {
     try {
       showToast(`Enviando ${file.name}...`, false);
 
-      // Limpa o nome do arquivo para evitar erros de caracteres
+      // Limpa caracteres especiais do nome do arquivo
       const cleanName = file.name
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-zA-Z0-9.-]/g, "_");
 
-      const filePath = `${Date.now()}_${cleanName}`;
+      const fileNameOnStorage = `${Date.now()}_${cleanName}`;
+      const bucketName = "menche-files";
 
-      // Envia DIRETAMENTE do navegador para o Supabase Storage (sem intermediários)
-      const { data, error } = await supabaseClient.storage
-        .from('menche-files')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
+      // Monta o caminho direto para o Supabase Storage
+      const cleanBaseUrl = SUPABASE_URL.replace(/\/$/, "");
+      const uploadUrl = `${cleanBaseUrl}/storage/v1/object/${bucketName}/${fileNameOnStorage}`;
 
-      if (error) throw error;
+      // Envia direto do navegador via fetch
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'apikey': SUPABASE_KEY,
+          'Content-Type': file.type || 'application/octet-stream',
+          'x-upsert': 'true'
+        },
+        body: file
+      });
 
-      // Pega a URL pública do arquivo enviado
-      const { data: publicUrlData } = supabaseClient.storage
-        .from('menche-files')
-        .getPublicUrl(filePath);
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || errData.error || `Erro HTTP ${response.status}`);
+      }
 
-      // Cria o objeto para o Firestore com a notificação ativada
+      // URL pública do arquivo
+      const publicUrl = `${cleanBaseUrl}/storage/v1/object/public/${bucketName}/${fileNameOnStorage}`;
+
+      // Objeto formatado com a notificação em laranja
       const fileObj = {
         id: typeof uid === 'function' ? uid("file") : "file_" + Date.now(),
         name: file.name,
         type: file.type || "application/octet-stream",
         size: file.size,
-        url: publicUrlData.publicUrl,
+        url: publicUrl,
         allowClientDownload: true,
-        unreadByClient: true,   // Notificação visual no sidebar
+        unreadByClient: true,   // Ativa indicador de notificação
         unreadByDesigner: false,
         uploadedAt: new Date().toISOString()
       };
@@ -997,7 +1005,7 @@ async function importFiles(files, arr) {
       count++;
 
     } catch (err) {
-      console.error("Erro no upload direto para o Supabase:", err);
+      console.error("Erro no upload para o Supabase:", err);
       showToast("Erro ao processar " + file.name, true);
     }
   }

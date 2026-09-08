@@ -1,16 +1,5 @@
-const { createClient } = require('@supabase/supabase-js');
-
-// Configuração para permitir arquivos maiores no body do serverless
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
-};
-
-module.exports = async function handler(req, res) {
-  // CORS Headers para liberar a requisição
+export default async function handler(req, res) {
+  // Libera CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -28,24 +17,23 @@ module.exports = async function handler(req, res) {
     const supabaseKey = process.env.SUPABASE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Variáveis de ambiente SUPABASE_URL ou SUPABASE_KEY não foram encontradas na Vercel.' 
+      return res.status(500).json({
+        success: false,
+        error: 'Variáveis SUPABASE_URL ou SUPABASE_KEY não configuradas na Vercel.'
       });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
     const { fileName, fileType, fileBase64 } = req.body || {};
 
     if (!fileName || !fileBase64) {
       return res.status(400).json({ success: false, error: 'Dados do arquivo incompletos.' });
     }
 
-    // Remove o prefixo do Data URL (ex: "data:image/png;base64,")
+    // Decodifica a string Base64 em dados binários (Buffer)
     const base64Data = fileBase64.replace(/^data:.*;base64,/, "");
     const buffer = Buffer.from(base64Data, 'base64');
 
-    // Limpa o nome do arquivo tirando acentos e caracteres especiais
+    // Sanitiza o nome do arquivo (remove acentos, símbolos e espaços)
     const cleanFileName = fileName
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -53,31 +41,44 @@ module.exports = async function handler(req, res) {
 
     const filePath = `uploads/${Date.now()}_${cleanFileName}`;
 
-    // Envia para o Supabase
-    const { data, error } = await supabase.storage
-      .from('menche-files')
-      .upload(filePath, buffer, {
-        contentType: fileType || 'application/octet-stream',
-        upsert: true
-      });
+    // Faz a requisição POST diretamente para a API REST do Supabase Storage
+    const cleanUrl = supabaseUrl.replace(/\/$/, "");
+    const uploadEndpoint = `${cleanUrl}/storage/v1/object/menche-files/${filePath}`;
 
-    if (error) {
-      console.error("Erro Supabase Storage:", error);
-      return res.status(500).json({ success: false, error: `Supabase Error: ${error.message}` });
+    const supabaseResponse = await fetch(uploadEndpoint, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+        'apikey': supabaseKey,
+        'Content-Type': fileType || 'application/octet-stream',
+        'x-upsert': 'true'
+      },
+      body: buffer
+    });
+
+    const responseData = await supabaseResponse.json();
+
+    if (!supabaseResponse.ok) {
+      console.error("Erro no Supabase REST:", responseData);
+      return res.status(500).json({
+        success: false,
+        error: responseData.message || responseData.error || 'Erro ao enviar para o Supabase Storage'
+      });
     }
 
-    // Pega a URL pública
-    const { data: publicUrlData } = supabase.storage
-      .from('menche-files')
-      .getPublicUrl(filePath);
+    // Monta a URL pública do arquivo
+    const publicUrl = `${cleanUrl}/storage/v1/object/public/menche-files/${filePath}`;
 
     return res.status(200).json({
       success: true,
-      url: publicUrlData.publicUrl
+      url: publicUrl
     });
 
   } catch (err) {
     console.error("Erro interno no upload:", err);
-    return res.status(500).json({ success: false, error: err.message || 'Erro interno no servidor' });
+    return res.status(500).json({
+      success: false,
+      error: err.message || 'Erro interno no servidor'
+    });
   }
-};
+}

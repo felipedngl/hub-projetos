@@ -1348,6 +1348,7 @@ const navStages = STAGES;
         }
       });
     });
+  }
 	  
 function openProject(id) {
   currentProjectId = id;

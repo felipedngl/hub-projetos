@@ -951,7 +951,7 @@ async function importFiles(files, arr) {
     try {
       showToast(`Enviando ${file.name}...`, false);
 
-      // Limpa caracteres especiais do nome do arquivo
+// Sanitiza o nome do arquivo
       const cleanName = file.name
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
@@ -960,11 +960,10 @@ async function importFiles(files, arr) {
       const fileNameOnStorage = `${Date.now()}_${cleanName}`;
       const bucketName = "menche-files";
 
-      // Monta o caminho direto para o Supabase Storage
       const cleanBaseUrl = SUPABASE_URL.replace(/\/$/, "");
       const uploadUrl = `${cleanBaseUrl}/storage/v1/object/${bucketName}/${fileNameOnStorage}`;
 
-      // Envia direto do navegador via fetch
+      // Envia o arquivo
       const response = await fetch(uploadUrl, {
         method: 'POST',
         headers: {
@@ -981,8 +980,8 @@ async function importFiles(files, arr) {
         throw new Error(errData.message || errData.error || `Erro HTTP ${response.status}`);
       }
 
-      // URL pública do arquivo
-	  const publicUrl = `${cleanBaseUrl}/storage/v1/object/public/menche-files/${fileNameOnStorage}`;
+      // URL pública formatada exatamente no padrão de leitura do Supabase Storage
+      const publicUrl = `${cleanBaseUrl}/storage/v1/object/public/${bucketName}/${encodeURIComponent(fileNameOnStorage)}`;
 
       // Objeto formatado com a notificação em laranja
       const fileObj = {

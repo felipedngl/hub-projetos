@@ -2060,17 +2060,25 @@ if (btnViewChecklist) {
     });
   });
 
-  $$("#stageContainer .client-file-view").forEach((button) => {
+$$("#stageContainer .client-file-view").forEach((button) => {
     button.addEventListener("click", () => {
       const fileId = button.dataset.fileId;
       const file = (s.files || []).find((f) => f.id === fileId);
 
-      if (!file || !file.dataUrl) {
+      // Pega qualquer formato de URL disponível no objeto
+      const targetUrl = file ? (file.url || file.dataUrl || file.fileUrl || file.value) : null;
+
+      if (!file || !targetUrl) {
         showToast("Arquivo não encontrado.", true);
         return;
       }
 
-      openClientFile(file.dataUrl, file.name, false);
+      // Se for link do Supabase (http/https), abre direto em nova aba sem travar
+      if (targetUrl.startsWith("http")) {
+        window.open(targetUrl, "_blank");
+      } else {
+        openClientFile(targetUrl, file.name, false);
+      }
     });
   });
 

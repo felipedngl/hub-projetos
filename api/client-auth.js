@@ -41,9 +41,15 @@ export default async function handler(req, res) {
     });
   }
 
-  const clientIp = getClientIp(req);
-const rateLimitKey = `${clientIp}:${String(req.body?.projectId || "")}`;
+const clientIp = getClientIp(req);
 
+const requestedProject =
+  String(req.body?.projectId || req.body?.clientName || "")
+    .trim()
+    .slice(0, 200);
+
+const rateLimitKey = `${clientIp}:${requestedProject}`;
+  
 const now = Date.now();
 const attempts = loginAttempts.get(rateLimitKey) || [];
 

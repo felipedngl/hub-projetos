@@ -980,18 +980,20 @@ async function importFiles(files, arr) {
         throw new Error(errData.message || errData.error || `Erro HTTP ${response.status}`);
       }
 
-      // URL pública formatada exatamente no padrão de leitura do Supabase Storage
+	  // URL pública do Supabase
       const publicUrl = `${cleanBaseUrl}/storage/v1/object/public/${bucketName}/${encodeURIComponent(fileNameOnStorage)}`;
 
-      // Objeto formatado com a notificação em laranja
+      // Objeto com todas as propriedades de URL para compatibilidade com a sua interface
       const fileObj = {
         id: typeof uid === 'function' ? uid("file") : "file_" + Date.now(),
         name: file.name,
         type: file.type || "application/octet-stream",
         size: file.size,
         url: publicUrl,
+        fileUrl: publicUrl,       // Garante suporte se a interface buscar .fileUrl
+        link: publicUrl,          // Garante suporte se a interface buscar .link
         allowClientDownload: true,
-        unreadByClient: true,   // Ativa indicador de notificação
+        unreadByClient: true,     // Indicador laranja
         unreadByDesigner: false,
         uploadedAt: new Date().toISOString()
       };

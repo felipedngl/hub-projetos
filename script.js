@@ -939,77 +939,79 @@ if (window.messaging) {
     });
   }
 
+// Substitua pelas suas credenciais reais do Supabase
+const SUPABASE_URL = "https://SEU_PROJETO.supabase.co"; // Cole a URL do seu Supabase aqui
+const SUPABASE_KEY = "SUA_CHAVE_PUBLICA_ANON"; // Cole a chave pública/anon do seu Supabase aqui
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 async function importFiles(files, arr) {
-    if (!files || !files.length) return false;
-    let count = 0;
+  if (!files || !files.length) return false;
+  let count = 0;
 
-    for (const file of files) {
-      if (typeof MAX_FILE_SIZE !== 'undefined' && file.size > MAX_FILE_SIZE) {
-        showToast(`O arquivo ${file.name} excede o limite permitido.`, true);
-        continue;
-      }
+  for (const file of files) {
+    try {
+      showToast(`Enviando ${file.name}...`, false);
 
-      try {
-        showToast(`Enviando ${file.name}...`, false);
+      // Limpa o nome do arquivo para evitar erros de caracteres
+      const cleanName = file.name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9.-]/g, "_");
 
-        // Converte temporariamente o arquivo para enviar à API Serverless
-        const base64Content = await readFileAsDataUrl(file);
+      const filePath = `${Date.now()}_${cleanName}`;
 
-        // Envia para o Supabase Storage via Vercel API
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fileName: file.name,
-            fileType: file.type || "application/octet-stream",
-            fileBase64: base64Content
-          })
+      // Envia DIRETAMENTE do navegador para o Supabase Storage (sem intermediários)
+      const { data, error } = await supabaseClient.storage
+        .from('menche-files')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
         });
 
-        const result = await response.json();
+      if (error) throw error;
 
-        if (!result.success) {
-          throw new Error(result.error || "Erro no upload para o Supabase");
-        }
+      // Pega a URL pública do arquivo enviado
+      const { data: publicUrlData } = supabaseClient.storage
+        .from('menche-files')
+        .getPublicUrl(filePath);
 
-        // Cria o objeto do arquivo com as flags de notificação
-        const fileObj = {
-          id: typeof uid === 'function' ? uid("file") : "file_" + Date.now(),
-          name: file.name,
-          type: file.type || "application/octet-stream",
-          size: file.size,
-          url: result.url,
-          allowClientDownload: true,
-          unreadByClient: true,   // Ativa a notificação no painel do cliente
-          unreadByDesigner: false,
-          uploadedAt: new Date().toISOString()
-        };
+      // Cria o objeto para o Firestore com a notificação ativada
+      const fileObj = {
+        id: typeof uid === 'function' ? uid("file") : "file_" + Date.now(),
+        name: file.name,
+        type: file.type || "application/octet-stream",
+        size: file.size,
+        url: publicUrlData.publicUrl,
+        allowClientDownload: true,
+        unreadByClient: true,   // Notificação visual no sidebar
+        unreadByDesigner: false,
+        uploadedAt: new Date().toISOString()
+      };
 
-        // Garante a inserção no array alvo da etapa
-        if (Array.isArray(arr)) {
-          arr.push(fileObj);
-        }
-
-        showToast(`${file.name} enviado com sucesso!`, false);
-        count++;
-
-      } catch (err) {
-        console.error("Erro no processamento do arquivo:", err);
-        showToast("Erro ao processar " + file.name, true);
+      if (Array.isArray(arr)) {
+        arr.push(fileObj);
       }
-    }
 
-if (!count) return false;
+      showToast(`${file.name} enviado com sucesso!`, false);
+      count++;
 
-    // Salva o projeto no Firestore garantindo o tratamento da Promise
-    try {
-      await saveProjects();
-      return true;
     } catch (err) {
-      console.error("Erro ao salvar o projeto após o upload:", err);
-      return false;
+      console.error("Erro no upload direto para o Supabase:", err);
+      showToast("Erro ao processar " + file.name, true);
     }
   }
+
+  if (!count) return false;
+
+  try {
+    await saveProjects();
+    return true;
+  } catch (err) {
+    console.error("Erro ao salvar projeto:", err);
+    return false;
+  }
+}
 
   function makeDropzoneHTML(accept) {
     return `

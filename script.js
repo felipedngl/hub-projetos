@@ -2050,6 +2050,7 @@ if (btnViewChecklist) {
       const fileId = button.dataset.fileId;
       const file = (s.files || []).find((f) => f.id === fileId);
 
+	  const fileUrl = file ? (file.dataUrl || file.url || file.fileUrl) : null;
       if (!file || !file.dataUrl) {
         showToast("Arquivo não encontrado.", true);
         return;

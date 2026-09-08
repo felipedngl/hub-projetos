@@ -1,5 +1,16 @@
+import { createClient } from '@supabase/supabase-js';
+
+// Desativa o limite padrao de body para permitir uploads maiores (ate 10MB)
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+};
+
 export default async function handler(req, res) {
-  // Libera CORS
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -23,6 +34,9 @@ export default async function handler(req, res) {
       });
     }
 
+    // Inicializa o cliente oficial do Supabase
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     const { fileName, fileType, fileBase64 } = req.body || {};
 
     if (!fileName || !fileBase64) {
@@ -33,47 +47,38 @@ export default async function handler(req, res) {
     const base64Data = fileBase64.replace(/^data:.*;base64,/, "");
     const buffer = Buffer.from(base64Data, 'base64');
 
-    // Limpa o nome do arquivo (remove acentos, espaços e caracteres especiais)
+    // Sanitiza o nome do arquivo (remove acentos e caracteres especiais)
     const rawFileName = fileName
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9.-]/g, "_");
 
-    // Nome final gravado diretamente na raiz do bucket
     const cleanFileName = `${Date.now()}_${rawFileName}`;
-    const bucketName = "menche-files";
 
-    // Monta a URL limpa da API REST do Supabase
-    const baseUrl = supabaseUrl.replace(/\/$/, "");
-    const uploadEndpoint = `${baseUrl}/storage/v1/object/${bucketName}/${cleanFileName}`;
+    // Upload direto pelo SDK oficial (trata o caminho do bucket e encoding automaticamente)
+    const { data, error } = await supabase.storage
+      .from('menche-files')
+      .upload(cleanFileName, buffer, {
+        contentType: fileType || 'application/octet-stream',
+        upsert: true
+      });
 
-    const supabaseResponse = await fetch(uploadEndpoint, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${supabaseKey}`,
-        'apikey': supabaseKey,
-        'Content-Type': fileType || 'application/octet-stream',
-        'x-upsert': 'true'
-      },
-      body: buffer
-    });
-
-    const responseData = await supabaseResponse.json();
-
-    if (!supabaseResponse.ok) {
-      console.error("Erro no Supabase REST:", responseData);
+    if (error) {
+      console.error("Erro no Supabase Storage:", error);
       return res.status(500).json({
         success: false,
-        error: responseData.message || responseData.error || 'Erro ao enviar para o Supabase Storage'
+        error: error.message || 'Erro no upload para o Supabase'
       });
     }
 
-    // Monta a URL pública final para acesso ao arquivo
-    const publicUrl = `${baseUrl}/storage/v1/object/public/${bucketName}/${cleanFileName}`;
+    // Pega a URL pública
+    const { data: publicData } = supabase.storage
+      .from('menche-files')
+      .getPublicUrl(cleanFileName);
 
     return res.status(200).json({
       success: true,
-      url: publicUrl
+      url: publicData.publicUrl
     });
 
   } catch (err) {

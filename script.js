@@ -2735,13 +2735,23 @@ rows.push(row);
         renderMemorial(project);
       });
 
-      $$(`#memTable-${key} input[data-row]`).forEach((input) => {
-        input.addEventListener("input", async () => {
-          const { row, col } = input.dataset;
-          rows[Number(row)][col] = input.value;
-          await saveProjects();
-        });
-      });
+      let memorialTimeout = null;
+		
+	$$(`#memTable-${key} input[data-row]`).forEach((input) => {
+  input.addEventListener("input", (e) => {
+    const { row, col } = input.dataset;
+    rows[Number(row)][col] = input.value;
+
+    clearTimeout(memorialTimeout);
+    memorialTimeout = setTimeout(async () => {
+      try {
+        await saveProjects();
+      } catch (err) {
+        console.error("Erro ao salvar memorial:", err);
+      }
+    }, 1000); // Aguarda 1 segundo de pausa na digitação antes de gravar no banco
+  });
+});
 
       $$(`#memTable-${key} .row-del`).forEach((btn) => {
         btn.addEventListener("click", async () => {

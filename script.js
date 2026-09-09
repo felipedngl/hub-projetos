@@ -4560,45 +4560,70 @@ if (Notification.permission === "granted") {
   };
 }
 
-  // Inicializa o app ao carregar a página
+// Inicializa o app ao carregar a página
   document.addEventListener("DOMContentLoaded", () => {
-  if (window.auth) {
-    window.auth.onAuthStateChanged(async (user) => {
-  let role = null;
-  let projectId = null;
+    const handleInitialization = async (user) => {
+      let role = null;
+      let projectId = null;
 
-  if (user) {
-    try {
-      const result = await user.getIdTokenResult(true);
+      if (user) {
+        try {
+          const result = await user.getIdTokenResult(true);
+          role = result.claims.role || null;
+          projectId = result.claims.projectId || null;
+        } catch (error) {
+          console.error("Erro ao obter permissões do usuário:", error);
+        }
+      }
 
-      role = result.claims.role || null;
-      projectId = result.claims.projectId || null;
-    } catch (error) {
-      console.error("Erro ao obter permissões do usuário:", error);
+      authStateUser = user;
+      designerUnlocked = role === "designer";
+
+      if (user && role === "client") {
+        clientMode = true;
+        if (projectId) {
+          currentProjectId = projectId;
+          rememberClientAccess(projectId);
+        }
+      }
+
+      applyAccessUI();
+      authStateReady = true;
+
+      // 1. Executa a inicialização padrão
+      await init();
+
+      // 2. VERIFICAÇÃO DE ACESSO VIA LINK ?projeto=... (CLIENTE SEM LOGIN)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlProject = urlParams.get("projeto") || urlParams.get("p");
+
+      if (urlProject && !designerUnlocked) {
+        // Esconde a interface de designer
+        const dashboard = document.getElementById("dashboardView") || document.getElementById("dashboard") || document.querySelector(".dashboard-container");
+        if (dashboard) dashboard.style.display = "none";
+
+        // Ativa pendência de senha para o cliente
+        clientPasswordPending = true;
+
+        // Tenta abrir o modal de senha automaticamente
+        if (typeof openPasswordModal === "function") {
+          openPasswordModal("Digite a senha do projeto para acessar:");
+        } else {
+          const modal = document.getElementById("passwordModal");
+          if (modal) {
+            modal.classList.add("active");
+            modal.style.display = "flex";
+          }
+        }
+      }
+    };
+
+    if (window.auth) {
+      window.auth.onAuthStateChanged(handleInitialization);
+    } else {
+      authStateReady = true;
+      handleInitialization(null);
     }
-  }
-
-  authStateUser = user;
- designerUnlocked = role === "designer";
-  if (user && role === "client") {
-    clientMode = true;
-
-    if (projectId) {
-      currentProjectId = projectId;
-      rememberClientAccess(projectId);
-    }
-  }
-
-  applyAccessUI();
-  authStateReady = true;
-
-  await init();
-});
-  } else {
-    authStateReady = true;
-    init();
-  }
-});
+  });
 
 })();
-

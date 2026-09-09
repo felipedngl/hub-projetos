@@ -4046,23 +4046,39 @@ async function submitPasswordModal() {
       document.body.style.overflow = "";
       closePasswordModal(true);
 
-// Renderiza a interface exclusiva do cliente
+	  // Renderiza a interface exclusiva do cliente
       currentProjectId = targetProject.id;
-      
-      // 1. Identifica a etapa atual do projeto com fallbacks seguros
-      let currentStage = "projeto_executivo";
-      if (Array.isArray(targetProject.stages) && targetProject.stages.length > 0) {
-        currentStage = targetProject.stages[0];
-      } else if (typeof targetProject.stages === "object" && targetProject.stages !== null) {
-        currentStage = Object.keys(targetProject.stages)[0] || "projeto_executivo";
-      } else if (targetProject.currentStage) {
-        currentStage = targetProject.currentStage;
+
+      // 1. Garante que o objeto da etapa e seu checklist existam para não quebrar o renderStageClient
+      let stageObj = null;
+
+      if (targetProject.stages) {
+        if (Array.isArray(targetProject.stages) && targetProject.stages.length > 0) {
+          stageObj = targetProject.stages[0];
+        } else if (typeof targetProject.stages === "object") {
+          const keys = Object.keys(targetProject.stages);
+          if (keys.length > 0) {
+            stageObj = targetProject.stages[keys[0]];
+          }
+        }
       }
 
-      // 2. Chama a renderização sem deixar o script quebrar caso algum componente falhe
+      // Se não encontrou o objeto ou se checklist for undefined, monta uma estrutura padrão válida
+      if (!stageObj || typeof stageObj !== "object") {
+        stageObj = {
+          name: targetProject.currentStage || "projeto_executivo",
+          checklist: [],
+          files: [],
+          comments: []
+        };
+      } else if (!stageObj.checklist) {
+        stageObj.checklist = [];
+      }
+
+      // 2. Chama a renderização com o objeto de etapa devidamente preenchido
       try {
         if (typeof renderStageClient === "function") {
-          renderStageClient(targetProject, currentStage);
+          renderStageClient(targetProject, stageObj);
         }
       } catch (errStage) {
         console.error("Erro ao renderizar renderStageClient:", errStage);

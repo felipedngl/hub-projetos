@@ -1865,12 +1865,24 @@ checkbox.addEventListener("change", async () => {
 
 /* ---------------- Render: etapa (cliente, leitura) ---------------- */
 function renderStageClient(project, stage) {
+  if (!project) return;
   const container = $("#stageContainer");
+  if (!container) return;
+
+  // Garante que stage seja um objeto com os campos minimos de cabeçalho
+  if (!stage || typeof stage !== "object") {
+    const stageId = typeof stage === "string" ? stage : "projeto_executivo";
+    stage = {
+      id: stageId,
+      label: stageId.replace(/_/g, " ").toUpperCase(),
+      hint: "Acompanhe as entregas e observações desta etapa."
+    };
+  }
 
   const header = `
     <div class="stage-header">
-      <h2>${stage.label}</h2>
-      <p class="stage-hint">${stage.hint}</p>
+      <h2>${stage.label || "Etapa"}</h2>
+      <p class="stage-hint">${stage.hint || ""}</p>
     </div>`;
 
   if (stage.special === "contracts") {
@@ -1884,41 +1896,45 @@ function renderStageClient(project, stage) {
     return;
   }
   if (stage.special === "schedule") {
-    container.innerHTML =
-      header + renderScheduleClientHTML(project);
+    container.innerHTML = header + renderScheduleClientHTML(project);
     return;
   }
 
-  const s = project.stages[stage.id];
+  // Busca a etapa dentro de project.stages de forma segura (evita que s seja undefined)
+  const stagesData = project.stages || {};
+  const stageKey = stage.id || "projeto_executivo";
+  
+  // Se a etapa s não existir em project.stages, cria um objeto vazio seguro
+  const s = stagesData[stageKey] || { checklist: [], files: [], clientMessages: [], status: "nao_iniciado" };
   const checklist = Array.isArray(s.checklist) ? s.checklist : [];
 
-const checklistHTML = checklist.length
-  ? `
-    <div class="panel stage-checklist-client">
-      <div class="stage-checklist-client-header">
-        <div>
-          <span class="stage-checklist-client-label">Entregas da etapa</span>
-          <strong>${checklist.filter(item => item.done).length}/${checklist.length} concluídas</strong>
-        </div>
+  const checklistHTML = checklist.length
+    ? `
+      <div class="panel stage-checklist-client">
+        <div class="stage-checklist-client-header">
+          <div>
+            <span class="stage-checklist-client-label">Entregas da etapa</span>
+            <strong>${checklist.filter(item => item.done).length}/${checklist.length} concluídas</strong>
+          </div>
 
-        <button
-          type="button"
-          class="stage-checklist-client-button"
-          id="btnViewChecklist"
-        >
-          Ver entregas ›
-        </button>
-      </div>
-  `
-  : "";
-  const stageStatus = STATUS_LABELS[s.status] || "Não iniciado";
-  const stageProgress = getStageProgress(s);
+          <button
+            type="button"
+            class="stage-checklist-client-button"
+            id="btnViewChecklist"
+          >
+            Ver entregas ›
+          </button>
+        </div>
+    `
+    : "";
+  const stageStatus = (typeof STATUS_LABELS !== "undefined" && STATUS_LABELS[s.status]) ? STATUS_LABELS[s.status] : "Não iniciado";
+  const stageProgress = typeof getStageProgress === "function" ? getStageProgress(s) : 0;
   const deadlineText = s.deadline
     ? new Date(`${s.deadline}T00:00:00`).toLocaleDateString("pt-BR")
     : "";
 
   const stageStatusHTML = `
-    <div class="panel stage-status-card ${STATUS_CLASS[s.status] || "status-nao-iniciado"}">
+    <div class="panel stage-status-card ${(typeof STATUS_CLASS !== "undefined" && STATUS_CLASS[s.status]) || "status-nao-iniciado"}">
       <div class="stage-status-top">
         <div>
           <span class="stage-status-label">Status da etapa</span>
@@ -1951,11 +1967,13 @@ const checklistHTML = checklist.length
     </div>
   `;
 
-container.innerHTML = header + stageStatusHTML + checklistHTML + `
+  const iconText = (typeof ICONS !== "undefined" && stage.id && ICONS[stage.id]) ? ICONS[stage.id] : "📁";
+
+  container.innerHTML = header + stageStatusHTML + checklistHTML + `
     <div class="panel">
-      <h3>${ICONS[stage.id]} Arquivos da etapa</h3>
+      <h3>${iconText} Arquivos da etapa</h3>
       <label>Renders, plantas e documentos desta etapa</label>
-      ${clientFilesHTML(s.files || [])}
+      ${typeof clientFilesHTML === "function" ? clientFilesHTML(s.files || []) : ""}
     </div>
 
     <div class="panel client-conversation-panel">
@@ -1965,7 +1983,7 @@ container.innerHTML = header + stageStatusHTML + checklistHTML + `
       </p>
 
       <div id="stageConversation">
-        ${stageConversationHTML(s.clientMessages || [])}
+        ${typeof stageConversationHTML === "function" ? stageConversationHTML(s.clientMessages || []) : ""}
       </div>
 
       <div class="conversation-form">
@@ -1985,88 +2003,85 @@ container.innerHTML = header + stageStatusHTML + checklistHTML + `
       </div>
     </div>`;
 
-const btnViewChecklist = $("#btnViewChecklist");
+  const btnViewChecklist = $("#btnViewChecklist");
 
-if (btnViewChecklist) {
-  btnViewChecklist.addEventListener("click", () => {
-    const completed = checklist.filter(item => item.done).length;
+  if (btnViewChecklist) {
+    btnViewChecklist.addEventListener("click", () => {
+      const completed = checklist.filter(item => item.done).length;
 
-    const modal = document.createElement("div");
-    modal.className = "checklist-modal-overlay";
+      const modal = document.createElement("div");
+      modal.className = "checklist-modal-overlay";
 
-    modal.innerHTML = `
-      <div class="checklist-modal">
-        <div class="checklist-modal-header">
-          <div>
-            <span class="checklist-modal-label">Entregas da etapa</span>
-            <h3>${completed}/${checklist.length} concluídas</h3>
+      modal.innerHTML = `
+        <div class="checklist-modal">
+          <div class="checklist-modal-header">
+            <div>
+              <span class="checklist-modal-label">Entregas da etapa</span>
+              <h3>${completed}/${checklist.length} concluídas</h3>
+            </div>
+
+            <button
+              type="button"
+              class="checklist-modal-close"
+              aria-label="Fechar"
+            >
+              ×
+            </button>
           </div>
 
-          <button
-            type="button"
-            class="checklist-modal-close"
-            aria-label="Fechar"
-          >
-            ×
-          </button>
+          <div class="checklist-modal-list">
+            ${checklist
+              .map(
+                (item) => `
+                  <div class="checklist-modal-item ${item.done ? "done" : ""}">
+                    <span class="checklist-modal-check">
+                      ${item.done ? "✓" : ""}
+                    </span>
+                    <span>${typeof escapeHTML === "function" ? escapeHTML(item.label) : item.label}</span>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>
         </div>
+      `;
 
-        <div class="checklist-modal-list">
-          ${checklist
-            .map(
-              (item) => `
-                <div class="checklist-modal-item ${item.done ? "done" : ""}">
-                  <span class="checklist-modal-check">
-                    ${item.done ? "✓" : ""}
-                  </span>
-                  <span>${escapeHTML(item.label)}</span>
-                </div>
-              `
-            )
-            .join("")}
-        </div>
-      </div>
-    `;
+      document.body.appendChild(modal);
 
-    document.body.appendChild(modal);
+      const closeModal = () => {
+        modal.remove();
+      };
 
-    const closeModal = () => {
-      modal.remove();
-    };
+      modal
+        .querySelector(".checklist-modal-close")
+        .addEventListener("click", closeModal);
 
-    modal
-      .querySelector(".checklist-modal-close")
-      .addEventListener("click", closeModal);
-
-    modal.addEventListener("click", (event) => {
-      if (event.target === modal) {
-        closeModal();
-      }
+      modal.addEventListener("click", (event) => {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
     });
-  });
-}
-	
+  }
+
   const input = $("#clientMessageInput");
   const sendButton = $("#btnSendClientMessage");
-	
-  // Liga os botões de arquivo do cliente
-$$("#stageContainer .client-file-download").forEach((button) => {
+
+  $$("#stageContainer .client-file-download").forEach((button) => {
     button.addEventListener("click", async () => {
       const fileId = button.dataset.fileId;
       const file = (s.files || []).find((f) => f.id === fileId);
-
       const targetUrl = file ? (file.url || file.dataUrl || file.fileUrl || file.value) : null;
 
       if (!file || !targetUrl) {
-        showToast("Arquivo não encontrado.", true);
+        if (typeof showToast === "function") showToast("Arquivo não encontrado.", true);
         return;
       }
 
-      showToast("Iniciando download...", false);
+      if (typeof showToast === "function") showToast("Iniciando download...", false);
 
       if (targetUrl.startsWith("http")) {
         try {
-          // Baixa o arquivo em segundo plano para forçar a transferência local (evita abrir aba nova)
           const resp = await fetch(targetUrl);
           const blob = await resp.blob();
           const blobUrl = URL.createObjectURL(blob);
@@ -2078,127 +2093,119 @@ $$("#stageContainer .client-file-download").forEach((button) => {
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(blobUrl);
-
         } catch (err) {
           console.error("Erro no download direto via Blob:", err);
-          // Fallback caso ocorra restrição de CORS no fetch
           window.open(targetUrl, "_blank");
         }
       } else {
-        openClientFile(targetUrl, file.name, true);
+        if (typeof openClientFile === "function") openClientFile(targetUrl, file.name, true);
       }
     });
   });
 
-$$("#stageContainer .client-file-view").forEach((button) => {
+  $$("#stageContainer .client-file-view").forEach((button) => {
     button.addEventListener("click", () => {
       const fileId = button.dataset.fileId;
       const file = (s.files || []).find((f) => f.id === fileId);
-
-      // Pega qualquer formato de URL disponível no objeto
       const targetUrl = file ? (file.url || file.dataUrl || file.fileUrl || file.value) : null;
 
       if (!file || !targetUrl) {
-        showToast("Arquivo não encontrado.", true);
+        if (typeof showToast === "function") showToast("Arquivo não encontrado.", true);
         return;
       }
 
-      // Se for link do Supabase (http/https), abre direto em nova aba sem travar
       if (targetUrl.startsWith("http")) {
         window.open(targetUrl, "_blank");
       } else {
-        openClientFile(targetUrl, file.name, false);
+        if (typeof openClientFile === "function") openClientFile(targetUrl, file.name, false);
       }
     });
   });
 
-$$("#stageConversation .btn-message-edit").forEach((button) => {
-  button.addEventListener("click", async () => {
-    const messageId = button.dataset.messageId;
-    const message = s.clientMessages?.find((m) => m.id === messageId);
+  $$("#stageConversation .btn-message-edit").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const messageId = button.dataset.messageId;
+      const message = s.clientMessages?.find((m) => m.id === messageId);
 
-    if (!message || message.author !== "client") return;
+      if (!message || message.author !== "client") return;
 
-    const newText = prompt("Edite sua mensagem:", message.text);
+      const newText = prompt("Edite sua mensagem:", message.text);
+      if (newText === null) return;
+      const text = newText.trim();
 
-    if (newText === null) return;
+      if (!text) {
+        if (typeof showToast === "function") showToast("A mensagem não pode ficar vazia.", true);
+        return;
+      }
 
-    const text = newText.trim();
+      message.text = text;
+      message.editedAt = Date.now();
 
-    if (!text) {
-      showToast("A mensagem não pode ficar vazia.", true);
-      return;
-    }
-
-    message.text = text;
-    message.editedAt = Date.now();
-
-    if (await saveProjects()) {
-      renderStageClient(project, stage);
-      showToast("Mensagem editada.");
-    }
+      if (typeof saveProjects === "function" && await saveProjects()) {
+        renderStageClient(project, stage);
+        if (typeof showToast === "function") showToast("Mensagem editada.");
+      }
+    });
   });
-});
 
-$$("#stageConversation .btn-message-delete").forEach((button) => {
-  button.addEventListener("click", async () => {
-    const messageId = button.dataset.messageId;
-    const index = s.clientMessages?.findIndex(
-      (m) => m.id === messageId
-    );
+  $$("#stageConversation .btn-message-delete").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const messageId = button.dataset.messageId;
+      const index = s.clientMessages?.findIndex((m) => m.id === messageId);
 
-    if (index === -1) return;
+      if (index === -1 || index === undefined) return;
 
-    const message = s.clientMessages[index];
+      const message = s.clientMessages[index];
+      if (!message || message.author !== "client") return;
 
-    if (!message || message.author !== "client") return;
+      if (!confirm("Apagar esta mensagem?")) return;
 
-    if (!confirm("Apagar esta mensagem?")) return;
+      s.clientMessages.splice(index, 1);
 
-    s.clientMessages.splice(index, 1);
-
-    if (await saveProjects()) {
-      renderStageClient(project, stage);
-      showToast("Mensagem apagada.");
-    }
+      if (typeof saveProjects === "function" && await saveProjects()) {
+        renderStageClient(project, stage);
+        if (typeof showToast === "function") showToast("Mensagem apagada.");
+      }
+    });
   });
-});
-	
-  sendButton.addEventListener("click", async () => {
-    const text = input.value.trim();
 
-    if (!text) {
-      showToast("Escreva uma observação antes de enviar.", true);
-      return;
-    }
+  if (sendButton) {
+    sendButton.addEventListener("click", async () => {
+      const text = input ? input.value.trim() : "";
 
-    if (!Array.isArray(s.clientMessages)) {
-      s.clientMessages = [];
-    }
+      if (!text) {
+        if (typeof showToast === "function") showToast("Escreva uma observação antes de enviar.", true);
+        return;
+      }
 
-    s.clientMessages.push({
-  id: uid(),
-  author: "client",
-  text,
-  createdAt: Date.now(),
-  readByDesigner: false,
-});
+      if (!Array.isArray(s.clientMessages)) {
+        s.clientMessages = [];
+      }
 
-    sendButton.disabled = true;
-    sendButton.textContent = "Enviando...";
+      s.clientMessages.push({
+        id: typeof uid === "function" ? uid() : String(Date.now()),
+        author: "client",
+        text,
+        createdAt: Date.now(),
+        readByDesigner: false,
+      });
 
-    const saved = await saveProjects();
+      sendButton.disabled = true;
+      sendButton.textContent = "Enviando...";
 
-    if (saved) {
-      input.value = "";
-      renderStageClient(project, stage);
-      showToast("Observação enviada.");
-    } else {
-      s.clientMessages.pop();
-      sendButton.disabled = false;
-      sendButton.textContent = "Enviar observação";
-    }
-  });
+      const saved = (typeof saveProjects === "function") ? await saveProjects() : false;
+
+      if (saved) {
+        if (input) input.value = "";
+        renderStageClient(project, stage);
+        if (typeof showToast === "function") showToast("Observação enviada.");
+      } else {
+        s.clientMessages.pop();
+        sendButton.disabled = false;
+        sendButton.textContent = "Enviar observação";
+      }
+    });
+  }
 }
 
 function stageConversationHTML(messages) {

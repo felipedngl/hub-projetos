@@ -4061,7 +4061,7 @@ async function submitPasswordModal() {
         renderStageClient(targetProject, firstStageObj);
       }
 
-      // 7. SÓ AGORA FECHA O MODAL (ÚNICA CHAMADA)
+// 7. SÓ AGORA FECHA O MODAL (ÚNICA CHAMADA)
       document.body.style.overflow = "auto";
       document.body.classList.remove("modal-open");
       closePasswordModal(true);
@@ -4077,16 +4077,22 @@ async function submitPasswordModal() {
   const cb = passwordOnSuccess;
   closePasswordModal(true); // Única chamada para o fluxo de designer
   if (cb) cb(enteredPassword);
-  }
 }
 
-  $("#btnConfirmPassword").addEventListener("click", submitPasswordModal);
+// Eventos do Modal de Senha protegidos com seletor seguro
+const btnConfirm = document.getElementById("btnConfirmPassword");
+if (btnConfirm) {
+  btnConfirm.addEventListener("click", submitPasswordModal);
+}
 
-  $("#passwordInput").addEventListener("keydown", (e) => {
+const inputPass = document.getElementById("passwordInput");
+if (inputPass) {
+  inputPass.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       submitPasswordModal();
     }
   });
+}
 
   $("#btnClosePassword").addEventListener("click", closePasswordModal);
   $("#btnCancelPassword").addEventListener("click", closePasswordModal);

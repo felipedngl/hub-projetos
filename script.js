@@ -4047,14 +4047,35 @@ async function submitPasswordModal() {
       closePasswordModal(true);
 
 // Renderiza a visualização
-      if (typeof selectProject === "function") {
-        selectProject(targetProject.id);
-      } else if (typeof renderProject === "function") {
-        renderProject(targetProject);
-      } else if (typeof loadProjectData === "function") {
-        loadProjectData(targetProject);
+// Renderiza a interface exclusiva do cliente
+      currentProjectId = targetProject.id;
+      
+      // 1. Pega a primeira etapa do projeto (ou etapa ativa)
+      const currentStage = (targetProject.stages && targetProject.stages.length > 0) 
+        ? targetProject.stages[0] 
+        : (targetProject.currentStage || "projeto_executivo");
+
+      // 2. Chama a função exata do seu HUB que desenha a tela do cliente
+      if (typeof renderStageClient === "function") {
+        renderStageClient(targetProject, currentStage);
       }
 
+      // 3. Se houver cronograma/memorial, renderiza em seguida
+      if (typeof renderScheduleClientHTML === "function") {
+        renderScheduleClientHTML(targetProject);
+      }
+      if (typeof renderMemorial === "function") {
+        renderMemorial(targetProject);
+      }
+
+      // 4. Exibe a tela e libera a rolagem da página
+      const clientViewEl = document.getElementById("clientHubView") || document.getElementById("projectDetails") || document.querySelector(".main-content");
+      if (clientViewEl) {
+        clientViewEl.style.display = "block";
+      }
+
+      document.body.style.overflow = "auto";
+      document.body.classList.remove("modal-open");
     } catch (err) {
       console.error("Erro ao validar senha do cliente:", err);
       alert("Erro ao processar a senha.");

@@ -3992,6 +3992,9 @@ if (wasClientPassword && !authenticated) {
 async function submitPasswordModal() {
   const enteredPassword = $("#passwordInput").value.trim();
 
+  // -------------------------------------------------------------
+  // CASO 1: CLIENTE ACESSANDO VIA LINK COM PARÂMETRO (?projeto=...)
+  // -------------------------------------------------------------
   if (clientPasswordPending) {
     const urlParams = new URLSearchParams(window.location.search);
     const projectParam = urlParams.get("projeto") || urlParams.get("p") || currentProjectId;
@@ -3999,88 +4002,81 @@ async function submitPasswordModal() {
     try {
       let targetProject = null;
 
-      // Trata o texto vindo da URL para comparação (ex: "Studio-42" vira "studio-42")
       const rawParam = decodeURIComponent(projectParam || "").trim();
       const paramNormalized = rawParam.toLowerCase().replace(/[-_]/g, " ");
       const paramSlug = typeof slugify === "function" ? slugify(rawParam) : rawParam.toLowerCase();
 
-      // 1. Tenta buscar direto pelo ID no Firestore
-      try {
-        const docRef = await db.collection("projects").doc(rawParam).get();
-        if (docRef.exists) {
-          targetProject = { id: docRef.id, ...docRef.data() };
+      // 1. Busca o projeto correspondente no Firestore
+      const snap = await db.collection("projects").get();
+      snap.forEach((doc) => {
+        if (targetProject) return;
+        const data = doc.data();
+        const pTitle = (data.title || "").toLowerCase();
+        const pTitleNorm = pTitle.replace(/[-_]/g, " ");
+        const pSlug = (data.slug || (typeof slugify === "function" ? slugify(data.title || "") : pTitle)).toLowerCase();
+        const pClient = (data.clientName || data.client || "").toLowerCase();
+
+        if (
+          doc.id === rawParam ||
+          pSlug === paramSlug ||
+          pTitle === rawParam.toLowerCase() ||
+          pTitleNorm === paramNormalized ||
+          pClient === rawParam.toLowerCase()
+        ) {
+          targetProject = { id: doc.id, ...data };
         }
-      } catch (e) {
-        // Ignora erro se não for um ID válido
-      }
-
-      // 2. Se não achou por ID, busca todos os projetos e compara título / slug / clientName de forma flexível
-      if (!targetProject) {
-        const snap = await db.collection("projects").get();
-
-        snap.forEach((doc) => {
-          if (targetProject) return; // Já encontrou
-
-          const data = doc.data();
-          const pTitle = (data.title || "").toLowerCase();
-          const pTitleNorm = pTitle.replace(/[-_]/g, " ");
-          const pSlug = (data.slug || (typeof slugify === "function" ? slugify(data.title || "") : pTitle)).toLowerCase();
-          const pClient = (data.clientName || data.client || "").toLowerCase();
-
-          // Compara todas as variações possíveis do link bonito
-          if (
-            doc.id === rawParam ||
-            pSlug === paramSlug ||
-            pTitle === rawParam.toLowerCase() ||
-            pTitleNorm === paramNormalized ||
-            pClient === rawParam.toLowerCase()
-          ) {
-            targetProject = { id: doc.id, ...data };
-          }
-        });
-      }
+      });
 
       if (!targetProject) {
-        alert("Projeto não encontrado. Verifique o link digitado.");
+        alert("Projeto não encontrado. Verifique o link enviado.");
         return;
       }
 
-      // 3. Valida a senha digitada pelo cliente
-      const realPassword = targetProject.clientPassword || targetProject.password || "";
-
-      if (realPassword && enteredPassword !== realPassword) {
+      // 2. Verifica se a senha digitada é a SENHA DO CLIENTE ou a SUA SENHA MESTRE
+      const clientPass = targetProject.clientPassword || targetProject.password || "";
+      
+      // Se digitou a senha mestre, redireciona/libera como designer
+      if (typeof MASTER_PASSWORD !== "undefined" && enteredPassword === MASTER_PASSWORD) {
+        isClientView = false;
+      } else if (clientPass && enteredPassword === clientPass) {
+        // Se digitou a senha do cliente
+        isClientView = true;
+      } else {
         alert("Senha incorreta. Tente novamente.");
         return;
       }
 
-// 4. Sucesso! Define o projeto atual
+      // 3. Define as variáveis globais do projeto para a visualização
       currentProjectId = targetProject.id;
+      window.currentProject = targetProject;
 
-      // Executa os métodos originais do seu HUB para renderizar a tela do cliente
-      if (typeof selectProject === "function") {
+      // Restaura o scroll do navegador e fecha o modal de senha
+      document.body.style.overflow = "";
+      closePasswordModal(true);
+
+      // 4. Força o carregamento da interface na visão de cliente
+      if (typeof renderClientView === "function") {
+        renderClientView(targetProject);
+      } else if (typeof selectProject === "function") {
         selectProject(targetProject.id);
       } else if (typeof renderProject === "function") {
         renderProject(targetProject);
-      } else if (typeof loadProject === "function") {
-        loadProject(targetProject);
-      } else if (typeof showProject === "function") {
-        showProject(targetProject);
-      } else if (typeof render === "function") {
-        render();
+      } else if (typeof loadProjectData === "function") {
+        loadProjectData(targetProject);
       }
 
-      // Restaura o scroll da página e fecha o modal
-      document.body.style.overflow = "";
-      closePasswordModal(true);
-      if (passwordOnSuccess) passwordOnSuccess(enteredPassword);
-
     } catch (err) {
-      console.error("Erro ao validar senha:", err);
-      alert("Erro ao processar o acesso. Tente novamente.");
+      console.error("Erro ao validar senha do cliente:", err);
+      alert("Erro ao processar a senha. Tente novamente.");
     }
-  } else {
-    const cb = passwordOnSuccess;
-    if (cb) cb(enteredPassword);
+    return;
+  }
+
+  // -------------------------------------------------------------
+  // CASO 2: DESIGNER ENTRANDO NO PAINEL PRINCIPAL
+  // -------------------------------------------------------------
+  const cb = passwordOnSuccess;
+  if (cb) cb(enteredPassword);
   }
 }
 

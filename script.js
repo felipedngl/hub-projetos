@@ -4051,10 +4051,11 @@ async function submitPasswordModal() {
 /* ---------------- Compartilhar ---------------- */
   const shareModal = $("#shareModal");
 
-  function shareLinkFor(project) {
-    return location.origin + location.pathname + `?projeto=${encodeURIComponent(slugify(project.title))}`;
+function shareLinkFor(project) {
+    // Usa o ID do projeto em vez do título/slug para a API encontrar no banco
+    const projectId = project.id || encodeURIComponent(slugify(project.title));
+    return location.origin + location.pathname + `?projeto=${projectId}`;
   }
-
   function openShareModal() {
     const p = currentProject();
     if (!p) return;

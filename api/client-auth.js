@@ -1,12 +1,14 @@
-import admin from 'firebase-admin';
-import crypto from 'crypto';
+const admin = require('firebase-admin');
+const crypto = require('crypto');
 
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      privateKey: process.env.FIREBASE_PRIVATE_KEY
+        ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+        : undefined,
     }),
   });
 }
@@ -16,12 +18,12 @@ const db = admin.firestore();
 function verifyPassword(inputPassword, storedPassword) {
   if (!storedPassword) return false;
 
-  // Se a senha estiver em texto puro no Firestore (compatibilidade)
+  // Compatibilidade com senha em texto puro
   if (!storedPassword.includes('$')) {
     return inputPassword === storedPassword;
   }
 
-  // Se estiver no formato PBKDF2: pbkdf2$iterations$salt$hash
+  // Compatibilidade com hash PBKDF2
   const parts = storedPassword.split('$');
   if (parts.length !== 4 || parts[0] !== 'pbkdf2') return false;
 
@@ -33,57 +35,63 @@ function verifyPassword(inputPassword, storedPassword) {
   return inputHash === hash;
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
+  // Define cabeçalhos CORS para evitar bloqueio no navegador
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
-  const { projectId, clientName, password } = req.body;
-  const targetQuery = projectId || clientName;
-
   try {
-    let projectDoc = null;
+    const { projectId, clientName, password } = req.body || {};
+    const targetQuery = projectId || clientName;
 
-    // 1. Tenta buscar por ID direto
-    if (projectId) {
-      const doc = await db.collection('projects').doc(projectId).get();
-      if (doc.exists) projectDoc = doc;
+    if (!targetQuery) {
+      return res.status(400).json({ error: 'Identificador do projeto não fornecido' });
     }
 
-    // 2. Se não achou por ID, busca pelo campo 'slug' (ex: "studio-42")
-    if (!projectDoc && targetQuery) {
-      const snapshotSlug = await db.collection('projects')
+    let projectDoc = null;
+
+    // 1. Busca por ID direto do Firestore
+    try {
+      const doc = await db.collection('projects').doc(targetQuery).get();
+      if (doc.exists) projectDoc = doc;
+    } catch (e) {
+      // Ignora erro se o targetQuery não for um ID válido
+    }
+
+    // 2. Busca pelo campo 'slug' (ex: "studio-42")
+    if (!projectDoc) {
+      const snapSlug = await db.collection('projects')
         .where('slug', '==', targetQuery.toLowerCase())
         .limit(1)
         .get();
-
-      if (!snapshotSlug.empty) {
-        projectDoc = snapshotSlug.docs[0];
-      }
+      if (!snapSlug.empty) projectDoc = snapSlug.docs[0];
     }
 
-    // 3. Se não achou por slug, busca pelo campo 'title'
-    if (!projectDoc && targetQuery) {
-      const snapshotTitle = await db.collection('projects')
+    // 3. Busca pelo campo 'title' (ex: "Studio 42")
+    if (!projectDoc) {
+      const snapTitle = await db.collection('projects')
         .where('title', '==', targetQuery)
         .limit(1)
         .get();
-
-      if (!snapshotTitle.empty) {
-        projectDoc = snapshotTitle.docs[0];
-      }
+      if (!snapTitle.empty) projectDoc = snapTitle.docs[0];
     }
 
-    // 4. Se ainda não achou, busca por 'clientName' (para links antigos)
-    if (!projectDoc && targetQuery) {
-      const snapshotClient = await db.collection('projects')
+    // 4. Busca pelo campo 'clientName'
+    if (!projectDoc) {
+      const snapClient = await db.collection('projects')
         .where('clientName', '==', targetQuery)
         .limit(1)
         .get();
-
-      if (!snapshotClient.empty) {
-        projectDoc = snapshotClient.docs[0];
-      }
+      if (!snapClient.empty) projectDoc = snapClient.docs[0];
     }
 
     if (!projectDoc) {
@@ -91,14 +99,15 @@ export default async function handler(req, res) {
     }
 
     const projectData = projectDoc.data();
+    const savedPassword = projectData.clientPassword || projectData.password;
 
-    // Valida a senha
-    const isValid = verifyPassword(password, projectData.clientPassword || projectData.password);
+    // Valida a senha digitada
+    const isValid = verifyPassword(password, savedPassword);
     if (!isValid) {
       return res.status(401).json({ error: 'Senha incorreta' });
     }
 
-    // Gera o token customizado do Firebase Auth
+    // Gera o token de acesso
     const customToken = await admin.auth().createCustomToken(projectDoc.id, {
       role: 'client',
       projectId: projectDoc.id
@@ -107,11 +116,11 @@ export default async function handler(req, res) {
     return res.status(200).json({
       token: customToken,
       projectId: projectDoc.id,
-      clientName: projectData.clientName
+      clientName: projectData.clientName || projectData.title
     });
 
   } catch (error) {
     console.error('Erro na autenticação:', error);
-    return res.status(500).json({ error: 'Erro interno no servidor' });
+    return res.status(500).json({ error: 'Erro interno no servidor', details: error.message });
   }
-}
+};

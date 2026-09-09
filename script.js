@@ -3992,9 +3992,7 @@ if (wasClientPassword && !authenticated) {
 async function submitPasswordModal() {
   const enteredPassword = $("#passwordInput").value.trim();
 
-  // -------------------------------------------------------------
-  // CASO 1: CLIENTE ACESSANDO VIA LINK COM PARÂMETRO (?projeto=...)
-  // -------------------------------------------------------------
+  // 1. SE FOR ACESSO DO CLIENTE (?projeto=...)
   if (clientPasswordPending) {
     const urlParams = new URLSearchParams(window.location.search);
     const projectParam = urlParams.get("projeto") || urlParams.get("p") || currentProjectId;
@@ -4006,7 +4004,7 @@ async function submitPasswordModal() {
       const paramNormalized = rawParam.toLowerCase().replace(/[-_]/g, " ");
       const paramSlug = typeof slugify === "function" ? slugify(rawParam) : rawParam.toLowerCase();
 
-      // 1. Busca o projeto correspondente no Firestore
+      // Busca o projeto correspondente no Firestore
       const snap = await db.collection("projects").get();
       snap.forEach((doc) => {
         if (targetProject) return;
@@ -4032,32 +4030,24 @@ async function submitPasswordModal() {
         return;
       }
 
-      // 2. Verifica se a senha digitada é a SENHA DO CLIENTE ou a SUA SENHA MESTRE
+      // Valida se é a senha do cliente ou a senha mestre
       const clientPass = targetProject.clientPassword || targetProject.password || "";
+      const isMaster = (typeof MASTER_PASSWORD !== "undefined" && enteredPassword === MASTER_PASSWORD);
       
-      // Se digitou a senha mestre, redireciona/libera como designer
-      if (typeof MASTER_PASSWORD !== "undefined" && enteredPassword === MASTER_PASSWORD) {
-        isClientView = false;
-      } else if (clientPass && enteredPassword === clientPass) {
-        // Se digitou a senha do cliente
-        isClientView = true;
-      } else {
+      if (!isMaster && clientPass && enteredPassword !== clientPass) {
         alert("Senha incorreta. Tente novamente.");
         return;
       }
 
-      // 3. Define as variáveis globais do projeto para a visualização
+      // Define variáveis globais de acesso
       currentProjectId = targetProject.id;
       window.currentProject = targetProject;
 
-      // Restaura o scroll do navegador e fecha o modal de senha
       document.body.style.overflow = "";
       closePasswordModal(true);
 
-      // 4. Força o carregamento da interface na visão de cliente
-      if (typeof renderClientView === "function") {
-        renderClientView(targetProject);
-      } else if (typeof selectProject === "function") {
+      // Renderiza a visualização
+      if (typeof selectProject === "function") {
         selectProject(targetProject.id);
       } else if (typeof renderProject === "function") {
         renderProject(targetProject);
@@ -4067,16 +4057,16 @@ async function submitPasswordModal() {
 
     } catch (err) {
       console.error("Erro ao validar senha do cliente:", err);
-      alert("Erro ao processar a senha. Tente novamente.");
+      alert("Erro ao processar a senha.");
     }
     return;
   }
 
-  // -------------------------------------------------------------
-  // CASO 2: DESIGNER ENTRANDO NO PAINEL PRINCIPAL
-  // -------------------------------------------------------------
+  // 2. SE FOR O ACESSO DO DESIGNER / PAINEL PRINCIPAL (HUB)
   const cb = passwordOnSuccess;
-  if (cb) cb(enteredPassword);
+  closePasswordModal(true);
+  if (cb) {
+    cb(enteredPassword);
   }
 }
 

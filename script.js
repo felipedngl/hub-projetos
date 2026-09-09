@@ -3989,15 +3989,56 @@ if (wasClientPassword && !authenticated) {
   }
 }
 
-  $("#btnConfirmPassword").addEventListener("click", () => {
-    const cb = passwordOnSuccess;
-    if (cb) cb($("#passwordInput").value.trim());
-  });
+async function submitPasswordModal() {
+    const enteredPassword = $("#passwordInput").value.trim();
+
+    // Se for o acesso do cliente, faz a verificação na API
+    if (clientPasswordPending) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const projectParam = urlParams.get("projeto") || urlParams.get("p") || currentProjectId;
+
+      try {
+        const response = await fetch("/api/client-auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId: projectParam,
+            clientName: projectParam,
+            password: enteredPassword
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.error || "Senha incorreta. Tente novamente.");
+          return;
+        }
+
+        // Se deu tudo certo
+        if (data.projectId) {
+          currentProjectId = data.projectId;
+        }
+        
+        closePasswordModal(true);
+        if (passwordOnSuccess) passwordOnSuccess(enteredPassword);
+
+      } catch (err) {
+        console.error("Erro na autenticação:", err);
+        alert("Erro ao validar senha. Verifique sua conexão.");
+      }
+    } else {
+      // Para outras senhas (ex: acesso ao painel do designer/hub)
+      const cb = passwordOnSuccess;
+      if (cb) cb(enteredPassword);
+    }
+  }
+
+  $("#btnConfirmPassword").addEventListener("click", submitPasswordModal);
 
   $("#passwordInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
-      const cb = passwordOnSuccess;
-      if (cb) cb($("#passwordInput").value.trim());
+      submitPasswordModal();
     }
   });
 

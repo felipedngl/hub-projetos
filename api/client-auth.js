@@ -1,176 +1,93 @@
-import { initializeApp, cert, getApps } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
-import crypto from "crypto";
+import admin from 'firebase-admin';
+import crypto from 'crypto';
 
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
-const RATE_LIMIT_MAX_ATTEMPTS = 5;
-
-const loginAttempts = new Map();
-
-function getClientIp(req) {
-  const forwarded = req.headers["x-forwarded-for"];
-
-  if (forwarded) {
-    return String(forwarded).split(",")[0].trim();
-  }
-
-  return req.socket?.remoteAddress || "unknown";
-}
-
-function getFirebaseApp() {
-  if (getApps().length > 0) {
-    return getApps()[0];
-  }
-
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-
-  return initializeApp({
-    credential: cert({
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
     }),
   });
 }
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "Método não permitido",
-    });
+const db = admin.firestore();
+
+function verifyPassword(inputPassword, storedPassword) {
+  if (!storedPassword) return false;
+
+  // Se a senha estiver em texto puro no Firestore (compatibilidade)
+  if (!storedPassword.includes('$')) {
+    return inputPassword === storedPassword;
   }
 
-const clientIp = getClientIp(req);
+  // Se estiver no formato PBKDF2: pbkdf2$iterations$salt$hash
+  const parts = storedPassword.split('$');
+  if (parts.length !== 4 || parts[0] !== 'pbkdf2') return false;
 
-const requestedProject =
-  String(req.body?.projectId || req.body?.clientName || "")
-    .trim()
-    .slice(0, 200);
+  const iterations = parseInt(parts[1], 10);
+  const salt = parts[2];
+  const hash = parts[3];
 
-const rateLimitKey = `${clientIp}:${requestedProject}`;
-  
-const now = Date.now();
-const attempts = loginAttempts.get(rateLimitKey) || [];
-
-const recentAttempts = attempts.filter(
-  (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS
-);
-
-if (recentAttempts.length >= RATE_LIMIT_MAX_ATTEMPTS) {
-  return res.status(429).json({
-    error: "Muitas tentativas. Aguarde alguns minutos e tente novamente.",
-  });
+  const inputHash = crypto.pbkdf2Sync(inputPassword, salt, iterations, 64, 'sha512').toString('hex');
+  return inputHash === hash;
 }
 
-recentAttempts.push(now);
-loginAttempts.set(rateLimitKey, recentAttempts);
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Método não permitido' });
+  }
+
+  const { projectId, clientName, password } = req.body;
 
   try {
-    const {
-      projectId,
-      clientName,
-      password
-    } = req.body || {};
-
-    if ((!projectId && !clientName) || !password) {
-      return res.status(400).json({
-        error: "Projeto/cliente e senha são obrigatórios",
-      });
-    }
-
-    getFirebaseApp();
-
-    const db = getFirestore();
-
     let projectDoc = null;
 
-if (projectId) {
-  projectDoc = await db
-    .collection("projects")
-    .doc(String(projectId).trim())
-    .get();
-} else {
-  const snapshot = await db
-    .collection("projects")
-    .where("client", "==", String(clientName).trim())
-    .limit(1)
-    .get();
+    // 1. Tenta buscar por ID direto
+    if (projectId) {
+      const doc = await db.collection('projects').doc(projectId).get();
+      if (doc.exists) projectDoc = doc;
+    }
 
-  if (!snapshot.empty) {
-    projectDoc = snapshot.docs[0];
-  }
-}
+    // 2. Se não achou por ID, busca por clientName
+    if (!projectDoc && (clientName || projectId)) {
+      const queryTarget = clientName || projectId;
+      const snapshot = await db.collection('projects')
+        .where('clientName', '==', queryTarget)
+        .limit(1)
+        .get();
 
-if (!projectDoc || !projectDoc.exists) {
-  return res.status(404).json({
-    error: "Projeto não encontrado",
-  });
-}
+      if (!snapshot.empty) {
+        projectDoc = snapshot.docs[0];
+      }
+    }
 
-    const project = projectDoc.data();
+    if (!projectDoc) {
+      return res.status(404).json({ error: 'Projeto não encontrado' });
+    }
 
-    const storedPassword = String(project.clientPassword || "");
+    const projectData = projectDoc.data();
 
-let passwordIsValid = false;
+    // Valida a senha
+    const isValid = verifyPassword(password, projectData.clientPassword || projectData.password);
+    if (!isValid) {
+      return res.status(401).json({ error: 'Senha incorreta' });
+    }
 
-if (storedPassword.startsWith("pbkdf2$")) {
-  const [, iterationsValue, saltBase64, hashBase64] = storedPassword.split("$");
-  const iterations = Number(iterationsValue);
-
-  if (
-    Number.isInteger(iterations) &&
-    iterations > 0 &&
-    saltBase64 &&
-    hashBase64
-  ) {
-    const salt = Buffer.from(saltBase64, "base64");
-    const storedHash = Buffer.from(hashBase64, "base64");
-
-    const derivedKey = crypto.pbkdf2Sync(
-      String(password),
-      salt,
-      iterations,
-      storedHash.length,
-      "sha256"
-    );
-
-    passwordIsValid =
-      storedHash.length === derivedKey.length &&
-      crypto.timingSafeEqual(storedHash, derivedKey);
-  }
-} else {
-  return res.status(401).json({
-    error: "Senha do projeto não está configurada com segurança.",
-  });
-}
-
-if (!passwordIsValid) {
-  return res.status(401).json({
-    error: "Senha incorreta",
-  });
-}
-
-    const resolvedProjectId = String(projectDoc.id);
-    const uid = `client_${resolvedProjectId}`;
-
-    const customToken = await getAuth().createCustomToken(uid, {
-      role: "client",
-      projectId: resolvedProjectId,
+    // Gera o token customizado do Firebase Auth
+    const customToken = await admin.auth().createCustomToken(projectDoc.id, {
+      role: 'client',
+      projectId: projectDoc.id
     });
 
     return res.status(200).json({
-      success: true,
       token: customToken,
-      projectId: resolvedProjectId,
+      projectId: projectDoc.id,
+      clientName: projectData.clientName
     });
 
   } catch (error) {
-    console.error("Erro na autenticação do cliente:", error);
-
-    return res.status(500).json({
-      success: false,
-      error: "Erro ao autenticar cliente",
-    });
+    console.error('Erro na autenticação:', error);
+    return res.status(500).json({ error: 'Erro interno no servidor' });
   }
 }

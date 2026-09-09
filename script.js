@@ -3999,134 +3999,84 @@ if (wasClientPassword && !authenticated) {
 async function submitPasswordModal() {
   const enteredPassword = $("#passwordInput").value.trim();
 
-  // 1. SE FOR ACESSO DO CLIENTE (?projeto=...)
   if (clientPasswordPending) {
     const urlParams = new URLSearchParams(window.location.search);
     const projectParam = urlParams.get("projeto") || urlParams.get("p") || currentProjectId;
 
     try {
       let targetProject = null;
-
       const rawParam = decodeURIComponent(projectParam || "").trim();
-      const paramNormalized = rawParam.toLowerCase().replace(/[-_]/g, " ");
-      const paramSlug = typeof slugify === "function" ? slugify(rawParam) : rawParam.toLowerCase();
 
-      // Busca o projeto correspondente no Firestore
+      // 1. Busca o projeto no Firestore
       const snap = await db.collection("projects").get();
       snap.forEach((doc) => {
         if (targetProject) return;
         const data = doc.data();
-        const pTitle = (data.title || "").toLowerCase();
-        const pTitleNorm = pTitle.replace(/[-_]/g, " ");
-        const pSlug = (data.slug || (typeof slugify === "function" ? slugify(data.title || "") : pTitle)).toLowerCase();
-        const pClient = (data.clientName || data.client || "").toLowerCase();
-
-        if (
-          doc.id === rawParam ||
-          pSlug === paramSlug ||
-          pTitle === rawParam.toLowerCase() ||
-          pTitleNorm === paramNormalized ||
-          pClient === rawParam.toLowerCase()
-        ) {
+        if (doc.id === rawParam || (data.title && data.title.toLowerCase() === rawParam.toLowerCase())) {
           targetProject = { id: doc.id, ...data };
         }
       });
 
       if (!targetProject) {
-        alert("Projeto não encontrado. Verifique o link enviado.");
+        alert("Projeto não encontrado.");
         return;
       }
 
-      // Valida se é a senha do cliente ou a senha mestre
+      // 2. Valida a senha
       const clientPass = targetProject.clientPassword || targetProject.password || "";
       const isMaster = (typeof MASTER_PASSWORD !== "undefined" && enteredPassword === MASTER_PASSWORD);
-      
+
       if (!isMaster && clientPass && enteredPassword !== clientPass) {
-        alert("Senha incorreta. Tente novamente.");
+        alert("Senha incorreta.");
         return;
       }
 
-      // Define variáveis globais de acesso
+      // 3. Define as variáveis globais
       currentProjectId = targetProject.id;
       window.currentProject = targetProject;
 
-      document.body.style.overflow = "";
-      closePasswordModal(true);
+      // 4. ESCONDE O DASHBOARD DA IMAGEM 1
+      const dashboard = document.getElementById("dashboardView") || document.getElementById("dashboard") || document.querySelector(".dashboard-container");
+      if (dashboard) dashboard.style.display = "none";
 
-// Renderiza a interface exclusiva do cliente
-      currentProjectId = targetProject.id;
+      const designerButtons = document.querySelectorAll(".actions, .filters, .search-bar, #btnNewProject");
+      designerButtons.forEach(el => el.style.display = "none");
 
-      // 1. Garante que o objeto da etapa e seu checklist existam para não quebrar o renderStageClient
-      let stageObj = null;
-
-      if (targetProject.stages) {
-        if (Array.isArray(targetProject.stages) && targetProject.stages.length > 0) {
-          stageObj = targetProject.stages[0];
-        } else if (typeof targetProject.stages === "object") {
-          const keys = Object.keys(targetProject.stages);
-          if (keys.length > 0) {
-            stageObj = targetProject.stages[keys[0]];
-          }
-        }
+      // 5. MOSTRA A ESTRUTURA DO PROJETO DA IMAGEM 2
+      const projectDetails = document.getElementById("projectDetails") || document.getElementById("clientHubView") || document.querySelector(".main-content");
+      if (projectDetails) {
+        projectDetails.style.display = "flex";
+        projectDetails.classList.remove("hidden", "d-none");
       }
 
-      // Se não encontrou o objeto ou se checklist for undefined, monta uma estrutura padrão válida
-      if (!stageObj || typeof stageObj !== "object") {
-        stageObj = {
-          name: targetProject.currentStage || "projeto_executivo",
-          checklist: [],
-          files: [],
-          comments: []
-        };
-      } else if (!stageObj.checklist) {
-        stageObj.checklist = [];
+      // 6. RENDERIZA SIDEBAR E ETAPA
+      if (typeof renderSidebar === "function") {
+        renderSidebar(targetProject);
       }
 
-      // 2. Chama a renderização com o objeto de etapa devidamente preenchido
-      try {
-        if (typeof renderStageClient === "function") {
-          renderStageClient(targetProject, stageObj);
-        }
-      } catch (errStage) {
-        console.error("Erro ao renderizar renderStageClient:", errStage);
+      const firstStageKey = (targetProject.stages && Object.keys(targetProject.stages)[0]) || "briefing";
+      const firstStageObj = (typeof STAGES !== "undefined" && STAGES.find(s => s.id === firstStageKey)) || { id: firstStageKey, label: "1. Briefing & Alinhamento" };
+
+      if (typeof renderStageClient === "function") {
+        renderStageClient(targetProject, firstStageObj);
       }
 
-      try {
-        if (typeof renderScheduleClientHTML === "function") {
-          renderScheduleClientHTML(targetProject);
-        }
-      } catch (errSched) {
-        console.error("Erro ao renderizar cronograma:", errSched);
-      }
-
-      try {
-        if (typeof renderMemorial === "function") {
-          renderMemorial(targetProject);
-        }
-      } catch (errMem) {
-        console.error("Erro ao renderizar memorial:", errMem);
-      }
-
-      // 3. Exibe a tela e destrava a rolagem
-      const clientViewEl = document.getElementById("clientHubView") || document.getElementById("projectDetails") || document.querySelector(".main-content");
-      if (clientViewEl) {
-        clientViewEl.style.display = "block";
-      }
-
+      // 7. SÓ AGORA FECHA O MODAL (ÚNICA CHAMADA)
       document.body.style.overflow = "auto";
       document.body.classList.remove("modal-open");
+      closePasswordModal(true);
+
     } catch (err) {
-      console.error("Erro ao validar senha do cliente:", err);
-      alert("Erro ao processar a senha.");
+      console.error("Erro no login do cliente:", err);
+      alert("Erro ao abrir o projeto.");
     }
     return;
   }
 
-  // 2. SE FOR O ACESSO DO DESIGNER / PAINEL PRINCIPAL (HUB)
+  // Acesso Designer / Mestre
   const cb = passwordOnSuccess;
-  closePasswordModal(true);
-  if (cb) {
-    cb(enteredPassword);
+  closePasswordModal(true); // Única chamada para o fluxo de designer
+  if (cb) cb(enteredPassword);
   }
 }
 

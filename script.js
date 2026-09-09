@@ -4002,7 +4002,8 @@ async function submitPasswordModal() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            projectId: projectParam,
+            projectId: currentProjectId || projectParam, // Garante envio do ID real se disponível
+            slug: projectParam,                          // Envia o nome da URL (ex: Studio-42)
             clientName: projectParam,
             password: enteredPassword
           })
@@ -4052,10 +4053,9 @@ async function submitPasswordModal() {
   const shareModal = $("#shareModal");
 
 function shareLinkFor(project) {
-    // Usa o ID do projeto em vez do título/slug para a API encontrar no banco
-    const projectId = project.id || encodeURIComponent(slugify(project.title));
-    return location.origin + location.pathname + `?projeto=${projectId}`;
+    return location.origin + location.pathname + `?projeto=${encodeURIComponent(slugify(project.title))}`;
   }
+	
   function openShareModal() {
     const p = currentProject();
     if (!p) return;

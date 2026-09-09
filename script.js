@@ -4031,85 +4031,73 @@ if (wasClientPassword && !authenticated) {
 async function submitPasswordModal() {
   const enteredPassword = $("#passwordInput").value.trim();
 
-  if (clientPasswordPending) {
+if (clientPasswordPending) {
     const urlParams = new URLSearchParams(window.location.search);
-    const projectParam = urlParams.get("projeto") || urlParams.get("p") || currentProjectId;
+    // Pega o parametro 'projeto' ou 'p' e trata a string
+    const rawProject = urlParams.get("projeto") || urlParams.get("p") || currentProjectId || "";
+    const projectId = decodeURIComponent(rawProject).trim();
+
+    if (!projectId) {
+      alert("Nenhum projeto especificado na URL.");
+      return;
+    }
 
     try {
-      let targetProject = null;
-      const rawParam = decodeURIComponent(projectParam || "").trim();
-
-      // 1. Busca o projeto no Firestore
-      const snap = await db.collection("projects").get();
-      snap.forEach((doc) => {
-        if (targetProject) return;
-        const data = doc.data();
-        if (doc.id === rawParam || (data.title && data.title.toLowerCase() === rawParam.toLowerCase())) {
-          targetProject = { id: doc.id, ...data };
-        }
+      // 1. Faz a requisição exata para a API do backend (Vercel)
+      const response = await fetch("/api/client-auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId: projectId,
+          password: enteredPassword,
+        }),
       });
 
-      if (!targetProject) {
-        alert("Projeto não encontrado.");
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        alert(data.message || "Senha incorreta ou projeto não encontrado.");
         return;
       }
 
-      // 2. Valida a senha
-      const clientPass = targetProject.clientPassword || targetProject.password || "";
-      const isMaster = (typeof MASTER_PASSWORD !== "undefined" && enteredPassword === MASTER_PASSWORD);
-
-      if (!isMaster && clientPass && enteredPassword !== clientPass) {
-        alert("Senha incorreta.");
-        return;
-      }
-
-      // 3. Define as variáveis globais
-      currentProjectId = targetProject.id;
+      // 2. Com a resposta OK da API, armazena o projeto retornado
+      const targetProject = data.project;
       window.currentProject = targetProject;
+      currentProjectId = targetProject.id;
 
-      // 4. ESCONDE O DASHBOARD DA IMAGEM 1
-      const dashboard = document.getElementById("dashboardView") || document.getElementById("dashboard") || document.querySelector(".dashboard-container");
+      // 3. Esconde o Dashboard e exibe a Tela do Cliente (Imagem 2)
+      const dashboard = document.getElementById("dashboardView") || document.getElementById("dashboard");
       if (dashboard) dashboard.style.display = "none";
 
-      const designerButtons = document.querySelectorAll(".actions, .filters, .search-bar, #btnNewProject");
-      designerButtons.forEach(el => el.style.display = "none");
-
-      // 5. MOSTRA A ESTRUTURA DO PROJETO DA IMAGEM 2
-      const projectDetails = document.getElementById("projectDetails") || document.getElementById("clientHubView") || document.querySelector(".main-content");
+      const projectDetails = document.getElementById("projectDetails") || document.getElementById("clientHubView");
       if (projectDetails) {
         projectDetails.style.display = "flex";
         projectDetails.classList.remove("hidden", "d-none");
       }
 
-      // 6. RENDERIZA SIDEBAR E ETAPA
-      if (typeof renderSidebar === "function") {
-        renderSidebar(targetProject);
-      }
-
+      // 4. Renderiza a Sidebar e as Etapas
+      if (typeof renderSidebar === "function") renderSidebar(targetProject);
+      
       const firstStageKey = (targetProject.stages && Object.keys(targetProject.stages)[0]) || "briefing";
       const firstStageObj = (typeof STAGES !== "undefined" && STAGES.find(s => s.id === firstStageKey)) || { id: firstStageKey, label: "1. Briefing & Alinhamento" };
-
+      
       if (typeof renderStageClient === "function") {
         renderStageClient(targetProject, firstStageObj);
       }
 
-// 7. SÓ AGORA FECHA O MODAL (ÚNICA CHAMADA)
+      // 5. Fecha o modal de senha
       document.body.style.overflow = "auto";
       document.body.classList.remove("modal-open");
       closePasswordModal(true);
 
     } catch (err) {
-      console.error("Erro no login do cliente:", err);
-      alert("Erro ao abrir o projeto.");
+      console.error("Erro na autenticação da API:", err);
+      alert("Erro ao conectar com o servidor.");
     }
     return;
   }
-
-  // Acesso Designer / Mestre
-  const cb = passwordOnSuccess;
-  closePasswordModal(true); // Única chamada para o fluxo de designer
-  if (cb) cb(enteredPassword);
-}
 
 // Eventos do Modal de Senha protegidos com seletor seguro
 const btnConfirm = document.getElementById("btnConfirmPassword");

@@ -222,7 +222,7 @@
   </div>
 
   <!-- ============ MODAL COMPARTILHAR ============ -->
-  <div class="modal-overlay" id="shareModal" hidden>
+<div class="modal-overlay" id="shareModal" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
       <div class="modal-header">
         <h2 id="shareTitle">Compartilhar projeto</h2>
@@ -234,30 +234,32 @@
       </div>
       <div class="share-body">
         <p class="share-name" id="shareProjectName"></p>
-        <p class="share-hint" id="sharePasswordNote"></p>
         <p class="share-hint">
           O cliente verá apenas este projeto, em modo de leitura: poderá baixar os
           arquivos (renders, plantas e PDFs) e consultar o memorial descritivo com
           os links dos produtos. Contratos ficam ocultos.
         </p>
-        <div class="share-link-row">
-          <input type="text" id="shareLinkInput" readonly />
-          <button class="btn-small" id="btnCopyLink">Copiar</button>
+
+        <!-- CAMPO DE SENHA DO CLIENTE -->
+        <div class="field" style="margin-bottom: 16px;">
+          <label for="shareClientPasswordInput">Definir Senha do Cliente</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="shareClientPasswordInput" placeholder="Digite a senha (ex: 1234)" style="flex: 1;" />
+            <button type="button" class="btn-primary" id="btnSaveClientPassword">Salvar Senha</button>
+          </div>
+          <p id="savePasswordFeedback" style="display: none; color: #4CAF50; font-size: 0.85rem; margin-top: 6px;">
+            ✓ Senha atualizada com sucesso!
+          </p>
         </div>
-        <div class="share-divider">ou</div>
-        <button class="btn-primary btn-block" id="btnDownloadClientFile">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3v12" />
-            <path d="m7 10 5 5 5-5" />
-            <path d="M5 21h14" />
-          </svg>
-          Baixar arquivo do cliente (.html)
-        </button>
-        <p class="share-tip">
-          Use o link para conferir a visualização do cliente neste navegador. Para
-          enviar a outro aparelho, baixe o arquivo .html e envie à cliente — ele
-          contém apenas o projeto dela.
-        </p>
+
+        <!-- LINK DO PROJETO -->
+        <div class="field">
+          <label for="shareLinkInput">Link de Acesso do Cliente</label>
+          <div class="share-link-row">
+            <input type="text" id="shareLinkInput" readonly />
+            <button class="btn-small" id="btnCopyLink">Copiar Link</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

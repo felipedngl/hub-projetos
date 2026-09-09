@@ -3999,40 +3999,45 @@ async function submitPasswordModal() {
     try {
       let targetProject = null;
 
-      // 1. Tenta buscar direto por ID no Firestore
+      // Trata o texto vindo da URL para comparação (ex: "Studio-42" vira "studio-42")
+      const rawParam = decodeURIComponent(projectParam || "").trim();
+      const paramNormalized = rawParam.toLowerCase().replace(/[-_]/g, " ");
+      const paramSlug = typeof slugify === "function" ? slugify(rawParam) : rawParam.toLowerCase();
+
+      // 1. Tenta buscar direto pelo ID no Firestore
       try {
-        const docRef = await db.collection("projects").doc(projectParam).get();
+        const docRef = await db.collection("projects").doc(rawParam).get();
         if (docRef.exists) {
           targetProject = { id: docRef.id, ...docRef.data() };
         }
       } catch (e) {
-        // Ignora se der erro de permissão por não ser um ID direto
+        // Ignora erro se não for um ID válido
       }
 
-      // 2. Se não achou por ID, tenta buscar o projeto usando a lista global carregada no app (se disponível)
-      if (!targetProject && typeof projects !== "undefined" && Array.isArray(projects)) {
-        const paramSlug = (projectParam || "").toLowerCase();
-        targetProject = projects.find(p => {
-          const pSlug = (p.slug || slugify(p.title || "")).toLowerCase();
-          return p.id === projectParam || pSlug === paramSlug || (p.title && p.title.toLowerCase() === paramSlug);
-        });
-      }
-
-      // 3. Se ainda não encontrou (porque o cliente abriu a página do zero em janela anônima), faz a busca com filtro no banco
+      // 2. Se não achou por ID, busca todos os projetos e compara título / slug / clientName de forma flexível
       if (!targetProject) {
-        const paramSlug = (projectParam || "").toLowerCase();
-        
-        // Tenta buscar pelo campo slug
-        let snap = await db.collection("projects").where("slug", "==", paramSlug).limit(1).get();
-        if (snap.empty) {
-          // Tenta buscar pelo campo title
-          snap = await db.collection("projects").where("title", "==", projectParam).limit(1).get();
-        }
+        const snap = await db.collection("projects").get();
 
-        if (!snap.empty) {
-          const doc = snap.docs[0];
-          targetProject = { id: doc.id, ...doc.data() };
-        }
+        snap.forEach((doc) => {
+          if (targetProject) return; // Já encontrou
+
+          const data = doc.data();
+          const pTitle = (data.title || "").toLowerCase();
+          const pTitleNorm = pTitle.replace(/[-_]/g, " ");
+          const pSlug = (data.slug || (typeof slugify === "function" ? slugify(data.title || "") : pTitle)).toLowerCase();
+          const pClient = (data.clientName || data.client || "").toLowerCase();
+
+          // Compara todas as variações possíveis do link bonito
+          if (
+            doc.id === rawParam ||
+            pSlug === paramSlug ||
+            pTitle === rawParam.toLowerCase() ||
+            pTitleNorm === paramNormalized ||
+            pClient === rawParam.toLowerCase()
+          ) {
+            targetProject = { id: doc.id, ...data };
+          }
+        });
       }
 
       if (!targetProject) {
@@ -4040,7 +4045,7 @@ async function submitPasswordModal() {
         return;
       }
 
-      // 4. Valida a senha digitada pelo cliente
+      // 3. Valida a senha digitada pelo cliente
       const realPassword = targetProject.clientPassword || targetProject.password || "";
 
       if (realPassword && enteredPassword !== realPassword) {
@@ -4048,9 +4053,9 @@ async function submitPasswordModal() {
         return;
       }
 
-      // 5. Sucesso!
+      // 4. Sucesso! Carrega o projeto na tela
       currentProjectId = targetProject.id;
-      
+
       if (typeof loadProjectData === "function") {
         loadProjectData(targetProject);
       } else if (typeof renderProject === "function") {
@@ -4064,13 +4069,7 @@ async function submitPasswordModal() {
 
     } catch (err) {
       console.error("Erro ao validar senha:", err);
-      
-      // Tratamento específico de permissão do Firebase
-      if (err.code === "permission-denied" || (err.message && err.message.includes("permissions"))) {
-        alert("Erro de permissão no Firebase: As regras do seu Firestore precisam permitir a leitura pública dos projetos.");
-      } else {
-        alert("Erro ao validar a senha. Tente novamente.");
-      }
+      alert("Erro ao processar o acesso. Tente novamente.");
     }
   } else {
     const cb = passwordOnSuccess;

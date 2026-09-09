@@ -3992,46 +3992,79 @@ if (wasClientPassword && !authenticated) {
 async function submitPasswordModal() {
   const enteredPassword = $("#passwordInput").value.trim();
 
+  // Se for o acesso do cliente
   if (clientPasswordPending) {
     const urlParams = new URLSearchParams(window.location.search);
-    // Pega o que está na URL (ex: "Studio-42")
-    const projectParam = urlParams.get("projeto") || urlParams.get("p");
+    const projectParam = urlParams.get("projeto") || urlParams.get("p") || currentProjectId;
 
     try {
-      const response = await fetch("/api/client-auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projectId: projectParam,
-          password: enteredPassword
-        })
-      });
+      let targetProject = null;
 
-      const data = await response.json();
+      // 1. Tenta buscar o projeto no Firestore pelo ID, Título, Slug ou Nome do Cliente
+      if (typeof db !== "undefined") {
+        // Busca por ID
+        try {
+          const docRef = await db.collection("projects").doc(projectParam).get();
+          if (docRef.exists) {
+            targetProject = { id: docRef.id, ...docRef.data() };
+          }
+        } catch (e) {}
 
-      if (!response.ok) {
-        alert(data.error || "Senha incorreta. Tente novamente.");
+        // Busca por Slug / Título
+        if (!targetProject) {
+          const snap = await db.collection("projects").get();
+          snap.forEach((doc) => {
+            const data = doc.data();
+            const pSlug = (data.slug || slugify(data.title || "")).toLowerCase();
+            const paramSlug = (projectParam || "").toLowerCase();
+
+            if (
+              doc.id === projectParam ||
+              pSlug === paramSlug ||
+              (data.title && data.title.toLowerCase() === paramSlug) ||
+              (data.clientName && data.clientName.toLowerCase() === paramSlug)
+            ) {
+              targetProject = { id: doc.id, ...data };
+            }
+          });
+        }
+      }
+
+      // Se não encontrou o projeto no banco
+      if (!targetProject) {
+        alert("Projeto não encontrado. Verifique o link enviado.");
         return;
       }
 
-      // Se autenticou com sucesso, carrega o projeto na tela
-      if (data.projectId) {
-        currentProjectId = data.projectId;
+      // 2. Valida a senha cadastrada no projeto
+      const realPassword = targetProject.clientPassword || targetProject.password || "";
+
+      if (realPassword && enteredPassword !== realPassword) {
+        alert("Senha incorreta. Tente novamente.");
+        return;
+      }
+
+      // 3. Sucesso! Define o projeto atual e abre na tela
+      currentProjectId = targetProject.id;
+      if (typeof loadProjectData === "function") {
+        loadProjectData(targetProject);
+      } else if (typeof renderProject === "function") {
+        renderProject(targetProject);
       }
 
       closePasswordModal(true);
       if (passwordOnSuccess) passwordOnSuccess(enteredPassword);
 
     } catch (err) {
-      console.error("Erro na autenticação:", err);
-      alert("Erro ao validar senha. Verifique sua conexão.");
+      console.error("Erro ao validar senha:", err);
+      alert("Erro ao processar o acesso. Tente novamente.");
     }
   } else {
-      // Para outras senhas (ex: acesso ao painel do designer/hub)
-      const cb = passwordOnSuccess;
-      if (cb) cb(enteredPassword);
-    }
+    // Para acesso do designer / painel
+    const cb = passwordOnSuccess;
+    if (cb) cb(enteredPassword);
   }
+}
 
   $("#btnConfirmPassword").addEventListener("click", submitPasswordModal);
 

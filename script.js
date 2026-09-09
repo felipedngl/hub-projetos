@@ -4046,29 +4046,45 @@ async function submitPasswordModal() {
       document.body.style.overflow = "";
       closePasswordModal(true);
 
-// Renderiza a visualização
 // Renderiza a interface exclusiva do cliente
       currentProjectId = targetProject.id;
       
-      // 1. Pega a primeira etapa do projeto (ou etapa ativa)
-      const currentStage = (targetProject.stages && targetProject.stages.length > 0) 
-        ? targetProject.stages[0] 
-        : (targetProject.currentStage || "projeto_executivo");
-
-      // 2. Chama a função exata do seu HUB que desenha a tela do cliente
-      if (typeof renderStageClient === "function") {
-        renderStageClient(targetProject, currentStage);
+      // 1. Identifica a etapa atual do projeto com fallbacks seguros
+      let currentStage = "projeto_executivo";
+      if (Array.isArray(targetProject.stages) && targetProject.stages.length > 0) {
+        currentStage = targetProject.stages[0];
+      } else if (typeof targetProject.stages === "object" && targetProject.stages !== null) {
+        currentStage = Object.keys(targetProject.stages)[0] || "projeto_executivo";
+      } else if (targetProject.currentStage) {
+        currentStage = targetProject.currentStage;
       }
 
-      // 3. Se houver cronograma/memorial, renderiza em seguida
-      if (typeof renderScheduleClientHTML === "function") {
-        renderScheduleClientHTML(targetProject);
-      }
-      if (typeof renderMemorial === "function") {
-        renderMemorial(targetProject);
+      // 2. Chama a renderização sem deixar o script quebrar caso algum componente falhe
+      try {
+        if (typeof renderStageClient === "function") {
+          renderStageClient(targetProject, currentStage);
+        }
+      } catch (errStage) {
+        console.error("Erro ao renderizar renderStageClient:", errStage);
       }
 
-      // 4. Exibe a tela e libera a rolagem da página
+      try {
+        if (typeof renderScheduleClientHTML === "function") {
+          renderScheduleClientHTML(targetProject);
+        }
+      } catch (errSched) {
+        console.error("Erro ao renderizar cronograma:", errSched);
+      }
+
+      try {
+        if (typeof renderMemorial === "function") {
+          renderMemorial(targetProject);
+        }
+      } catch (errMem) {
+        console.error("Erro ao renderizar memorial:", errMem);
+      }
+
+      // 3. Exibe a tela e destrava a rolagem
       const clientViewEl = document.getElementById("clientHubView") || document.getElementById("projectDetails") || document.querySelector(".main-content");
       if (clientViewEl) {
         clientViewEl.style.display = "block";

@@ -4048,21 +4048,29 @@ async function submitPasswordModal() {
     if (e.target === passwordModal) closePasswordModal();
   });
 
-  /* ---------------- Compartilhar ---------------- */
+/* ---------------- Compartilhar ---------------- */
   const shareModal = $("#shareModal");
 
   function shareLinkFor(project) {
- 	return location.origin + location.pathname + `?projeto=${encodeURIComponent(slugify(project.title))}`;
-}
+    return location.origin + location.pathname + `?projeto=${encodeURIComponent(slugify(project.title))}`;
+  }
 
   function openShareModal() {
     const p = currentProject();
     if (!p) return;
+
     $("#shareProjectName").textContent = `${p.title} — ${p.client}`;
     $("#shareLinkInput").value = shareLinkFor(p);
-    $("#sharePasswordNote").textContent = p.clientPassword
-      ? `Este projeto está protegido: o cliente precisará digitar a senha "${p.clientPassword}" para visualizar.`
-      : "Sem senha definida: o link abre direto na visualização do cliente.";
+
+    // Preenche a senha no campo input para você poder editar se quiser
+    const passwordField = $("#shareClientPasswordInput");
+    if (passwordField) {
+      passwordField.value = p.clientPassword || p.password || "";
+    }
+
+    const feedback = $("#savePasswordFeedback");
+    if (feedback) feedback.style.display = "none";
+
     shareModal.hidden = false;
     shareModal.style.display = "flex";
     document.body.style.overflow = "hidden";
@@ -4072,6 +4080,44 @@ async function submitPasswordModal() {
     shareModal.hidden = true;
     shareModal.style.display = "none";
     document.body.style.overflow = "";
+  }
+
+  // Ação de Salvar a Nova Senha criada por você
+  const btnSavePass = $("#btnSaveClientPassword");
+  if (btnSavePass) {
+    btnSavePass.addEventListener("click", async () => {
+      const p = currentProject();
+      const newPass = $("#shareClientPasswordInput").value.trim();
+
+      if (!p) {
+        showToast("Nenhum projeto selecionado.", true);
+        return;
+      }
+
+      if (!newPass) {
+        showToast("Digite uma senha válida.", true);
+        return;
+      }
+
+      try {
+        // Salva no banco Firebase
+        await db.collection("projects").doc(p.id).update({
+          clientPassword: newPass,
+          password: newPass
+        });
+
+        // Atualiza a senha no projeto atual da tela
+        p.clientPassword = newPass;
+        p.password = newPass;
+
+        const feedback = $("#savePasswordFeedback");
+        if (feedback) feedback.style.display = "block";
+        showToast("Senha salva com sucesso!");
+      } catch (err) {
+        console.error("Erro ao salvar senha:", err);
+        showToast("Erro ao salvar senha no banco.", true);
+      }
+    });
   }
 
   $("#btnShareProject").addEventListener("click", openShareModal);
@@ -4097,56 +4143,7 @@ async function submitPasswordModal() {
       }
     }
   });
-
-  $("#btnDownloadClientFile").addEventListener("click", () => {
-    const p = currentProject();
-    if (p) generateClientFile(p);
-  });
-
-  async function generateClientFile(project) {
-    showToast("Gerando arquivo...");
-    try {
-      const [htmlResp, cssResp, jsResp] = await Promise.all([
-        fetch("index.html"),
-        fetch("styles.css"),
-        fetch("script.js"),
-      ]);
-      if (!htmlResp.ok || !cssResp.ok || !jsResp.ok) throw new Error("fetch");
-      let html = await htmlResp.text();
-      const css = await cssResp.text();
-      const js = await jsResp.text();
-
-      html = html.replace(/<link[^>]*stylesheet[^>]*>/gi, "");
-      html = html.replace(/<title>[^<]*<\/title>/, () =>
-        "<title>" + escapeHTML(project.title) + " — HUB de Projetos</title>"
-      );
-
-      const inlineStyle = "<style>" + css.replace(/<\/style/gi, "<\\/style") + "</style>";
-      html = html.replace(/<\/head>/, () => inlineStyle + "</head>");
-
-      const dataScript =
-        "<script>window.__CLIENT_PROJECT__ = " +
-        JSON.stringify(serializeForClient(project)) +
-        ";</scr" + "ipt>";
-      const inlineJs = js.replace(/<\/script/gi, "<\\/script");
-      html = html.replace(/<script src="script\.js"><\/script>/gi, () =>
-        dataScript + "<script>" + inlineJs + "</scr" + "ipt>"
-      );
-
-      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = slugify(project.title) + " - " + slugify(project.client) + ".html";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-      showToast("Arquivo do cliente gerado!");
-    } catch (err) {
-      showToast("Erro ao gerar o arquivo.", true);
-    }
-  }
-
+	
   function serializeForClient(project) {
     return {
       id: project.id,

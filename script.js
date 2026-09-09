@@ -4053,17 +4053,24 @@ async function submitPasswordModal() {
         return;
       }
 
-      // 4. Sucesso! Carrega o projeto na tela
+// 4. Sucesso! Define o projeto atual
       currentProjectId = targetProject.id;
 
-      if (typeof loadProjectData === "function") {
-        loadProjectData(targetProject);
+      // Executa os métodos originais do seu HUB para renderizar a tela do cliente
+      if (typeof selectProject === "function") {
+        selectProject(targetProject.id);
       } else if (typeof renderProject === "function") {
         renderProject(targetProject);
+      } else if (typeof loadProject === "function") {
+        loadProject(targetProject);
       } else if (typeof showProject === "function") {
         showProject(targetProject);
+      } else if (typeof render === "function") {
+        render();
       }
 
+      // Restaura o scroll da página e fecha o modal
+      document.body.style.overflow = "";
       closePasswordModal(true);
       if (passwordOnSuccess) passwordOnSuccess(enteredPassword);
 

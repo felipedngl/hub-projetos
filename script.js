@@ -3990,45 +3990,44 @@ if (wasClientPassword && !authenticated) {
 }
 
 async function submitPasswordModal() {
-    const enteredPassword = $("#passwordInput").value.trim();
+  const enteredPassword = $("#passwordInput").value.trim();
 
-    // Se for o acesso do cliente, faz a verificação na API
-    if (clientPasswordPending) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const projectParam = urlParams.get("projeto") || urlParams.get("p") || currentProjectId;
+  if (clientPasswordPending) {
+    const urlParams = new URLSearchParams(window.location.search);
+    // Pega o que está na URL (ex: "Studio-42")
+    const projectParam = urlParams.get("projeto") || urlParams.get("p");
 
-      try {
-        const response = await fetch("/api/client-auth", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            projectId: currentProjectId || projectParam, // Garante envio do ID real se disponível
-            slug: projectParam,                          // Envia o nome da URL (ex: Studio-42)
-            clientName: projectParam,
-            password: enteredPassword
-          })
-        });
+    try {
+      const response = await fetch("/api/client-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: projectParam,
+          password: enteredPassword
+        })
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-          alert(data.error || "Senha incorreta. Tente novamente.");
-          return;
-        }
-
-        // Se deu tudo certo
-        if (data.projectId) {
-          currentProjectId = data.projectId;
-        }
-        
-        closePasswordModal(true);
-        if (passwordOnSuccess) passwordOnSuccess(enteredPassword);
-
-      } catch (err) {
-        console.error("Erro na autenticação:", err);
-        alert("Erro ao validar senha. Verifique sua conexão.");
+      if (!response.ok) {
+        alert(data.error || "Senha incorreta. Tente novamente.");
+        return;
       }
-    } else {
+
+      // Se autenticou com sucesso, carrega o projeto na tela
+      if (data.projectId) {
+        currentProjectId = data.projectId;
+      }
+
+      closePasswordModal(true);
+      if (passwordOnSuccess) passwordOnSuccess(enteredPassword);
+
+    } catch (err) {
+      console.error("Erro na autenticação:", err);
+      alert("Erro ao validar senha. Verifique sua conexão.");
+    }
+  }
+} else {
       // Para outras senhas (ex: acesso ao painel do designer/hub)
       const cb = passwordOnSuccess;
       if (cb) cb(enteredPassword);

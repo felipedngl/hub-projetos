@@ -39,6 +39,7 @@ export default async function handler(req, res) {
   }
 
   const { projectId, clientName, password } = req.body;
+  const targetQuery = projectId || clientName;
 
   try {
     let projectDoc = null;
@@ -49,16 +50,39 @@ export default async function handler(req, res) {
       if (doc.exists) projectDoc = doc;
     }
 
-    // 2. Se não achou por ID, busca por clientName
-    if (!projectDoc && (clientName || projectId)) {
-      const queryTarget = clientName || projectId;
-      const snapshot = await db.collection('projects')
-        .where('clientName', '==', queryTarget)
+    // 2. Se não achou por ID, busca pelo campo 'slug' (ex: "studio-42")
+    if (!projectDoc && targetQuery) {
+      const snapshotSlug = await db.collection('projects')
+        .where('slug', '==', targetQuery.toLowerCase())
         .limit(1)
         .get();
 
-      if (!snapshot.empty) {
-        projectDoc = snapshot.docs[0];
+      if (!snapshotSlug.empty) {
+        projectDoc = snapshotSlug.docs[0];
+      }
+    }
+
+    // 3. Se não achou por slug, busca pelo campo 'title'
+    if (!projectDoc && targetQuery) {
+      const snapshotTitle = await db.collection('projects')
+        .where('title', '==', targetQuery)
+        .limit(1)
+        .get();
+
+      if (!snapshotTitle.empty) {
+        projectDoc = snapshotTitle.docs[0];
+      }
+    }
+
+    // 4. Se ainda não achou, busca por 'clientName' (para links antigos)
+    if (!projectDoc && targetQuery) {
+      const snapshotClient = await db.collection('projects')
+        .where('clientName', '==', targetQuery)
+        .limit(1)
+        .get();
+
+      if (!snapshotClient.empty) {
+        projectDoc = snapshotClient.docs[0];
       }
     }
 

@@ -4046,7 +4046,7 @@ async function submitPasswordModal() {
       document.body.style.overflow = "";
       closePasswordModal(true);
 
-      // Renderiza a visualização
+// Renderiza a visualização
       if (typeof selectProject === "function") {
         selectProject(targetProject.id);
       } else if (typeof renderProject === "function") {

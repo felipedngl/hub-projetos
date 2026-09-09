@@ -4046,7 +4046,7 @@ async function submitPasswordModal() {
       document.body.style.overflow = "";
       closePasswordModal(true);
 
-	  // Renderiza a interface exclusiva do cliente
+// Renderiza a interface exclusiva do cliente
       currentProjectId = targetProject.id;
 
       // 1. Garante que o objeto da etapa e seu checklist existam para não quebrar o renderStageClient

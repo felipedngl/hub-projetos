@@ -4313,8 +4313,7 @@ if (!projetoParam) {
 
 openPasswordModal({
   title: "Acesso do Cliente",
-  hint: "Digite a senha de acesso ao seu projeto:",
-  clientAccess: true,
+  hint: "Este projeto está protegido. Digite a senha de acesso.",  clientAccess: true,
   cleanBackground: true,
 
   onSuccess: async (value) => {

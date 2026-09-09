@@ -4026,8 +4026,7 @@ async function submitPasswordModal() {
       console.error("Erro na autenticação:", err);
       alert("Erro ao validar senha. Verifique sua conexão.");
     }
-  }
-} else {
+  } else {
       // Para outras senhas (ex: acesso ao painel do designer/hub)
       const cb = passwordOnSuccess;
       if (cb) cb(enteredPassword);

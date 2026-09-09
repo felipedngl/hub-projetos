@@ -3959,19 +3959,51 @@ openPasswordModal({
   let clientPasswordPending = false;
   let hubPasswordPending = false;
 
-function openPasswordModal(opts) {
-  passwordOnSuccess = opts.onSuccess || null;
-  clientPasswordPending = opts.clientAccess === true;
+function openPasswordModal(options, onSuccess) {
+  let titleText = "Acesso";
+  let hintText = "Digite a senha do projeto para acessar:";
+  let isClient = false;
 
-  $("#passwordModalTitle").textContent = opts.title || "Acesso";
-  $("#passwordModalHint").textContent = opts.hint || "";
-  $("#passwordInput").value = "";
+  // 1. Trata se o parâmetro for um Objeto { title, hint, clientAccess } ou uma String
+  if (typeof options === "object" && options !== null) {
+    titleText = options.title || "Acesso";
+    hintText = options.hint || "Digite a senha para acessar:";
+    isClient = !!options.clientAccess;
+    if (options.onSuccess) passwordOnSuccess = options.onSuccess;
+  } else if (typeof options === "string") {
+    hintText = options;
+  }
 
-  passwordModal.hidden = false;
-  passwordModal.style.display = "flex";
-  document.body.style.overflow = "hidden";
+  if (typeof onSuccess === "function") {
+    passwordOnSuccess = onSuccess;
+  }
 
-  setTimeout(() => $("#passwordInput").focus(), 60);
+  if (typeof isClient !== "undefined") {
+    clientPasswordPending = isClient;
+  }
+
+  // 2. Atualiza os textos do HTML
+  const titleEl = document.getElementById("passwordModalTitle");
+  if (titleEl) titleEl.textContent = titleText;
+
+  const hintEl = document.getElementById("passwordModalHint");
+  if (hintEl) hintEl.textContent = hintText;
+
+  // 3. Limpa o campo de senha
+  const input = document.getElementById("passwordInput");
+  if (input) input.value = "";
+
+  // 4. Exibe o modal na tela
+  const modal = document.getElementById("passwordModal");
+  if (modal) {
+    modal.hidden = false;
+    modal.classList.add("active");
+    modal.style.display = "flex";
+  }
+
+  if (input) {
+    setTimeout(() => input.focus(), 100);
+  }
 }
 
 function closePasswordModal(authenticated = false) {

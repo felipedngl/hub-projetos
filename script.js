@@ -3481,6 +3481,21 @@ function bindEvents() {
 
 // --- TELA DE PEDIR SENHA AO CLIENTE QUE ACESSA VIA LINK DIRETO ---
 function promptClientPassword(project) {
+  // 1. Marca o body como visão de cliente
+  document.body.classList.add("client-view");
+
+  // 2. Esconde o elemento do fundo (dashboard com busca e filtros)
+  const dashboard = $("#dashboard") || $(".dashboard-container") || $("#mainContent");
+  if (dashboard) {
+    dashboard.style.display = "none";
+  }
+
+  // 3. Esconde o botão do painel se ele existir
+  const btnBack = $("#btnBack");
+  if (btnBack) {
+    btnBack.style.display = "none";
+  }
+
   const modal = $("#passwordModal") || $("#pwdModal");
   if (!modal) {
     openProject(project.id);
@@ -3491,6 +3506,9 @@ function promptClientPassword(project) {
   if (hint) {
     hint.textContent = `Digite a senha de acesso para visualizar o projeto "${project.title}":`;
   }
+
+  modal.style.display = "flex";
+}
 
   modal.removeAttribute("hidden");
   modal.style.display = "flex";

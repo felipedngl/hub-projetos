@@ -3018,17 +3018,21 @@ container.innerHTML = `
       });
     });
 
-    $$(".sched-input").forEach((input) => {
+$$(".sched-input").forEach((input) => {
       input.addEventListener("change", () => {
         const idx = Number(input.dataset.idx);
         const field = input.dataset.field;
         if (project.schedule[idx]) {
           project.schedule[idx][field] = input.value;
-          saveProjects();
+          saveProjects().then(() => {
+            const ganttWrapper = document.querySelector("#scheduleGanttBox");
+            if (ganttWrapper) {
+              ganttWrapper.outerHTML = renderScheduleClientHTML(project);
+            }
+          });
         }
       });
     });
-  }
 
 // --- NAVEGAÇÃO DE MÊS FIXADA ---
 function changeScheduleMonth(delta) {
@@ -3083,7 +3087,7 @@ function renderScheduleClientHTML(project) {
   } else {
     rowsHTML = schedule
       .map((item) => {
-        const itemTitle = item.title || item.activity || item.name || item.descricao || "Sem título";
+        const itemTitle = item.task || item.title || item.activity || item.name || "Sem título";
         const rawStart = item.start || item.inicio || item.startDate;
         const rawEnd = item.end || item.termino || item.endDate;
 

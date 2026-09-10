@@ -4029,28 +4029,44 @@ if (wasClientPassword && !authenticated) {
 }
 
 async function submitPasswordModal() {
-  const enteredPassword = $("#passwordInput").value.trim();
+  if (hubPasswordPending) return;
+  if (clientPasswordPending && clientPasswordPending === "loading") return;
 
-if (clientPasswordPending) {
+  const input = document.getElementById("passwordInput");
+  const enteredPassword = input ? input.value.trim() : "";
+
+  if (!enteredPassword) {
+    alert("Digite a senha.");
+    return;
+  }
+
+  if (clientPasswordPending) {
+    clientPasswordPending = "loading";
+
     const urlParams = new URLSearchParams(window.location.search);
-    // Pega o parametro 'projeto' ou 'p' e trata a string
-    const rawProject = urlParams.get("projeto") || urlParams.get("p") || currentProjectId || "";
+
+    const rawProject =
+      urlParams.get("projeto") ||
+      urlParams.get("p") ||
+      currentProjectId ||
+      "";
+
     const projectId = decodeURIComponent(rawProject).trim();
 
     if (!projectId) {
+      clientPasswordPending = true;
       alert("Nenhum projeto especificado na URL.");
       return;
     }
 
     try {
-      // 1. Faz a requisição exata para a API do backend (Vercel)
       const response = await fetch("/api/client-auth", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          projectId: projectId,
+          projectId,
           password: enteredPassword,
         }),
       });
@@ -4058,67 +4074,135 @@ if (clientPasswordPending) {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
+        clientPasswordPending = true;
         alert(data.message || "Senha incorreta ou projeto não encontrado.");
         return;
       }
 
-      // 2. Com a resposta OK da API, armazena o projeto retornado
       const targetProject = data.project;
+
+      if (!targetProject || !targetProject.id) {
+        clientPasswordPending = true;
+        alert("O servidor não retornou um projeto válido.");
+        return;
+      }
+
+      // Guarda o projeto no estado principal
+      currentProjectId = String(targetProject.id);
       window.currentProject = targetProject;
-      currentProjectId = targetProject.id;
 
-      // 3. Esconde o Dashboard e exibe a Tela do Cliente (Imagem 2)
-      const dashboard = document.getElementById("dashboardView") || document.getElementById("dashboard");
-      if (dashboard) dashboard.style.display = "none";
+      // Garante que o projeto esteja disponível no estado usado pelo Hub
+      const existingIndex = projects.findIndex(
+        (project) => String(project.id) === String(targetProject.id)
+      );
 
-      const projectDetails = document.getElementById("projectDetails") || document.getElementById("clientHubView");
-      if (projectDetails) {
-        projectDetails.style.display = "flex";
-        projectDetails.classList.remove("hidden", "d-none");
+      if (existingIndex >= 0) {
+        projects[existingIndex] = targetProject;
+      } else {
+        projects.push(targetProject);
       }
 
-      // 4. Renderiza a Sidebar e as Etapas
-      if (typeof renderSidebar === "function") renderSidebar(targetProject);
-      
-      const firstStageKey = (targetProject.stages && Object.keys(targetProject.stages)[0]) || "briefing";
-      const firstStageObj = (typeof STAGES !== "undefined" && STAGES.find(s => s.id === firstStageKey)) || { id: firstStageKey, label: "1. Briefing & Alinhamento" };
-      
-      if (typeof renderStageClient === "function") {
-        renderStageClient(targetProject, firstStageObj);
-      }
+      // Ativa modo cliente
+      clientMode = true;
+      designerUnlocked = false;
+      currentStage = "briefing";
 
-      // 5. Fecha o modal de senha
-      document.body.style.overflow = "auto";
-      document.body.classList.remove("modal-open");
+      // Memoriza o acesso
+      rememberClientAccess(currentProjectId);
+
+      // Fecha o modal
+      clientPasswordPending = false;
       closePasswordModal(true);
 
+      // Atualiza a interface
+      applyAccessUI();
+
+      // Mostra a tela correta do projeto
+      const dashboardView = document.getElementById("view-dashboard");
+      const projectView = document.getElementById("view-project");
+
+      if (dashboardView) {
+        dashboardView.classList.add("hidden");
+      }
+
+      if (projectView) {
+        projectView.classList.remove("hidden");
+      }
+
+      // Renderiza o projeto
+      renderSidebar();
+      renderStage();
+
+      // Inicia o listener do projeto, se existir
+      if (typeof listenToCurrentProject === "function") {
+        listenToCurrentProject(currentProjectId);
+      }
+
     } catch (err) {
-      console.error("Erro na autenticação da API:", err);
+      console.error("Erro na autenticação do cliente:", err);
+      clientPasswordPending = true;
       alert("Erro ao conectar com o servidor.");
     }
+
     return;
   }
 
-// Eventos do Modal de Senha protegidos com seletor seguro
-const btnConfirm = document.getElementById("btnConfirmPassword");
-if (btnConfirm) {
-  btnConfirm.addEventListener("click", submitPasswordModal);
+  // Fluxo de senha do Hub / designer
+  if (hubPasswordPending) {
+    // IMPORTANTE:
+    // O tratamento específico da senha do designer
+    // permanece no fluxo existente do projeto.
+    return;
+  }
 }
 
-const inputPass = document.getElementById("passwordInput");
-if (inputPass) {
-  inputPass.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
+
+/* ---------------- Eventos do Modal de senha ---------------- */
+
+const btnConfirmPassword = document.getElementById("btnConfirmPassword");
+
+if (btnConfirmPassword) {
+  btnConfirmPassword.addEventListener("click", submitPasswordModal);
+}
+
+
+const passwordInput = document.getElementById("passwordInput");
+
+if (passwordInput) {
+  passwordInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
       submitPasswordModal();
     }
   });
 }
 
-  $("#btnClosePassword").addEventListener("click", closePasswordModal);
-  $("#btnCancelPassword").addEventListener("click", closePasswordModal);
-  passwordModal.addEventListener("click", (e) => {
-    if (e.target === passwordModal) closePasswordModal();
+
+const btnClosePassword = document.getElementById("btnClosePassword");
+
+if (btnClosePassword) {
+  btnClosePassword.addEventListener("click", () => {
+    closePasswordModal();
   });
+}
+
+
+const btnCancelPassword = document.getElementById("btnCancelPassword");
+
+if (btnCancelPassword) {
+  btnCancelPassword.addEventListener("click", () => {
+    closePasswordModal();
+  });
+}
+
+
+if (passwordModal) {
+  passwordModal.addEventListener("click", (event) => {
+    if (event.target === passwordModal) {
+      closePasswordModal();
+    }
+  });
+}
 
 /* ---------------- Compartilhar ---------------- */
   const shareModal = $("#shareModal");

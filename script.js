@@ -1146,8 +1146,7 @@ function cardHTML(p, index) {
 console.log("Projeto:", p.title, "Mensagens não lidas:", unreadMessages);
 
 return `
-  <article class="card" data-id="${p.id}" tabindex="0" style="animation-delay: ${Math.min(index * 60, 360)}ms">
-    <div class="card-cover">
+<article class="card project-card" data-id="${p.id}" data-project-id="${p.id}" tabindex="0" style="animation-delay: ${Math.min(index * 60, 360)}ms">    <div class="card-cover">
         <span class="card-badge badge-type-${p.type}">${p.type}</span>
 
 
@@ -1220,15 +1219,19 @@ function renderDashboard() {
     ? `<strong>${projects.length}</strong> projetos · <strong>${formatArea(totalM2)} m²</strong> totais · <strong>${activeCount}</strong> em andamento`
     : `<strong>${filtered.length}</strong> de <strong>${projects.length}</strong> projetos · <strong>${formatArea(filteredM2)} m²</strong>`;
 
-  // --- NOVO: Atribui o evento de clique a todos os cards gerados ---
-  $$(".project-card").forEach((card) => {
+// --- Atribui o evento de clique aos cards ---
+  $$(".project-card, .card").forEach((card) => {
+    card.style.cursor = "pointer"; // Garante a mãozinha ao passar o mouse
     card.addEventListener("click", (e) => {
-      // Ignora o clique se o usuário clicou num botão dentro do card (ex: deletar ou editar)
       if (e.target.closest("button") || e.target.closest("a")) return;
 
-      const projectId = card.dataset.projectId || card.dataset.id;
+      // Pega o ID seja via data-project-id ou data-id
+      const projectId = card.dataset.projectId || card.dataset.id || card.getAttribute("data-id");
+      
       if (projectId) {
         openProject(projectId);
+      } else {
+        console.error("ID não encontrado no card:", card);
       }
     });
   });

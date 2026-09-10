@@ -3027,16 +3027,26 @@ function contractListHTML(contracts) {
     });
   }
 
+// --- FUNÇÃO DE MUDANÇA DE MÊS CORRIGIDA ---
+function changeScheduleMonth(delta) {
+  currentScheduleDate.setMonth(currentScheduleDate.getMonth() + delta);
+  
+  // Re-renderiza o contêiner do cronograma na tela do cliente
+  const scheduleContainer = $("#stageContainer") || $("#scheduleContainer");
+  if (scheduleContainer && currentProject) {
+    scheduleContainer.innerHTML = renderScheduleClientHTML(currentProject);
+  }
+}
+
+// --- RENDERSCHEDULECLIENTHTML COM SUPORTE A DIVERSOS NOMES DE CAMPO ---
 function renderScheduleClientHTML(project) {
   const schedule = project && project.schedule ? project.schedule : [];
 
-  // Dados do mês/ano atual selecionado
   const year = currentScheduleDate.getFullYear();
-  const month = currentScheduleDate.getMonth(); // 0 a 11
+  const month = currentScheduleDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const monthName = currentScheduleDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
-  // Cabeçalho dos dias (1, 2, 3... 30/31)
   let daysHeaderHTML = "";
   for (let day = 1; day <= daysInMonth; day++) {
     daysHeaderHTML += `
@@ -3046,7 +3056,6 @@ function renderScheduleClientHTML(project) {
     `;
   }
 
-  // Linhas dos Serviços/Tarefas
   let rowsHTML = "";
 
   if (schedule.length === 0) {
@@ -3058,26 +3067,21 @@ function renderScheduleClientHTML(project) {
   } else {
     rowsHTML = schedule
       .map((item) => {
-        // Validação das datas de início e fim
+        // Pega o nome do serviço independente do nome da chave salva
+        const itemTitle = item.title || item.name || item.activity || item.descricao || "Sem título";
+
         const startDate = item.start ? new Date(`${item.start}T00:00:00`) : null;
         const endDate = item.end ? new Date(`${item.end}T00:00:00`) : null;
 
         let barHTML = "";
 
         if (startDate && endDate) {
-          // Verifica se o item passa pelo mês exibido
-          const startMonth = startDate.getMonth();
-          const startYear = startDate.getFullYear();
-          const endMonth = endDate.getMonth();
-          const endYear = endDate.getFullYear();
-
           const monthStart = new Date(year, month, 1);
           const monthEnd = new Date(year, month, daysInMonth);
 
           if (endDate >= monthStart && startDate <= monthEnd) {
-            // Calcula início e fim da barra dentro do mês visível
-            let startDay = (startYear === year && startMonth === month) ? startDate.getDate() : 1;
-            let endDay = (endYear === year && endMonth === month) ? endDate.getDate() : daysInMonth;
+            let startDay = (startDate.getFullYear() === year && startDate.getMonth() === month) ? startDate.getDate() : 1;
+            let endDay = (endDate.getFullYear() === year && endDate.getMonth() === month) ? endDate.getDate() : daysInMonth;
 
             const leftPercent = ((startDay - 1) / daysInMonth) * 100;
             const widthPercent = ((endDay - startDay + 1) / daysInMonth) * 100;
@@ -3087,7 +3091,7 @@ function renderScheduleClientHTML(project) {
 
             barHTML = `
               <div 
-                title="${item.title}: ${startText} a ${endText}"
+                title="${itemTitle}: ${startText} a ${endText}"
                 style="position: absolute; left: ${leftPercent}%; width: ${widthPercent}%; top: 6px; bottom: 6px; background: linear-gradient(90deg, #e0a96d, #c48b4d); border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; overflow: hidden;"
               >
                 <span style="font-size: 0.65rem; color: #111; font-weight: bold; white-space: nowrap; padding: 0 4px;">
@@ -3098,7 +3102,6 @@ function renderScheduleClientHTML(project) {
           }
         }
 
-        // Grade de linhas verticais (fundo)
         let gridCols = "";
         for (let d = 1; d <= daysInMonth; d++) {
           gridCols += `<div style="flex: 1; min-width: 24px; border-left: 1px solid #222; height: 100%;"></div>`;
@@ -3106,12 +3109,10 @@ function renderScheduleClientHTML(project) {
 
         return `
           <div style="display: flex; align-items: center; border-bottom: 1px solid #222; min-height: 44px; background: #161616;">
-            <!-- NOME DA TAREFA / SERVIÇO -->
             <div style="width: 200px; min-width: 200px; padding: 8px 12px; color: #fff; font-size: 0.85rem; font-weight: 500; border-right: 1px solid #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              ${item.title || "Atividade"}
+              ${itemTitle}
             </div>
 
-            <!-- LINHA DO TEMPO COM OS DIAS DA GRADE -->
             <div style="position: relative; flex: 1; display: flex; height: 44px; align-items: center; background: #1a1a1a;">
               ${gridCols}
               ${barHTML}
@@ -3125,7 +3126,6 @@ function renderScheduleClientHTML(project) {
   return `
     <div class="panel" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1px solid #333; background: #141414;">
       
-      <!-- CONTROLE DE MÊS / NAVEGAÇÃO -->
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #1a1a1a; border-bottom: 1px solid #333;">
         <div>
           <h3 style="margin: 0; color: #fff; font-size: 1.1rem;">📅 Cronograma da Obra</h3>
@@ -3133,19 +3133,16 @@ function renderScheduleClientHTML(project) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px; background: #222; padding: 6px 12px; border-radius: 8px; border: 1px solid #333;">
-          <button onclick="changeScheduleMonth(-1)" style="background: none; border: none; color: #e0a96d; font-size: 1.1rem; cursor: pointer; padding: 0 4px;">◄</button>
+          <button type="button" onclick="changeScheduleMonth(-1)" style="background: none; border: none; color: #e0a96d; font-size: 1.1rem; cursor: pointer; padding: 0 4px;">◄</button>
           <span style="color: #fff; font-weight: 600; font-size: 0.9rem; text-transform: capitalize; min-width: 120px; text-align: center;">
             ${monthName}
           </span>
-          <button onclick="changeScheduleMonth(1)" style="background: none; border: none; color: #e0a96d; font-size: 1.1rem; cursor: pointer; padding: 0 4px;">►</button>
+          <button type="button" onclick="changeScheduleMonth(1)" style="background: none; border: none; color: #e0a96d; font-size: 1.1rem; cursor: pointer; padding: 0 4px;">►</button>
         </div>
       </div>
 
-      <!-- TABELA DO GANTT COM ROLAGEM HORIZONTAL SE A TELA FOR PEQUENA -->
       <div style="overflow-x: auto;">
         <div style="min-width: 800px;">
-          
-          <!-- CABEÇALHO DOS DIAS DO MÊS -->
           <div style="display: flex; align-items: center; background: #222; border-bottom: 1px solid #333;">
             <div style="width: 200px; min-width: 200px; padding: 8px 12px; color: #aaa; font-size: 0.75rem; font-weight: bold; border-right: 1px solid #333;">
               SERVIÇOS / ETAPAS
@@ -3154,22 +3151,12 @@ function renderScheduleClientHTML(project) {
               ${daysHeaderHTML}
             </div>
           </div>
-
-          <!-- LINHAS COM OS SERVIÇOS E BARRAS -->
           ${rowsHTML}
-
         </div>
       </div>
 
     </div>
   `;
-}
-
-function changeScheduleMonth(delta) {
-  currentScheduleDate.setMonth(currentScheduleDate.getMonth() + delta);
-  if (typeof renderStageClient === "function" && currentProject) {
-    renderStageClient(currentProject, "cronograma");
-  }
 }
 
   /* ---------------- Modal & Toasts & Utilitários de Inicialização ---------------- */

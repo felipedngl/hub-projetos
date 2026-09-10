@@ -3524,14 +3524,33 @@ if (btnConfirm) {
 {
     const inputSenhaCliente = document.querySelector("#passwordInput") || document.querySelector("#pwdInput") || document.querySelector("#clientPassword") || document.querySelector("input[type='password']");
     if (inputSenhaCliente) {
+      // Impede o envio padrao de formulario que limpa a URL ao apertar Enter
+      const formPai = inputSenhaCliente.closest("form");
+      if (formPai) {
+        formPai.addEventListener("submit", function (e) {
+          e.preventDefault();
+        });
+      }
+
       inputSenhaCliente.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
           e.preventDefault();
-          const targetBtn = document.querySelector("#btnConfirm") || document.querySelector("#btnAuth") || document.querySelector("#btnPasswordConfirm") || document.querySelector(".modal-footer button.primary") || document.querySelector("button[type='submit']");
-          if (targetBtn) {
-            targetBtn.click();
-          } else if (typeof handleAuth === "function") {
-            handleAuth();
+          e.stopPropagation();
+
+          // Tenta disparar primeiro a autenticação de senha do cliente
+          if (typeof confirmClientPassword === "function") {
+            confirmClientPassword();
+          } else if (typeof handleClientAuth === "function") {
+            handleClientAuth();
+          } else {
+            // Busca o botão específico DENTRO do modal de senha do cliente
+            const clientModal = document.querySelector("#passwordModal") || document.querySelector("#pwdModal");
+            const btnNoModal = clientModal ? clientModal.querySelector("button") : null;
+            if (btnNoModal) {
+              btnNoModal.click();
+            } else if (typeof handleAuth === "function") {
+              handleAuth();
+            }
           }
         }
       });

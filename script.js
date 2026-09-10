@@ -3030,25 +3030,31 @@ container.innerHTML = `
     });
   }
 
-// --- MUDANÇA DE MÊS CORRIGIDA ---
+// --- NAVEGAÇÃO DE MÊS FIXADA ---
 function changeScheduleMonth(delta) {
+  // Altera o mês mantendo a referência
   currentScheduleDate.setMonth(currentScheduleDate.getMonth() + delta);
 
-  // Força a atualização do conteúdo na tela dependendo de quem está vendo
-  if (clientMode && typeof renderStageClient === "function" && currentProject) {
-    renderStageClient(currentProject, "cronograma");
-  } else if (typeof renderStage === "function" && currentProject) {
-    renderStage(currentProject, "cronograma");
-  } else {
-    // Fallback direto via seletor
-    const container = document.querySelector("#stageContainer") || document.querySelector("#scheduleContainer");
-    if (container && currentProject) {
-      container.innerHTML = renderScheduleClientHTML(currentProject);
+  // Busca o elemento e força a atualização imediata do HTML
+  const scheduleBox = document.querySelector("#scheduleGanttBox") || document.querySelector("#stageContainer");
+  
+  if (scheduleBox && currentProject) {
+    // Se existir um container específico do Gantt, atualiza só ele
+    const ganttWrapper = document.querySelector("#scheduleGanttBox");
+    if (ganttWrapper) {
+      ganttWrapper.outerHTML = renderScheduleClientHTML(currentProject);
+    } else {
+      // Se for a tela completa do cliente/designer
+      if (typeof renderStageClient === "function" && clientMode) {
+        renderStageClient(currentProject, "cronograma");
+      } else if (typeof renderStage === "function") {
+        renderStage(currentProject, "cronograma");
+      }
     }
   }
 }
 
-// --- TABELA DE GANTT ---
+// --- RENDER DO GANTT COM ID FIXO ---
 function renderScheduleClientHTML(project) {
   const schedule = project && project.schedule ? project.schedule : [];
 
@@ -3077,10 +3083,7 @@ function renderScheduleClientHTML(project) {
   } else {
     rowsHTML = schedule
       .map((item) => {
-        // Mapeia os campos do seu formulário (title, activity, name ou descricao)
         const itemTitle = item.title || item.activity || item.name || item.descricao || "Sem título";
-
-        // Mapeia as datas (start/end ou inicio/termino)
         const rawStart = item.start || item.inicio || item.startDate;
         const rawEnd = item.end || item.termino || item.endDate;
 
@@ -3138,7 +3141,7 @@ function renderScheduleClientHTML(project) {
   }
 
   return `
-    <div class="panel" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1px solid #333; background: #141414; margin-top: 24px;">
+    <div id="scheduleGanttBox" class="panel" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1px solid #333; background: #141414; margin-top: 24px;">
       
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #1a1a1a; border-bottom: 1px solid #333;">
         <div>
@@ -3565,42 +3568,62 @@ if (document.readyState === "loading") {
 }
 })();
 
-// --- TRATAMENTO DE TECLAS GLOBAL ---
-document.addEventListener("keyup", function (e) {
-  // 1. ENTER no campo de Senha
+// --- SISTEMA DE TECLAS E MODAIS (ENTER, ESC E FORA) ---
+document.addEventListener("keydown", function (e) {
+  // 1. ENTER no campo de Senha / Modal de Acesso
   if (e.key === "Enter") {
     const active = document.activeElement;
     if (active && (active.type === "password" || active.tagName === "INPUT")) {
-      // Tenta clicar no botão principal de submeter/entrar
-      const btn = active.closest("form, div")?.querySelector("button[type='submit'], button") || 
-                  document.querySelector("#btnUnlock") || 
-                  document.querySelector("#btnLogin") || 
-                  document.querySelector("button.btn-primary");
+      e.preventDefault();
 
-      if (btn) {
-        e.preventDefault();
-        btn.click();
+      // Procura primeiro pelo botão específico de destravar/entrar
+      const unlockBtn = document.querySelector("#btnUnlock") || 
+                        document.querySelector("#btnLogin") || 
+                        active.closest("div, form")?.querySelector("button");
+
+      if (unlockBtn) {
+        unlockBtn.click();
       }
     }
   }
 
-  // 2. ESC para Fechar Modais sem Quebrar Reabertura
+  // 2. ESC para Fechar Modais (Oculta classes e IDs sem quebrar os botões)
   if (e.key === "Escape") {
-    document.querySelectorAll(".modal, .checklist-modal-overlay, [class*='modal']").forEach((m) => {
-      if (m.style.display !== "none") {
-        m.style.display = "none";
-      }
-    });
+    closeAllOpenModals();
   }
 });
 
-// 3. CLIQUE FORA DO MODAL PARA FECHAR
+// 3. CLIQUE FORA DO CONTEÚDO DO MODAL
 document.addEventListener("click", function (e) {
   if (
-    e.target.classList.contains("checklist-modal-overlay") ||
     e.target.classList.contains("modal-overlay") ||
-    e.target.classList.contains("modal")
+    e.target.classList.contains("modal") ||
+    e.target.classList.contains("checklist-modal-overlay") ||
+    e.target.id === "shareModal" ||
+    e.target.id === "authModal"
   ) {
-    e.target.style.display = "none";
+    closeAllOpenModals();
   }
 });
+
+// Função auxiliar centralizada para fechar modais mantendo o script ativo
+function closeAllOpenModals() {
+  const selectors = [
+    ".modal", 
+    ".modal-overlay", 
+    ".checklist-modal-overlay", 
+    "#shareModal", 
+    "#authModal",
+    "[id*='modal']"
+  ];
+
+  selectors.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((el) => {
+      // Oculta sem remover a estrutura do DOM
+      if (el.style.display !== "none" && el.id !== "app") {
+        el.style.display = "none";
+        el.classList.remove("active", "open", "show");
+      }
+    });
+  });
+}

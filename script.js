@@ -1842,16 +1842,6 @@ $$("#stageConversation .btn-message-edit").forEach((button) => {
   });
 });
 
-// =================================================================
-// 2. EDIÇÃO DE MENSAGENS DO DESIGNER
-// =================================================================
-$$("#stageConversation .btn-message-edit").forEach((button) => {
-  button.addEventListener("click", async () => {
-    const messageId = button.dataset.messageId;
-    const message = s.clientMessages?.find((m) => m.id === messageId);
-
-    if (!message || message.author !== "designer") return;
-
     // AQUI: Usa A MESMA ferramenta customPrompt para o designer
     const newText = await customPrompt("Edite sua mensagem:", message.text);
     if (newText === null) return;
@@ -1866,59 +1856,6 @@ $$("#stageConversation .btn-message-edit").forEach((button) => {
     message.edited = true;
     if (typeof saveProjects === "function") await saveProjects();
     renderStage();
-  });
-});
-	  
-$$("#stageConversation .btn-message-edit").forEach((button) => {
-  button.addEventListener("click", async () => {
-    const messageId = button.dataset.messageId;
-    const message = s.clientMessages?.find((m) => m.id === messageId);
-
-    if (!message || message.author !== "designer") return;
-
-    // AQUI: Troca o prompt do navegador pelo modal customizado
-    const newText = await customPrompt("Edite sua mensagem:", message.text);
-
-    if (newText === null) return;
-
-    const text = newText.trim();
-
-    if (!text) {
-      showToast("A mensagem não pode ficar vazia.", true);
-      return;
-    }
-
-    message.text = text;
-    message.editedAt = Date.now();
-
-    if (await saveProjects()) {
-      renderStage();
-      showToast("Mensagem editada.");
-    }
-  });
-});
-
-$$("#stageConversation .btn-message-delete").forEach((button) => {
-  button.addEventListener("click", async () => {
-    const messageId = button.dataset.messageId;
-    const index = s.clientMessages?.findIndex(
-      (m) => m.id === messageId
-    );
-
-    if (index === -1) return;
-
-    const message = s.clientMessages[index];
-
-    if (!message || message.author !== "designer") return;
-
-    if (!confirm("Apagar esta mensagem?")) return;
-
-    s.clientMessages.splice(index, 1);
-
-    if (await saveProjects()) {
-      renderStage();
-      showToast("Mensagem apagada.");
-    }
   });
 });
 	  

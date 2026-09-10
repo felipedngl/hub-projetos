@@ -3026,35 +3026,58 @@ function contractListHTML(contracts) {
     });
   }
 
-  function renderScheduleClientHTML(project) {
-    const list = project.schedule || [];
-    if (!list.length) {
-      return '<div class="panel"><div class="file-empty">Nenhum cronograma cadastrado ainda.</div></div>';
-    }
+function renderScheduleClientHTML(project) {
+  const schedule = project && project.schedule ? project.schedule : [];
 
-    const rows = list.map((item) => `
-      <tr>
-        <td><strong>${escapeHTML(item.task || "Atividade")}</strong></td>
-        <td>${item.start ? new Date(`${item.start}T00:00:00`).toLocaleDateString("pt-BR") : "—"}</td>
-        <td>${item.end ? new Date(`${item.end}T00:00:00`).toLocaleDateString("pt-BR") : "—"}</td>
-        <td><span class="status-tag ${item.status === "Concluído" ? "status-concluida" : "status-em-producao"}">${escapeHTML(item.status || "Pendente")}</span></td>
-      </tr>
-    `).join("");
-
+  if (!schedule || schedule.length === 0) {
     return `
       <div class="panel">
-        <h3>📅 Cronograma de Execução</h3>
-        <div class="table-wrap">
-          <table class="memorial-table">
-            <thead>
-              <tr><th>Atividade</th><th>Início</th><th>Término</th><th>Status</th></tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      </div>`;
+        <p style="color: #888; font-size: 0.9rem; margin: 0;">Nenhum evento no cronograma até o momento.</p>
+      </div>
+    `;
   }
 
+  const itemsHTML = schedule
+    .map((item) => {
+      const startDate = item.start ? new Date(`${item.start}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "";
+      const endDate = item.end ? new Date(`${item.end}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "";
+      
+      const dateText = startDate && endDate ? `${startDate} até ${endDate}` : (startDate || endDate || "Sem data");
+
+      return `
+        <div style="margin-bottom: 20px; background: #222; border: 1px solid #333; padding: 16px; border-radius: 8px;">
+          
+          <!-- TITULO E DATAS DO CRONOGRAMA -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <strong style="color: #fff; font-size: 1rem;">${item.title || "Etapa do Cronograma"}</strong>
+            <span style="color: #e0a96d; font-size: 0.85rem; font-weight: bold;">📅 ${dateText}</span>
+          </div>
+
+          <!-- LINHA DO TEMPO / GRAFICO DE BARRA -->
+          <div style="position: relative; background: #111; height: 28px; border-radius: 14px; overflow: hidden; border: 1px solid #444; display: flex; align-items: center; padding: 0 10px;">
+            <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: linear-gradient(90deg, #e0a96d 0%, #c48b4d 100%); opacity: 0.85; border-radius: 14px;"></div>
+            
+            <span style="position: relative; z-index: 2; color: #111; font-size: 0.8rem; font-weight: bold; width: 100%; display: flex; justify-content: space-between;">
+              <span>${startDate}</span>
+              <span style="text-transform: uppercase; letter-spacing: 0.5px;">${item.title || ""}</span>
+              <span>${endDate}</span>
+            </span>
+          </div>
+
+        </div>
+      `;
+    })
+    .join("");
+
+  return `
+    <div class="panel">
+      <h3 style="margin-top: 0; color: #fff;">📅 Cronograma do Projeto</h3>
+      <div style="margin-top: 16px;">
+        ${itemsHTML}
+      </div>
+    </div>
+  `;
+}
   /* ---------------- Modal & Toasts & Utilitários de Inicialização ---------------- */
   function showToast(message, isError = false) {
     let toast = $("#hubToast");

@@ -3073,32 +3073,62 @@ function showHubLocked() {
         </div>`;
       document.body.appendChild(lockedEl);
 
-      $("#btnUnlockHub").addEventListener("click", async () => {
-        const pwd = prompt("Digite a senha de acesso:");
-        if (!pwd) return;
+      const unlockBtn = $("#btnUnlockHub");
+      const modal = $("#pwdModal");
+      const input = $("#pwdInput");
+      const btnConfirm = $("#btnConfirmPwd");
+      const btnCancel = $("#btnCancelPwd");
 
-        try {
-          showToast("Verificando credenciais...");
-          
-          // Busca a senha armazenada na coleção 'settings' ou 'config' do seu Firestore
-          if (typeof db !== "undefined" && db) {
-            const configDoc = await db.collection("settings").doc("access").get();
-            
-            if (configDoc.exists && configDoc.data().password === pwd.trim()) {
-              unlockDesigner();
-              lockedEl.remove();
-              showDashboard();
-              showToast("Acesso liberado com sucesso!");
-              return;
-            }
+      if (unlockBtn && modal) {
+        unlockBtn.addEventListener("click", () => {
+          modal.style.display = "flex";
+          if (input) {
+            input.value = "";
+            input.focus();
           }
-          
-          showToast("Senha incorreta ou erro de autenticação.", true);
-        } catch (error) {
-          console.error("Erro ao validar senha no Firebase:", error);
-          showToast("Erro ao conectar ao Firebase.", true);
-        }
-      });
+        });
+
+        btnCancel?.addEventListener("click", () => {
+          modal.style.display = "none";
+        });
+
+        const verifyPassword = async () => {
+          const pwd = input ? input.value.trim() : "";
+          if (!pwd) {
+            showToast("Digite a senha para continuar.", true);
+            return;
+          }
+
+          try {
+            showToast("Verificando credenciais...");
+
+            // Consulta APENAS o Firestore (sem senhas salvas no script)
+            if (typeof db !== "undefined" && db) {
+              const configDoc = await db.collection("settings").doc("access").get();
+              
+              if (configDoc.exists && configDoc.data().password === pwd) {
+                unlockDesigner();
+                modal.style.display = "none";
+                lockedEl.remove();
+                showDashboard();
+                showToast("Acesso liberado com sucesso!");
+                return;
+              }
+            }
+
+            showToast("Senha incorreta.", true);
+          } catch (error) {
+            console.error("Erro na validação do Firestore:", error);
+            showToast("Erro ao conectar com o banco de dados. Verifique as regras do Firestore.", true);
+          }
+        };
+
+        btnConfirm?.addEventListener("click", verifyPassword);
+
+        input?.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") verifyPassword();
+        });
+      }
     }
   }
 

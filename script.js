@@ -3551,45 +3551,39 @@ if (document.readyState === "loading") {
 }
 })();
 
-// --- PERMITIR ENTER NO CAMPO DE SENHA DO CLIENTE E DO DESIGNER ---
+// --- CORREÇÃO DE TECLADO E MODAIS (ENTER / ESC / CLIQUE FORA) ---
 document.addEventListener("keydown", function (e) {
+  // 1. Tecla ENTER para fazer Login
   if (e.key === "Enter") {
-    const activeElement = document.activeElement;
-    
-    // Se o usuário estiver digitando em um campo de senha ou texto de login/acesso
-    if (activeElement && (activeElement.type === "password" || activeElement.id.includes("Password") || activeElement.id.includes("Pass"))) {
-      e.preventDefault();
-      
-      // Procura o botão de enviar dentro do mesmo container/form ou pelo ID comum
-      const parent = activeElement.closest("div") || activeElement.closest("form") || document.body;
-      const submitBtn = parent.querySelector("button[type='submit']") || parent.querySelector("button") || $("#btnUnlock") || $("#btnLogin");
-      
-      if (submitBtn) {
-        submitBtn.click();
+    const active = document.activeElement;
+    if (active && (active.type === "password" || active.id.includes("Password") || active.id.includes("Pass") || active.tagName === "INPUT")) {
+      const container = active.closest(".modal, .modal-overlay, #loginContainer, #authModal") || document.body;
+      const btn = container.querySelector("button[type='submit']") || container.querySelector("button") || document.querySelector("#btnUnlock") || document.querySelector("#btnLogin");
+      if (btn) {
+        e.preventDefault();
+        btn.click();
       }
     }
   }
-});
-// --- FECHAR MODAIS COM A TECLA ESC OU CLICANDO FORA DO CONTEÚDO ---
-document.addEventListener("keydown", function (e) {
+
+  // 2. Tecla ESC para Fechar Modais (sem quebrar a reabertura)
   if (e.key === "Escape") {
-    // Busca qualquer modal que esteja aberto e fecha
-    const openModals = document.querySelectorAll(".modal, .checklist-modal-overlay, [class*='modal']");
-    openModals.forEach((modal) => {
-      if (modal.style.display !== "none") {
-        modal.remove ? modal.remove() : (modal.style.display = "none");
+    const modais = document.querySelectorAll(".modal, .checklist-modal-overlay, [class*='modal']");
+    modais.forEach((m) => {
+      if (m.style.display !== "none") {
+        m.style.display = "none";
       }
     });
   }
 });
 
+// 3. Clique no Fundo Escuro para Fechar Modais
 document.addEventListener("click", function (e) {
-  // Se clicar no fundo escuro/overlay do modal (fora da caixa principal)
   if (
     e.target.classList.contains("checklist-modal-overlay") ||
     e.target.classList.contains("modal-overlay") ||
     e.target.classList.contains("modal")
   ) {
-    e.target.remove ? e.target.remove() : (e.target.style.display = "none");
+    e.target.style.display = "none";
   }
 });

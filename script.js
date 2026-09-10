@@ -1816,20 +1816,27 @@ function customPrompt(title, defaultValue) {
 }
 
 // =================================================================
-// 1. EDIÇÃO DE MENSAGENS DO CLIENTE
+// EDIÇÃO DE MENSAGENS (Unificada para Cliente e Designer)
 // =================================================================
 $$("#stageConversation .btn-message-edit").forEach((button) => {
-  button.addEventListener("click", async () => {
+  button.addEventListener("click", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     const messageId = button.dataset.messageId;
     const message = s.clientMessages?.find((m) => m.id === messageId);
 
-    if (!message || message.author !== "client") return;
+    if (!message) return;
 
-    // AQUI: Usa a ferramenta customPrompt que criamos ali em cima
+    // Regra de autor: Cliente edita cliente, Designer edita designer
+    if (!designerUnlocked && message.author !== "client") return;
+    if (designerUnlocked && message.author !== "designer") return;
+
+    // O await precisa que a função acima tenha "async (e)"
     const newText = await customPrompt("Edite sua mensagem:", message.text);
     if (newText === null) return;
-    const text = newText.trim();
 
+    const text = newText.trim();
     if (!text) {
       if (typeof showToast === "function") showToast("A mensagem não pode ficar vazia.", true);
       return;
@@ -1837,6 +1844,7 @@ $$("#stageConversation .btn-message-edit").forEach((button) => {
 
     message.text = text;
     message.edited = true;
+
     if (typeof saveProjects === "function") await saveProjects();
     renderStage();
   });
@@ -2169,33 +2177,6 @@ function renderStageClient(project, stage) {
         window.open(targetUrl, "_blank");
       } else {
         if (typeof openClientFile === "function") openClientFile(targetUrl, file.name, false);
-      }
-    });
-  });
-
-  $$("#stageConversation .btn-message-edit").forEach((button) => {
-    button.addEventListener("click", async () => {
-    const messageId = button.dataset.messageId;
-    const message = s.clientMessages?.find((m) => m.id === messageId);
-
-    if (!message || message.author !== "client") return;
-
-    // AQUI: Troca o prompt do navegador pelo modal customizado
-    const newText = await customPrompt("Edite sua mensagem:", message.text);
-    if (newText === null) return;
-    const text = newText.trim();
-
-    if (!text) {
-      if (typeof showToast === "function") showToast("A mensagem não pode ficar vazia.", true);
-      return;
-    }
-
-      message.text = text;
-      message.editedAt = Date.now();
-
-      if (typeof saveProjects === "function" && await saveProjects()) {
-        renderStageClient(project, stage);
-        if (typeof showToast === "function") showToast("Mensagem editada.");
       }
     });
   });

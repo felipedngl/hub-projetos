@@ -1186,41 +1186,53 @@ return `
 }
 
 function renderDashboard() {
-    // Trava de segurança: se 'projects' não for uma lista (array), transforma em lista vazia
-    if (!Array.isArray(projects)) projects = [];
+  // Trava de segurança: se 'projects' não for uma lista (array), transforma em lista vazia
+  if (!Array.isArray(projects)) projects = [];
 
-    const term = searchTerm.trim().toLowerCase();
-    const filtered = projects.filter((p) => {
-      const matchFilter =
-        activeFilter === "todos" ||
-        p.type === activeFilter ||
-        p.status === activeFilter;
-      const matchSearch =
-        !term ||
-        (p.title && p.title.toLowerCase().includes(term)) ||
-        (p.client && p.client.toLowerCase().includes(term));
-      return matchFilter && matchSearch;
-    });
-	
-    const grid = $("#projectsGrid");
-    const emptyState = $("#emptyState");
-    if (filtered.length === 0) {
-      grid.innerHTML = "";
-      emptyState.hidden = false;
-    } else {
-      emptyState.hidden = true;
-      grid.innerHTML = filtered.map(cardHTML).join("");
-    }
+  const term = searchTerm.trim().toLowerCase();
+  const filtered = projects.filter((p) => {
+    const matchFilter =
+      activeFilter === "todos" ||
+      p.type === activeFilter ||
+      p.status === activeFilter;
+    const matchSearch =
+      !term ||
+      (p.title && p.title.toLowerCase().includes(term)) ||
+      (p.client && p.client.toLowerCase().includes(term));
+    return matchFilter && matchSearch;
+  });
 
-    const totalM2 = projects.reduce((s, p) => s + (Number(p.area) || 0), 0);
-    const filteredM2 = filtered.reduce((s, p) => s + (Number(p.area) || 0), 0);
-    const activeCount = projects.filter((p) => p.status === "em andamento").length;
-    const stats = $("#statsBar");
-    stats.innerHTML = filtered.length === projects.length
-      ? `<strong>${projects.length}</strong> projetos · <strong>${formatArea(totalM2)} m²</strong> totais · <strong>${activeCount}</strong> em andamento`
-      : `<strong>${filtered.length}</strong> de <strong>${projects.length}</strong> projetos · <strong>${formatArea(filteredM2)} m²</strong>`;
+  const grid = $("#projectsGrid");
+  const emptyState = $("#emptyState");
+  if (filtered.length === 0) {
+    grid.innerHTML = "";
+    emptyState.hidden = false;
+  } else {
+    emptyState.hidden = true;
+    grid.innerHTML = filtered.map(cardHTML).join("");
   }
 
+  const totalM2 = projects.reduce((s, p) => s + (Number(p.area) || 0), 0);
+  const filteredM2 = filtered.reduce((s, p) => s + (Number(p.area) || 0), 0);
+  const activeCount = projects.filter((p) => p.status === "em andamento").length;
+  const stats = $("#statsBar");
+  stats.innerHTML = filtered.length === projects.length
+    ? `<strong>${projects.length}</strong> projetos · <strong>${formatArea(totalM2)} m²</strong> totais · <strong>${activeCount}</strong> em andamento`
+    : `<strong>${filtered.length}</strong> de <strong>${projects.length}</strong> projetos · <strong>${formatArea(filteredM2)} m²</strong>`;
+
+  // --- NOVO: Atribui o evento de clique a todos os cards gerados ---
+  $$(".project-card").forEach((card) => {
+    card.addEventListener("click", (e) => {
+      // Ignora o clique se o usuário clicou num botão dentro do card (ex: deletar ou editar)
+      if (e.target.closest("button") || e.target.closest("a")) return;
+
+      const projectId = card.dataset.projectId || card.dataset.id;
+      if (projectId) {
+        openProject(projectId);
+      }
+    });
+  });
+}
   /* ---------------- Render: visão interna ---------------- */
 function stageHasContent(project, stage) {
   if (stage.special === "schedule") {

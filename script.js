@@ -1909,6 +1909,14 @@ function renderStageClient(project, stage) {
   const container = $("#stageContainer");
   if (!container) return;
 
+const adminPanelBtn = $("#btnAdminPanel");
+  const newProjectBtn = $("#btnNewProject");
+  const lockAccessBtn = $("#btnLockAccess");
+
+  if (adminPanelBtn) adminPanelBtn.style.display = "none";
+  if (newProjectBtn) newProjectBtn.style.display = "none";
+  if (lockAccessBtn) lockAccessBtn.style.display = "none";
+
   // Garante que stage seja um objeto com os campos minimos de cabeçalho
   if (!stage || typeof stage !== "object") {
     const stageId = typeof stage === "string" ? stage : "projeto_executivo";

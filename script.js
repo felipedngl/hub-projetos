@@ -1828,11 +1828,10 @@ $$("#stageConversation .btn-message-edit").forEach((button) => {
 
     if (!message) return;
 
-    // Regra de autor: Cliente edita cliente, Designer edita designer
     if (!designerUnlocked && message.author !== "client") return;
     if (designerUnlocked && message.author !== "designer") return;
 
-    // O await precisa que a função acima tenha "async (e)"
+    // O "await" funciona porque adicionamos "async (e)" na linha acima
     const newText = await customPrompt("Edite sua mensagem:", message.text);
     if (newText === null) return;
 

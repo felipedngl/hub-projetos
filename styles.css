@@ -2927,3 +2927,65 @@ body.client-password-mode .modal--narrow {
   cursor: pointer;
   filter: invert(1);
 }
+
+/* Modal de Senha Estilizado */
+.pwd-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.pwd-modal-card {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 380px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
+
+.pwd-modal-card h3 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  margin-bottom: 8px;
+}
+
+.pwd-modal-card p {
+  color: #aaa;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.pwd-modal-card input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #121212;
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 18px;
+  box-sizing: border-box;
+}
+
+.pwd-modal-card input:focus {
+  border-color: #646cff;
+  outline: none;
+}
+
+.pwd-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}

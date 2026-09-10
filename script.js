@@ -3519,20 +3519,22 @@ if (btnConfirm) {
     btnConfirm.onclick = handleAuth;
   }
 
-  // Permite submeter a senha pressionando ENTER no campo de texto
-  const pwdInput = document.querySelector("#passwordInput") || document.querySelector("#pwdInput") || document.querySelector("#clientPassword");
-  if (pwdInput) {
-    pwdInput.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        if (typeof handleAuth === "function") {
-          handleAuth();
-        } else if (btnConfirm) {
-          btnConfirm.click();
+	// Permite submeter a senha pressionando ENTER no campo de texto
+  (function() {
+    const inputSenhaCliente = document.querySelector("#passwordInput") || document.querySelector("#pwdInput") || document.querySelector("#clientPassword") || document.querySelector("input[type='password']");
+    if (inputSenhaCliente) {
+      inputSenhaCliente.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          if (typeof handleAuth === "function") {
+            handleAuth();
+          } else if (btnConfirm) {
+            btnConfirm.click();
+          }
         }
-      }
-    });
-  }
+      });
+    }
+  })();
 	
 // --- INICIALIZAÇÃO DA APLICAÇÃO ---
 async function init() {

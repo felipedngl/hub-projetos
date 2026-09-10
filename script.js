@@ -3611,7 +3611,6 @@ if (document.readyState === "loading") {
 } else {
   init();
 }
-})();
 
 // --- SISTEMA DE TECLAS E MODAIS (ENTER, ESC E FORA) ---
 document.addEventListener("keydown", function (e) {

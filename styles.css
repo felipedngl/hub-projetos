@@ -2998,15 +2998,15 @@ body.client-view .btn-back {
   pointer-events: none !important;
 }
 
-/* Esconde barra de busca, botão do painel e todos os chips/botões de filtro no modo cliente */
-body.client-view #btnBack,
-body.client-view .btn-back,
-body.client-view .search-bar,
-body.client-view .search-box,
-body.client-view .filter-tags,
-body.client-view .filters-container,
-body.client-view .chip,
-body.client-view [data-filter] {
+/* Esconde barra de busca, botão do painel e todos os chips/botões de filtro no modo cliente (imediato) */
+.client-view #btnBack,
+.client-view .btn-back,
+.client-view .search-bar,
+.client-view .search-box,
+.client-view .filter-tags,
+.client-view .filters-container,
+.client-view .chip,
+.client-view [data-filter] {
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;

@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <script>
+    // Se a URL contiver o parâmetro de projeto, ativa o modo cliente antes mesmo da tela renderizar
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('p') || params.has('project')) {
+        document.documentElement.classList.add('client-view');
+      }
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HUB de Projetos — Menchë Interiores</title>

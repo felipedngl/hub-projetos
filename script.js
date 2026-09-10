@@ -3164,6 +3164,13 @@ function renderScheduleClientHTML(project) {
   `;
 }
 
+function changeScheduleMonth(delta) {
+  currentScheduleDate.setMonth(currentScheduleDate.getMonth() + delta);
+  if (typeof renderStageClient === "function" && currentProject) {
+    renderStageClient(currentProject, "cronograma");
+  }
+}
+
   /* ---------------- Modal & Toasts & Utilitários de Inicialização ---------------- */
   function showToast(message, isError = false) {
     let toast = $("#hubToast");

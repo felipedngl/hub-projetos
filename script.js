@@ -1772,14 +1772,112 @@ s.progress = progress;
 	const designerInput = $("#designerMessageInput");
     const designerButton = $("#btnSendDesignerMessage");
 
-	$$("#stageConversation .btn-message-edit").forEach((button) => {
+// =================================================================
+// FERRAMENTA: Modal bonito para substituir o prompt cinza do navegador
+// (Declarada apenas UMA VEZ para ser usada pelo cliente e pelo designer)
+// =================================================================
+function customPrompt(title, defaultValue) {
+  return new Promise((resolve) => {
+    // 1. Cria o fundo escuro (overlay)
+    const overlay = document.createElement("div");
+    overlay.style.cssText = `
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.7); display: flex; align-items: center;
+      justify-content: center; z-index: 9999; backdrop-filter: blur(3px);
+    `;
+
+    // 2. Insere a caixa do modal com a área de texto e botões
+    overlay.innerHTML = `
+      <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); font-family: inherit; color: #fff;">
+        <h4 style="margin: 0 0 12px 0; font-size: 1rem; color: #fff;">${title}</h4>
+        <textarea id="customPromptInput" style="width: 100%; min-height: 80px; padding: 8px; border-radius: 6px; background: #2a2a2a; color: #fff; border: 1px solid #444; font-family: inherit; resize: vertical; box-sizing: border-box;">${defaultValue}</textarea>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
+          <button id="customPromptCancel" style="padding: 6px 12px; border-radius: 4px; background: transparent; border: 1px solid #555; color: #ccc; cursor: pointer;">Cancelar</button>
+          <button id="customPromptSave" style="padding: 6px 12px; border-radius: 4px; background: #e0a96d; border: none; color: #111; font-weight: bold; cursor: pointer;">Salvar</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const input = overlay.querySelector("#customPromptInput");
+    input.focus();
+    input.select();
+
+    const cleanup = (value) => {
+      document.body.removeChild(overlay);
+      resolve(value);
+    };
+
+    // Cancela ou Salva
+    overlay.querySelector("#customPromptCancel").addEventListener("click", () => cleanup(null));
+    overlay.querySelector("#customPromptSave").addEventListener("click", () => cleanup(input.value));
+  });
+}
+
+// =================================================================
+// 1. EDIÇÃO DE MENSAGENS DO CLIENTE
+// =================================================================
+$$("#stageConversation .btn-message-edit").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const messageId = button.dataset.messageId;
+    const message = s.clientMessages?.find((m) => m.id === messageId);
+
+    if (!message || message.author !== "client") return;
+
+    // AQUI: Usa a ferramenta customPrompt que criamos ali em cima
+    const newText = await customPrompt("Edite sua mensagem:", message.text);
+    if (newText === null) return;
+    const text = newText.trim();
+
+    if (!text) {
+      if (typeof showToast === "function") showToast("A mensagem não pode ficar vazia.", true);
+      return;
+    }
+
+    message.text = text;
+    message.edited = true;
+    if (typeof saveProjects === "function") await saveProjects();
+    renderStage();
+  });
+});
+
+// =================================================================
+// 2. EDIÇÃO DE MENSAGENS DO DESIGNER
+// =================================================================
+$$("#stageConversation .btn-message-edit").forEach((button) => {
   button.addEventListener("click", async () => {
     const messageId = button.dataset.messageId;
     const message = s.clientMessages?.find((m) => m.id === messageId);
 
     if (!message || message.author !== "designer") return;
 
-    const newText = prompt("Edite sua mensagem:", message.text);
+    // AQUI: Usa A MESMA ferramenta customPrompt para o designer
+    const newText = await customPrompt("Edite sua mensagem:", message.text);
+    if (newText === null) return;
+    const text = newText.trim();
+
+    if (!text) {
+      if (typeof showToast === "function") showToast("A mensagem não pode ficar vazia.", true);
+      return;
+    }
+
+    message.text = text;
+    message.edited = true;
+    if (typeof saveProjects === "function") await saveProjects();
+    renderStage();
+  });
+});
+	  
+$$("#stageConversation .btn-message-edit").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const messageId = button.dataset.messageId;
+    const message = s.clientMessages?.find((m) => m.id === messageId);
+
+    if (!message || message.author !== "designer") return;
+
+    // AQUI: Troca o prompt do navegador pelo modal customizado
+    const newText = await customPrompt("Edite sua mensagem:", message.text);
 
     if (newText === null) return;
 
@@ -2140,19 +2238,20 @@ function renderStageClient(project, stage) {
 
   $$("#stageConversation .btn-message-edit").forEach((button) => {
     button.addEventListener("click", async () => {
-      const messageId = button.dataset.messageId;
-      const message = s.clientMessages?.find((m) => m.id === messageId);
+    const messageId = button.dataset.messageId;
+    const message = s.clientMessages?.find((m) => m.id === messageId);
 
-      if (!message || message.author !== "client") return;
+    if (!message || message.author !== "client") return;
 
-      const newText = prompt("Edite sua mensagem:", message.text);
-      if (newText === null) return;
-      const text = newText.trim();
+    // AQUI: Troca o prompt do navegador pelo modal customizado
+    const newText = await customPrompt("Edite sua mensagem:", message.text);
+    if (newText === null) return;
+    const text = newText.trim();
 
-      if (!text) {
-        if (typeof showToast === "function") showToast("A mensagem não pode ficar vazia.", true);
-        return;
-      }
+    if (!text) {
+      if (typeof showToast === "function") showToast("A mensagem não pode ficar vazia.", true);
+      return;
+    }
 
       message.text = text;
       message.editedAt = Date.now();

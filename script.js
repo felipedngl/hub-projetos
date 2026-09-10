@@ -1903,285 +1903,49 @@ $$("#stageFiles .file-download-toggle").forEach((checkbox) => {
 });
   }
 
-/* ---------------- Render: etapa (cliente, leitura) ---------------- */
 function renderStageClient(project, stage) {
-  if (!project) return;
-  const container = $("#stageContainer");
+  const container = $("#stageClientContainer");
   if (!container) return;
 
-  // Garante que stage seja um objeto com os campos minimos de cabeçalho
-  if (!stage || typeof stage !== "object") {
-    const stageId = typeof stage === "string" ? stage : "projeto_executivo";
-    stage = {
-      id: stageId,
-      label: stageId.replace(/_/g, " ").toUpperCase(),
-      hint: "Acompanhe as entregas e observações desta etapa."
-    };
-  }
+  const s = stage;
 
-  const header = `
-    <div class="stage-header">
-      <h2>${stage.label || "Etapa"}</h2>
-      <p class="stage-hint">${stage.hint || ""}</p>
-    </div>`;
+  // 1. GARANTE QUE O CLIENTE NUNCA VEJA O PAINEL GERAL OU BOTOES DO DESIGNER
+  const adminPanelBtn = $("#btnAdminPanel");
+  const newProjectBtn = $("#btnNewProject");
+  const lockAccessBtn = $("#btnLockAccess");
 
-  if (stage.special === "contracts") {
-    container.innerHTML = header + clientContractsHTML(project);
-    attachClientContractViewers(project);
-    return;
-  }
+  if (adminPanelBtn) adminPanelBtn.style.display = "none";
+  if (newProjectBtn) newProjectBtn.style.display = "none";
+  if (lockAccessBtn) lockAccessBtn.style.display = "none";
 
-  if (stage.special === "memorial") {
-    container.innerHTML = header + memorialClientHTML(project);
-    return;
-  }
-  if (stage.special === "schedule") {
-    container.innerHTML = header + renderScheduleClientHTML(project);
-    return;
-  }
-
-  // Busca a etapa dentro de project.stages de forma segura (evita que s seja undefined)
-  const stagesData = project.stages || {};
-  const stageKey = stage.id || "projeto_executivo";
-  
-  // Se a etapa s não existir em project.stages, cria um objeto vazio seguro
-  const s = stagesData[stageKey] || { checklist: [], files: [], clientMessages: [], status: "nao_iniciado" };
-  const checklist = Array.isArray(s.checklist) ? s.checklist : [];
-
-  const checklistHTML = checklist.length
-    ? `
-      <div class="panel stage-checklist-client">
-        <div class="stage-checklist-client-header">
-          <div>
-            <span class="stage-checklist-client-label">Entregas da etapa</span>
-            <strong>${checklist.filter(item => item.done).length}/${checklist.length} concluídas</strong>
-          </div>
-
-          <button
-            type="button"
-            class="stage-checklist-client-button"
-            id="btnViewChecklist"
-          >
-            Ver entregas ›
-          </button>
-        </div>
-    `
-    : "";
-  const stageStatus = (typeof STATUS_LABELS !== "undefined" && STATUS_LABELS[s.status]) ? STATUS_LABELS[s.status] : "Não iniciado";
-  const stageProgress = typeof getStageProgress === "function" ? getStageProgress(s) : 0;
-  const deadlineText = s.deadline
-    ? new Date(`${s.deadline}T00:00:00`).toLocaleDateString("pt-BR")
-    : "";
-
-  const stageStatusHTML = `
-    <div class="panel stage-status-card ${(typeof STATUS_CLASS !== "undefined" && STATUS_CLASS[s.status]) || "status-nao-iniciado"}">
-      <div class="stage-status-top">
-        <div>
-          <span class="stage-status-label">Status da etapa</span>
-          <strong>${stageStatus}</strong>
+  // 2. MONTA APENAS O CARD DO PROJETO DO CLIENTE
+  container.innerHTML = `
+    <div class="client-card-wrapper" style="max-width: 800px; margin: 0 auto; padding: 20px;">
+      <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        
+        <div style="margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 12px;">
+          <h2 style="margin: 0; color: #fff; font-size: 1.5rem;">${project.name || "Seu Projeto"}</h2>
+          <p style="margin: 4px 0 0 0; color: #aaa; font-size: 0.9rem;">Etapa atual: <strong style="color: #e0a96d;">${s.title || "Visão Geral"}</strong></p>
         </div>
 
-        ${
-          deadlineText
-            ? `<div class="stage-deadline">
-                <span>Entrega prevista</span>
-                <strong>📅 ${deadlineText}</strong>
-              </div>`
-            : ""
-        }
-      </div>
-
-      <div class="stage-progress-wrap">
-        <div class="stage-progress-info">
-          <span>Progresso</span>
-          <strong>${stageProgress}% concluído</strong>
+        <!-- CONVERSA DO CLIENTE -->
+        <div id="stageConversation">
+          ${stageConversationHTML(s.clientMessages || [])}
         </div>
 
-        <div class="stage-progress-bar">
-          <div
-            class="stage-progress-fill"
-            style="width: ${stageProgress}%"
-          ></div>
+        <!-- CAMPO PARA ENVIAR MENSAGEM -->
+        <div style="margin-top: 20px; display: flex; gap: 8px;">
+          <input type="text" id="clientMessageInput" placeholder="Escreva uma observação..." style="flex: 1; padding: 10px 14px; border-radius: 6px; background: #2a2a2a; border: 1px solid #444; color: #fff;">
+          <button id="btnSendClientMessage" style="padding: 10px 18px; background: #e0a96d; border: none; border-radius: 6px; color: #111; font-weight: bold; cursor: pointer;">Enviar</button>
         </div>
+
       </div>
     </div>
   `;
 
-  const iconText = (typeof ICONS !== "undefined" && stage.id && ICONS[stage.id]) ? ICONS[stage.id] : "📁";
-
-  container.innerHTML = header + stageStatusHTML + checklistHTML + `
-    <div class="panel">
-      <h3>${iconText} Arquivos da etapa</h3>
-      <label>Renders, plantas e documentos desta etapa</label>
-      ${typeof clientFilesHTML === "function" ? clientFilesHTML(s.files || []) : ""}
-    </div>
-
-    <div class="panel client-conversation-panel">
-      <h3>💬 Chat e Observações</h3>
-      <p class="conversation-hint">
-        Envie uma observação, dúvida ou solicitação sobre esta etapa.
-      </p>
-
-      <div id="stageConversation">
-        ${typeof stageConversationHTML === "function" ? stageConversationHTML(s.clientMessages || []) : ""}
-      </div>
-
-      <div class="conversation-form">
-        <textarea
-          id="clientMessageInput"
-          class="stage-textarea"
-          placeholder="Escreva sua observação..."
-        ></textarea>
-
-        <button
-          type="button"
-          class="btn-primary"
-          id="btnSendClientMessage"
-        >
-          Enviar observação
-        </button>
-      </div>
-    </div>`;
-
-  const btnViewChecklist = $("#btnViewChecklist");
-
-  if (btnViewChecklist) {
-    btnViewChecklist.addEventListener("click", () => {
-      const completed = checklist.filter(item => item.done).length;
-
-      const modal = document.createElement("div");
-      modal.className = "checklist-modal-overlay";
-
-      modal.innerHTML = `
-        <div class="checklist-modal">
-          <div class="checklist-modal-header">
-            <div>
-              <span class="checklist-modal-label">Entregas da etapa</span>
-              <h3>${completed}/${checklist.length} concluídas</h3>
-            </div>
-
-            <button
-              type="button"
-              class="checklist-modal-close"
-              aria-label="Fechar"
-            >
-              ×
-            </button>
-          </div>
-
-          <div class="checklist-modal-list">
-            ${checklist
-              .map(
-                (item) => `
-                  <div class="checklist-modal-item ${item.done ? "done" : ""}">
-                    <span class="checklist-modal-check">
-                      ${item.done ? "✓" : ""}
-                    </span>
-                    <span>${typeof escapeHTML === "function" ? escapeHTML(item.label) : item.label}</span>
-                  </div>
-                `
-              )
-              .join("")}
-          </div>
-        </div>
-      `;
-
-      document.body.appendChild(modal);
-
-      const closeModal = () => {
-        modal.remove();
-      };
-
-      modal
-        .querySelector(".checklist-modal-close")
-        .addEventListener("click", closeModal);
-
-      modal.addEventListener("click", (event) => {
-        if (event.target === modal) {
-          closeModal();
-        }
-      });
-    });
-  }
-
-  const input = $("#clientMessageInput");
+  // 3. ATIVA O BOTAO DE ENVIAR MENSAGEM
   const sendButton = $("#btnSendClientMessage");
-
-  $$("#stageContainer .client-file-download").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const fileId = button.dataset.fileId;
-      const file = (s.files || []).find((f) => f.id === fileId);
-      const targetUrl = file ? (file.url || file.dataUrl || file.fileUrl || file.value) : null;
-
-      if (!file || !targetUrl) {
-        if (typeof showToast === "function") showToast("Arquivo não encontrado.", true);
-        return;
-      }
-
-      if (typeof showToast === "function") showToast("Iniciando download...", false);
-
-      if (targetUrl.startsWith("http")) {
-        try {
-          const resp = await fetch(targetUrl);
-          const blob = await resp.blob();
-          const blobUrl = URL.createObjectURL(blob);
-
-          const a = document.createElement("a");
-          a.href = blobUrl;
-          a.download = file.name || "arquivo";
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(blobUrl);
-        } catch (err) {
-          console.error("Erro no download direto via Blob:", err);
-          window.open(targetUrl, "_blank");
-        }
-      } else {
-        if (typeof openClientFile === "function") openClientFile(targetUrl, file.name, true);
-      }
-    });
-  });
-
-  $$("#stageContainer .client-file-view").forEach((button) => {
-    button.addEventListener("click", () => {
-      const fileId = button.dataset.fileId;
-      const file = (s.files || []).find((f) => f.id === fileId);
-      const targetUrl = file ? (file.url || file.dataUrl || file.fileUrl || file.value) : null;
-
-      if (!file || !targetUrl) {
-        if (typeof showToast === "function") showToast("Arquivo não encontrado.", true);
-        return;
-      }
-
-      if (targetUrl.startsWith("http")) {
-        window.open(targetUrl, "_blank");
-      } else {
-        if (typeof openClientFile === "function") openClientFile(targetUrl, file.name, false);
-      }
-    });
-  });
-
-  $$("#stageConversation .btn-message-delete").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const messageId = button.dataset.messageId;
-      const index = s.clientMessages?.findIndex((m) => m.id === messageId);
-
-      if (index === -1 || index === undefined) return;
-
-      const message = s.clientMessages[index];
-      if (!message || message.author !== "client") return;
-
-      if (!confirm("Apagar esta mensagem?")) return;
-
-      s.clientMessages.splice(index, 1);
-
-      if (typeof saveProjects === "function" && await saveProjects()) {
-        renderStageClient(project, stage);
-        if (typeof showToast === "function") showToast("Mensagem apagada.");
-      }
-    });
-  });
+  const input = $("#clientMessageInput");
 
   if (sendButton) {
     sendButton.addEventListener("click", async () => {
@@ -2221,7 +1985,7 @@ function renderStageClient(project, stage) {
     });
   }
 }
-
+	
 function stageConversationHTML(messages) {
   if (!messages || !messages.length) {
     return `

@@ -2990,12 +2990,10 @@ body.client-password-mode .modal--narrow {
   justify-content: flex-end;
 }
 
-/* Esconde botão do painel, botão de lock e navegação administrativa no modo cliente */
-body.client-view [id*="panel" i],
-body.client-view [id*="painel" i],
-body.client-view [class*="panel" i],
-body.client-view [class*="painel" i],
-body.client-view [id*="lock" i],
-body.client-view [class*="lock" i] {
+/* Oculta estritamente o botão Painel e voltar para o cliente */
+body.client-view #btnBack,
+body.client-view .btn-back {
   display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }

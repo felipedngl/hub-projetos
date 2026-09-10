@@ -3037,31 +3037,24 @@ function renderScheduleClientHTML(project) {
     `;
   }
 
-  const itemsHTML = schedule
+  const rowsHTML = schedule
     .map((item) => {
       const startDate = item.start ? new Date(`${item.start}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "";
       const endDate = item.end ? new Date(`${item.end}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "";
-      
-      const dateText = startDate && endDate ? `${startDate} até ${endDate}` : (startDate || endDate || "Sem data");
+      const dateRange = startDate && endDate ? `${startDate} - ${endDate}` : (startDate || endDate || "");
 
       return `
-        <div style="margin-bottom: 20px; background: #222; border: 1px solid #333; padding: 16px; border-radius: 8px;">
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: center; padding: 12px 16px; background: #1e1e1e; border-bottom: 1px solid #2a2a2a;">
           
-          <!-- TITULO E DATAS DO CRONOGRAMA -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <strong style="color: #fff; font-size: 1rem;">${item.title || "Etapa do Cronograma"}</strong>
-            <span style="color: #e0a96d; font-size: 0.85rem; font-weight: bold;">📅 ${dateText}</span>
+          <!-- COLUNA DA ESQUERDA: NOME E DATAS -->
+          <div>
+            <div style="color: #fff; font-weight: 600; font-size: 0.95rem;">${item.title || "Atividade"}</div>
+            <div style="color: #e0a96d; font-size: 0.8rem; margin-top: 2px;">${dateRange}</div>
           </div>
 
-          <!-- LINHA DO TEMPO / GRAFICO DE BARRA -->
-          <div style="position: relative; background: #111; height: 28px; border-radius: 14px; overflow: hidden; border: 1px solid #444; display: flex; align-items: center; padding: 0 10px;">
-            <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: linear-gradient(90deg, #e0a96d 0%, #c48b4d 100%); opacity: 0.85; border-radius: 14px;"></div>
-            
-            <span style="position: relative; z-index: 2; color: #111; font-size: 0.8rem; font-weight: bold; width: 100%; display: flex; justify-content: space-between;">
-              <span>${startDate}</span>
-              <span style="text-transform: uppercase; letter-spacing: 0.5px;">${item.title || ""}</span>
-              <span>${endDate}</span>
-            </span>
+          <!-- COLUNA DA DIREITA: BARRA VISUAL (ESTILO GANTT / IMAGEM 2) -->
+          <div style="position: relative; background: #2a2a2a; height: 12px; border-radius: 6px; overflow: hidden;">
+            <div style="position: absolute; left: 10%; width: 70%; height: 100%; background: linear-gradient(90deg, #e0a96d, #c48b4d); border-radius: 6px;"></div>
           </div>
 
         </div>
@@ -3070,14 +3063,19 @@ function renderScheduleClientHTML(project) {
     .join("");
 
   return `
-    <div class="panel">
-      <h3 style="margin-top: 0; color: #fff;">📅 Cronograma do Projeto</h3>
-      <div style="margin-top: 16px;">
-        ${itemsHTML}
+    <div class="panel" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1px solid #333; background: #141414;">
+      <div style="padding: 20px; border-bottom: 1px solid #333; background: #1a1a1a;">
+        <h3 style="margin: 0; color: #fff; font-size: 1.2rem;">📅 Cronograma de Execução</h3>
+        <p style="margin: 4px 0 0 0; color: #888; font-size: 0.85rem;">Linha do tempo visual do planejamento da obra</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column;">
+        ${rowsHTML}
       </div>
     </div>
   `;
 }
+
   /* ---------------- Modal & Toasts & Utilitários de Inicialização ---------------- */
   function showToast(message, isError = false) {
     let toast = $("#hubToast");

@@ -2997,3 +2997,12 @@ body.client-view .btn-back {
   visibility: hidden !important;
   pointer-events: none !important;
 }
+
+/* Esconde barra de busca e filtros no modo cliente */
+body.client-view .search-bar,
+body.client-view .search-box,
+body.client-view .filter-tags,
+body.client-view .filters-container,
+body.client-view input[type="search"] {
+  display: none !important;
+}

@@ -616,17 +616,18 @@ async function loadClientProject(projectId) {
 
 async function loadProjects() {
   try {
+    if (typeof db === "undefined" || !db) {
+      console.warn("Firestore 'db' não está definido globalmente.");
+      return null;
+    }
     const snapshot = await db.collection("projects").get();
-
     const projectsList = [];
-
     snapshot.forEach((doc) => {
       projectsList.push({
         id: doc.id,
         ...doc.data(),
       });
     });
-
     return projectsList;
   } catch (error) {
     console.error("Erro ao carregar do Firebase:", error);
@@ -2809,7 +2810,66 @@ function contractListHTML(contracts) {
     .join("");
 }
 
-  /* ---------------- Memorial Descritivo (proprietário) ---------------- */
+/* ---------------- Memorial Descritivo (proprietário) ---------------- */
+  function memorialSectionHTML(project, key) {
+    const table = MEMORIAL_TABLES[key];
+    const rows = project.memorial[key] || [];
+
+    const qtyTotal = rows.reduce((total, r) => total + (parseFloat(String(r.qty || "").replace(",", ".")) || 0), 0);
+    const priceTotal = rows.reduce((total, r) => total + (parseFloat(String(r.qty || "").replace(",", ".")) || 0) * parsePrice(r.preco), 0);
+
+    const head = `<tr>${table.cols.map((c) => `<th>${escapeHTML(c.label)}</th>`).join("")}<th>Ações</th></tr>`;
+
+    let body = "";
+    if (!rows.length) {
+      body = `<tr class="row-empty"><td colspan="${table.cols.length + 1}">Nenhum item cadastrado.</td></tr>`;
+    } else {
+      body = rows.map((r, rowIndex) => {
+        const cells = table.cols.map((col) => {
+          return `<td><input type="text" class="memorial-input" data-key="${key}" data-row="${rowIndex}" data-field="${col.key}" value="${escapeHTML(r[col.key] || "")}" /></td>`;
+        });
+        return `<tr>${cells.join("")}<td><button type="button" class="file-remove btn-delete-row" data-key="${key}" data-row="${rowIndex}">✕</button></td></tr>`;
+      }).join("");
+    }
+
+    return `
+      <div class="panel memorial-section" data-memorial-key="${key}">
+        <div class="memorial-head">
+          <h3>${ICONS.table} ${table.title}</h3>
+          <button type="button" class="btn-secondary btn-add-row" data-key="${key}">+ Adicionar Item</button>
+        </div>
+        <div class="table-wrap">
+          <table class="memorial-table">
+            <thead>${head}</thead>
+            <tbody>${body}</tbody>
+          </table>
+        </div>
+        ${qtyTotal > 0 || priceTotal > 0 ? `
+          <div class="memorial-summary">
+            <strong>${table.title}:</strong> ${rows.length} item(ns)
+            ${qtyTotal > 0 ? " · Qtd. total " + formatArea(qtyTotal) : ""}
+            ${priceTotal > 0 ? " · Total: " + formatCurrency(priceTotal) : ""}
+          </div>` : ""}
+      </div>`;
+  }
+
+  function memorialGrandTotalHTML(project) {
+    let grandTotal = 0;
+    Object.keys(MEMORIAL_TABLES).forEach((key) => {
+      const rows = project.memorial[key] || [];
+      rows.forEach((r) => {
+        const qty = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
+        grandTotal += qty * parsePrice(r.preco);
+      });
+    });
+
+    if (grandTotal <= 0) return "";
+    return `
+      <div class="panel grand-total-panel">
+        <h3>💰 Total Geral Estimado: <span>${formatCurrency(grandTotal)}</span></h3>
+      </div>`;
+  }
+
   function renderMemorial(project) {
     const stage = STAGES.find((s) => s.id === "memorial");
     const container = $("#stageContainer");
@@ -2820,13 +2880,11 @@ function contractListHTML(contracts) {
       </div>
       <div class="panel">
         <h3>${ICONS.upload} Arquivos do memorial</h3>
-        <label>Upload de PDFs, imagens de renders, plantas e documentos</label>
-        ${makeDropzoneHTML("image/*,application/pdf,.dwg,.dxf")}
+        <label>Upload de PDFs, tabelas e orçamentos externos</label>
+        ${makeDropzoneHTML("image/*,application/pdf,.dwg,.dxf,.xlsx,.csv")}
         <div class="file-list" id="memorialFiles">${fileListHTML(project.memorialFiles)}</div>
       </div>
-      ${Object.keys(MEMORIAL_TABLES)
-        .map((key) => memorialSectionHTML(project, key))
-        .join("")}
+      ${Object.keys(MEMORIAL_TABLES).map((key) => memorialSectionHTML(project, key)).join("")}
       ${memorialGrandTotalHTML(project)}`;
 
     attachDropzone(container, project.memorialFiles, () => renderMemorial(project));
@@ -2835,1905 +2893,284 @@ function contractListHTML(contracts) {
       btn.addEventListener("click", () => {
         const id = btn.closest(".file-item").dataset.fileId;
         project.memorialFiles = project.memorialFiles.filter((f) => f.id !== id);
-        saveProjects().then(() => {
-  renderMemorial(project);
-}).catch((err) => console.error("Erro ao salvar memorial:", err));
+        saveProjects().then(() => renderMemorial(project));
       });
     });
 
-    Object.keys(MEMORIAL_TABLES).forEach((key) => {
-      const table = MEMORIAL_TABLES[key];
-      const rows = project.memorial[key];
-
-      $("#btnAddRow-" + key).addEventListener("click", async () => {
-const row = {};
-
-table.cols.forEach((col) => {
-  row[col.key] = "";
-});
-
-// Gera automaticamente o próximo número do item
-const numerosExistentes = rows
-  .map((r) => parseInt(String(r.item || "").replace(/\D/g, ""), 10))
-  .filter((n) => !isNaN(n));
-
-const proximoNumero =
-  numerosExistentes.length > 0
-    ? Math.max(...numerosExistentes) + 1
-    : 1;
-
-row.item = String(proximoNumero).padStart(3, "0");
-
-rows.push(row);
-        await saveProjects();
-        renderMemorial(project);
+    $$(".btn-add-row").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.key;
+        const row = {};
+        MEMORIAL_TABLES[key].cols.forEach((col) => (row[col.key] = ""));
+        project.memorial[key].push(row);
+        saveProjects().then(() => renderMemorial(project));
       });
+    });
 
-      let memorialTimeout = null;
-		
-	$$(`#memTable-${key} input[data-row]`).forEach((input) => {
-  input.addEventListener("input", (e) => {
-    const { row, col } = input.dataset;
-    rows[Number(row)][col] = input.value;
-
-    clearTimeout(memorialTimeout);
-    memorialTimeout = setTimeout(async () => {
-      try {
-        await saveProjects();
-      } catch (err) {
-        console.error("Erro ao salvar memorial:", err);
-      }
-    }, 1000); // Aguarda 1 segundo de pausa na digitação antes de gravar no banco
-  });
-});
-
-      $$(`#memTable-${key} .row-del`).forEach((btn) => {
-        btn.addEventListener("click", async () => {
-          const { row } = btn.dataset;
-          rows.splice(Number(row), 1);
-          await saveProjects();
-          renderMemorial(project);
-        });
+    $$(".btn-delete-row").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.key;
+        const rowIndex = Number(btn.dataset.row);
+        project.memorial[key].splice(rowIndex, 1);
+        saveProjects().then(() => renderMemorial(project));
       });
+    });
 
-      $$(`#memTable-${key} .link-open`).forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const { row } = btn.dataset;
-          const value = rows[Number(row)].link || "";
-          if (!value.trim()) {
-            showToast("Informe o link do produto primeiro.", true);
-            return;
-          }
-          window.open(normalizeUrl(value), "_blank", "noopener");
-        });
+    $$(".memorial-input").forEach((input) => {
+      input.addEventListener("change", () => {
+        const key = input.dataset.key;
+        const rowIndex = Number(input.dataset.row);
+        const field = input.dataset.field;
+        if (project.memorial[key] && project.memorial[key][rowIndex]) {
+          project.memorial[key][rowIndex][field] = input.value;
+          saveProjects();
+        }
       });
     });
   }
 
-/* ---------------- Cronograma de Obra ---------------- */
-function renderSchedule(project) {
-  const stage = STAGES.find((s) => s.id === "cronograma");
-  const container = $("#stageContainer");
+  /* ---------------- Cronograma de Obra ---------------- */
+  function renderSchedule(project) {
+    const stage = STAGES.find((s) => s.id === "cronograma");
+    const container = $("#stageContainer");
+    project.schedule = project.schedule || [];
 
-  if (!Array.isArray(project.schedule)) {
-    project.schedule = [];
-  }
+    const rows = project.schedule.map((item, index) => `
+      <tr>
+        <td><input type="text" class="sched-input" data-idx="${index}" data-field="task" value="${escapeHTML(item.task || "")}" /></td>
+        <td><input type="date" class="sched-input" data-idx="${index}" data-field="start" value="${item.start || ""}" /></td>
+        <td><input type="date" class="sched-input" data-idx="${index}" data-field="end" value="${item.end || ""}" /></td>
+        <td>
+          <select class="sched-input" data-idx="${index}" data-field="status">
+            <option value="A Fazer" ${item.status === "A Fazer" ? "selected" : ""}>A Fazer</option>
+            <option value="Em Andamento" ${item.status === "Em Andamento" ? "selected" : ""}>Em Andamento</option>
+            <option value="Concluído" ${item.status === "Concluído" ? "selected" : ""}>Concluído</option>
+          </select>
+        </td>
+        <td><button type="button" class="file-remove btn-del-sched" data-idx="${index}">✕</button></td>
+      </tr>
+    `).join("");
 
-  let editingIndex = null;
-
-  container.innerHTML = `
-    <div class="stage-header">
-      <h2>${stage.label}</h2>
-      <p class="stage-hint">${stage.hint}</p>
-    </div>
-
-    <div class="panel schedule-panel">
-
-      <div class="schedule-toolbar">
-        <div>
-          <h3>📅 Planejamento da obra</h3>
-          <p class="schedule-description">
-            Organize os serviços da obra por período.
-          </p>
-        </div>
-
-        <button type="button" class="btn-primary" id="btnAddSchedule">
-          + Adicionar serviço
-        </button>
-      </div>
-
-      <div id="scheduleForm" class="schedule-form" hidden>
-
-        <div class="schedule-form-grid">
-
-          <div>
-            <label for="scheduleName">Serviço</label>
-            <input
-              type="text"
-              id="scheduleName"
-              placeholder="Ex.: Retirar piso"
-            />
-          </div>
-
-          <div>
-            <label for="scheduleStart">Data de início</label>
-            <input
-              type="date"
-              id="scheduleStart"
-            />
-          </div>
-
-          <div>
-            <label for="scheduleEnd">Data de término</label>
-            <input
-              type="date"
-            id="scheduleEnd"
-            />
-          </div>
-
-        </div>
-
-        <div class="schedule-form-actions">
-
-          <button
-            type="button"
-            class="btn-primary"
-            id="btnSaveSchedule"
-          >
-            Salvar serviço
-          </button>
-
-          <button
-            type="button"
-            class="btn-secondary"
-            id="btnCancelSchedule"
-          >
-            Cancelar
-          </button>
-
-        </div>
-
-      </div>
-
-      <div id="scheduleList"></div>
-
-    </div>
-  `;
-
-  const form = $("#scheduleForm");
-  const btnAdd = $("#btnAddSchedule");
-  const btnSave = $("#btnSaveSchedule");
-  const btnCancel = $("#btnCancelSchedule");
-
-  btnAdd.addEventListener("click", () => {
-    editingIndex = null;
-
-    $("#scheduleName").value = "";
-    $("#scheduleStart").value = "";
-    $("#scheduleEnd").value = "";
-
-    form.hidden = false;
-
-    $("#scheduleName").focus();
-  });
-
-  btnCancel.addEventListener("click", () => {
-    editingIndex = null;
-    form.hidden = true;
-  });
-
-  btnSave.addEventListener("click", async () => {
-    const name = $("#scheduleName").value.trim();
-    const start = $("#scheduleStart").value;
-    const end = $("#scheduleEnd").value;
-
-    if (!name) {
-      showToast("Informe o nome do serviço.", true);
-      return;
-    }
-
-    if (!start || !end) {
-      showToast("Informe as datas de início e término.", true);
-      return;
-    }
-
-    if (end < start) {
-      showToast(
-        "A data de término não pode ser anterior à data de início.",
-        true
-      );
-      return;
-    }
-
-    const existingItem =
-      editingIndex !== null
-        ? project.schedule[editingIndex]
-        : null;
-
-    const item = {
-      id:
-        existingItem?.id ||
-        `schedule-${Date.now()}`,
-
-      name,
-      start,
-      end
-    };
-
-    if (editingIndex !== null) {
-      project.schedule[editingIndex] = item;
-    } else {
-      project.schedule.push(item);
-    }
-
-    await saveProjects([project]);
-
-    editingIndex = null;
-    form.hidden = true;
-
-    renderSchedule(project);
-  });
-
-  renderScheduleList(project, (index) => {
-    const item = project.schedule[index];
-
-    if (!item) return;
-
-    editingIndex = index;
-
-    $("#scheduleName").value = item.name || "";
-    $("#scheduleStart").value = item.start || "";
-    $("#scheduleEnd").value = item.end || "";
-
-    form.hidden = false;
-
-    $("#scheduleName").focus();
-  });
-}
-
-/* ---------------- Gráfico do Cronograma ---------------- */
-function renderScheduleList(project, onEdit) {
-  const container = $("#scheduleList");
-
-  if (!container) return;
-
-  const schedule = Array.isArray(project.schedule)
-    ? project.schedule
-    : [];
-
-  if (!schedule.length) {
     container.innerHTML = `
-      <div class="schedule-empty">
-        <div class="schedule-empty-icon">📅</div>
-        <strong>Nenhum serviço cadastrado</strong>
-        <span>Adicione os serviços da obra para começar o cronograma.</span>
+      <div class="stage-header">
+        <h2>${stage.label}</h2>
+        <p class="stage-hint">${stage.hint}</p>
       </div>
-    `;
-    return;
-  }
-
-  const validItems = schedule.filter((item) => {
-    return item && item.name && item.start && item.end;
-  });
-
-  if (!validItems.length) {
-    container.innerHTML = `
-      <div class="schedule-empty">
-        <div class="schedule-empty-icon">📅</div>
-        <strong>Nenhum serviço cadastrado</strong>
-        <span>Adicione os serviços da obra para começar o cronograma.</span>
-      </div>
-    `;
-    return;
-  }
-
-  const sorted = validItems
-    .map((item) => ({
-      item,
-      index: schedule.indexOf(item)
-    }))
-    .sort((a, b) =>
-      String(a.item.start).localeCompare(String(b.item.start))
-    );
-
-  const dates = sorted.flatMap(({ item }) => [
-    new Date(`${item.start}T00:00:00`),
-    new Date(`${item.end}T00:00:00`)
-  ]);
-
-  const minDate = new Date(Math.min(...dates.map((d) => d.getTime())));
-  const maxDate = new Date(Math.max(...dates.map((d) => d.getTime())));
-
-  minDate.setHours(0, 0, 0, 0);
-  maxDate.setHours(0, 0, 0, 0);
-
-  const totalDays =
-    Math.floor((maxDate - minDate) / 86400000) + 1;
-
-  const days = [];
-
-  for (let i = 0; i < totalDays; i++) {
-    const date = new Date(minDate);
-    date.setDate(minDate.getDate() + i);
-    days.push(date);
-  }
-
-  const dayWidth = 42;
-
-  const formatMonthYear = (date) => {
-    return date.toLocaleDateString("pt-BR", {
-      month: "long",
-      year: "numeric"
-    });
-  };
-
-  const monthGroups = [];
-
-  days.forEach((date, index) => {
-    const key = `${date.getFullYear()}-${date.getMonth()}`;
-
-    let group = monthGroups.find((g) => g.key === key);
-
-    if (!group) {
-      group = {
-        key,
-        label: formatMonthYear(date),
-        startIndex: index,
-        count: 0
-      };
-
-      monthGroups.push(group);
-    }
-
-    group.count++;
-  });
-
-  const monthHeader = monthGroups
-    .map((group) => {
-      return `
-        <div
-          class="schedule-month"
-          style="width:${group.count * dayWidth}px"
-        >
-          ${escapeHTML(
-            group.label.charAt(0).toUpperCase() +
-            group.label.slice(1)
-          )}
-        </div>
-      `;
-    })
-    .join("");
-
-  const dayHeader = days
-    .map((date) => {
-      const day = String(date.getDate()).padStart(2, "0");
-
-      return `
-        <div
-          class="schedule-day"
-          style="width:${dayWidth}px"
-        >
-          ${day}
-        </div>
-      `;
-    })
-    .join("");
-
-  const rows = sorted
-    .map(({ item, index }) => {
-      const start = new Date(`${item.start}T00:00:00`);
-      const end = new Date(`${item.end}T00:00:00`);
-
-      const startOffset =
-        Math.floor((start - minDate) / 86400000);
-
-      const duration =
-        Math.floor((end - start) / 86400000) + 1;
-
-      return `
-        <div class="schedule-gantt-row">
-
-          <div class="schedule-service-name">
-            <strong>${escapeHTML(item.name)}</strong>
-
-            <span>
-              ${formatScheduleDate(item.start)}
-              → ${formatScheduleDate(item.end)}
-            </span>
-          </div>
-
-          <div
-            class="schedule-timeline"
-            style="width:${totalDays * dayWidth}px"
-          >
-
-            <div class="schedule-grid">
-              ${days
-                .map(() => `<div class="schedule-grid-day"></div>`)
-                .join("")}
-            </div>
-
-            <div
-              class="schedule-bar"
-              style="
-                left:${startOffset * dayWidth}px;
-                width:${duration * dayWidth - 6}px;
-              "
-              title="${escapeHTML(item.name)}"
-            >
-              <span>${escapeHTML(item.name)}</span>
-            </div>
-
-          </div>
-
-          <div class="schedule-row-actions">
-
-            <button
-              type="button"
-              class="schedule-edit"
-              data-index="${index}"
-            >
-              Editar
-            </button>
-
-            <button
-              type="button"
-              class="schedule-delete"
-              data-index="${index}"
-            >
-              Excluir
-            </button>
-
-          </div>
-
-        </div>
-      `;
-    })
-    .join("");
-
-  container.innerHTML = `
-    <div class="schedule-gantt-wrapper">
-
-      <div class="schedule-gantt">
-
-        <div class="schedule-month-header">
-          <div class="schedule-fixed-header">
-            Serviço
-          </div>
-
-          <div
-            class="schedule-calendar-header"
-            style="width:${totalDays * dayWidth}px"
-          >
-            ${monthHeader}
-          </div>
-
-          <div class="schedule-actions-header"></div>
-        </div>
-
-        <div class="schedule-day-header">
-
-          <div class="schedule-fixed-header"></div>
-
-          <div
-            class="schedule-calendar-header"
-            style="width:${totalDays * dayWidth}px"
-          >
-            ${dayHeader}
-          </div>
-
-          <div class="schedule-actions-header"></div>
-
-        </div>
-
-        <div class="schedule-gantt-body">
-          ${rows}
-        </div>
-
-      </div>
-
-    </div>
-  `;
-
-  $$(".schedule-edit", container).forEach((button) => {
-    button.addEventListener("click", () => {
-      const index = Number(button.dataset.index);
-
-      onEdit(index);
-    });
-  });
-
-  $$(".schedule-delete", container).forEach((button) => {
-    button.addEventListener("click", async () => {
-      const index = Number(button.dataset.index);
-      const item = project.schedule[index];
-
-      if (!item) return;
-
-      const confirmed = confirm(
-        `Excluir o serviço "${item.name}" do cronograma?`
-      );
-
-      if (!confirmed) return;
-
-      project.schedule.splice(index, 1);
-
-      await saveProjects([project]);
-
-      renderSchedule(project);
-    });
-  });
-}
-
-/* ---------------- Cronograma de Obra (cliente) ---------------- */
-function renderScheduleClientHTML(project) {
-  const schedule = Array.isArray(project.schedule)
-    ? project.schedule
-    : [];
-
-  if (!schedule.length) {
-    return `
       <div class="panel">
-        <div class="schedule-empty">
-          <div class="schedule-empty-icon">📅</div>
-          <strong>Cronograma ainda não disponível</strong>
-          <span>O cronograma da obra ainda não possui serviços cadastrados.</span>
-        </div>
-      </div>
-    `;
-  }
-
-  const validItems = schedule.filter((item) => {
-    return item && item.name && item.start && item.end;
-  });
-
-  if (!validItems.length) {
-    return `
-      <div class="panel">
-        <div class="schedule-empty">
-          <div class="schedule-empty-icon">📅</div>
-          <strong>Cronograma ainda não disponível</strong>
-          <span>O cronograma da obra ainda não possui serviços cadastrados.</span>
-        </div>
-      </div>
-    `;
-  }
-
-  const sorted = validItems
-    .map((item) => ({
-      item,
-      index: schedule.indexOf(item)
-    }))
-    .sort((a, b) =>
-      String(a.item.start).localeCompare(String(b.item.start))
-    );
-
-  const dates = sorted.flatMap(({ item }) => [
-    new Date(`${item.start}T00:00:00`),
-    new Date(`${item.end}T00:00:00`)
-  ]);
-
-  const minDate = new Date(
-    Math.min(...dates.map((date) => date.getTime()))
-  );
-
-  const maxDate = new Date(
-    Math.max(...dates.map((date) => date.getTime()))
-  );
-
-  minDate.setHours(0, 0, 0, 0);
-  maxDate.setHours(0, 0, 0, 0);
-
-  const totalDays =
-    Math.floor((maxDate - minDate) / 86400000) + 1;
-
-  const days = [];
-
-  for (let i = 0; i < totalDays; i++) {
-    const date = new Date(minDate);
-    date.setDate(minDate.getDate() + i);
-    days.push(date);
-  }
-
-  const dayWidth = 42;
-
-  const monthGroups = [];
-
-  days.forEach((date, index) => {
-    const key = `${date.getFullYear()}-${date.getMonth()}`;
-
-    let group = monthGroups.find((item) => item.key === key);
-
-    if (!group) {
-      group = {
-        key,
-        label: date.toLocaleDateString("pt-BR", {
-          month: "long",
-          year: "numeric"
-        }),
-        count: 0
-      };
-
-      monthGroups.push(group);
-    }
-
-    group.count++;
-  });
-
-  const monthHeader = monthGroups
-    .map((group) => `
-      <div
-        class="schedule-month"
-        style="width:${group.count * dayWidth}px"
-      >
-        ${escapeHTML(
-          group.label.charAt(0).toUpperCase() +
-          group.label.slice(1)
-        )}
-      </div>
-    `)
-    .join("");
-
-  const dayHeader = days
-    .map((date) => `
-      <div
-        class="schedule-day"
-        style="width:${dayWidth}px"
-      >
-        ${String(date.getDate()).padStart(2, "0")}
-      </div>
-    `)
-    .join("");
-
-  const rows = sorted
-    .map(({ item }) => {
-      const start = new Date(`${item.start}T00:00:00`);
-      const end = new Date(`${item.end}T00:00:00`);
-
-      const startOffset =
-        Math.floor((start - minDate) / 86400000);
-
-      const duration =
-        Math.floor((end - start) / 86400000) + 1;
-
-      return `
-        <div class="schedule-gantt-row">
-
-          <div class="schedule-service-name">
-            <strong>${escapeHTML(item.name)}</strong>
-
-            <span>
-              ${formatScheduleDate(item.start)}
-              → ${formatScheduleDate(item.end)}
-            </span>
-          </div>
-
-          <div
-            class="schedule-timeline"
-            style="width:${totalDays * dayWidth}px"
-          >
-
-            <div class="schedule-grid">
-              ${days
-                .map(() => `
-                  <div class="schedule-grid-day"></div>
-                `)
-                .join("")}
-            </div>
-
-            <div
-              class="schedule-bar"
-              style="
-                left:${startOffset * dayWidth}px;
-                width:${duration * dayWidth - 6}px;
-              "
-              title="${escapeHTML(item.name)}"
-            >
-              <span>${escapeHTML(item.name)}</span>
-            </div>
-
-          </div>
-
-          <div class="schedule-actions-header"></div>
-
-        </div>
-      `;
-    })
-    .join("");
-
-  return `
-    <div class="panel schedule-panel">
-
-      <div class="schedule-toolbar">
-        <div>
-          <h3>📅 Cronograma da obra</h3>
-          <p class="schedule-description">
-            Acompanhe o período previsto para cada serviço.
-          </p>
-        </div>
-      </div>
-
-      <div class="schedule-gantt-wrapper">
-
-        <div class="schedule-gantt">
-
-          <div class="schedule-month-header">
-
-            <div class="schedule-fixed-header">
-              Serviço
-            </div>
-
-            <div
-              class="schedule-calendar-header"
-              style="width:${totalDays * dayWidth}px"
-            >
-              ${monthHeader}
-            </div>
-
-            <div class="schedule-actions-header"></div>
-
-          </div>
-
-          <div class="schedule-day-header">
-
-            <div class="schedule-fixed-header"></div>
-
-            <div
-              class="schedule-calendar-header"
-              style="width:${totalDays * dayWidth}px"
-            >
-              ${dayHeader}
-            </div>
-
-            <div class="schedule-actions-header"></div>
-
-          </div>
-
-          <div class="schedule-gantt-body">
-            ${rows}
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-  `;
-}
-	
-function formatScheduleDate(value) {
-  if (!value) return "";
-
-  const parts = String(value).split("-");
-
-  if (parts.length !== 3) return value;
-
-  return `${parts[2]}/${parts[1]}/${parts[0]}`;
-}
-
-  function memorialSectionHTML(project, key) {
-    const table = MEMORIAL_TABLES[key];
-    const rows = project.memorial[key];
-
-    const qtyTotal = rows
-      .map((r) => parseFloat(String(r.qty || "").replace(",", ".")))
-      .filter((n) => !isNaN(n))
-      .reduce((a, b) => a + b, 0);
-
-    const priceTotal = rows.reduce((total, r) => {
-      const qty =
-        parseFloat(String(r.qty || "").replace(",", ".")) || 0;
-      const price = parsePrice(r.preco);
-      return total + qty * price;
-    }, 0);
-
-    const head = `<tr><th>${table.cols
-      .map((c) => escapeHTML(c.label))
-      .join("</th><th>")}</th><th></th></tr>`;
-
-    let body;
-
-    if (!rows.length) {
-      body = `<tr class="row-empty"><td colspan="${table.cols.length + 1}">Nenhum item cadastrado — clique em "+ Adicionar".</td></tr>`;
-    } else {
-      body = rows
-        .map((r, i) => {
-          const cells = table.cols
-            .map((col) => {
-              if (col.key === "link") {
-                return `
-                  <td class="cell-link">
-                    <div class="link-cell">
-                      <input
-                        type="text"
-                        data-row="${i}"
-                        data-col="link"
-                        value="${escapeHTML(r[col.key] || "")}"
-                        placeholder="https://produto.com.br"
-                      />
-                      <a
-                        class="link-open"
-                        data-row="${i}"
-                        title="Abrir link do produto"
-                      >${ICONS.openLink}</a>
-                    </div>
-                  </td>`;
-              }
-
-              if (col.key === "preco") {
-                return `
-                  <td>
-<div class="price-input">
-  <span class="price-prefix">R$</span>
-  <input
-    type="number"
-    step="0.01"
-    data-row="${i}"
-    data-col="preco"
-    value="${escapeHTML(r[col.key] || "")}"
-  />
-</div>
-                  </td>`;
-              }
-
-              return `<td><input type="text" data-row="${i}" data-col="${col.key}" value="${escapeHTML(r[col.key] || "")}" /></td>`;
-            })
-            .join("");
-
-          return `<tr>${cells}<td><button class="row-del" data-row="${i}" title="Remover linha">✕</button></td></tr>`;
-        })
-        .join("");
-    }
-
-    return `
-      <div class="memorial-section">
         <div class="memorial-head">
-          <h3>${ICONS.table} ${table.title}</h3>
-          <button type="button" class="btn-small" id="btnAddRow-${key}">+ Adicionar</button>
+          <h3>📅 Planejamento de Etapas</h3>
+          <button type="button" class="btn-secondary" id="btnAddSched">+ Adicionar Atividade</button>
         </div>
-
         <div class="table-wrap">
-          <table class="memorial-table" id="memTable-${key}">
-            <thead>${head}</thead>
-            <tbody>${body}</tbody>
+          <table class="memorial-table">
+            <thead>
+              <tr>
+                <th>Atividade / Fase</th>
+                <th>Início Previsto</th>
+                <th>Término Previsto</th>
+                <th>Status</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.length ? rows : '<tr class="row-empty"><td colspan="5">Nenhuma atividade cadastrada.</td></tr>'}
+            </tbody>
           </table>
         </div>
-
-        ${
-          qtyTotal > 0 || priceTotal > 0
-            ? `<div class="memorial-summary">
-                <strong>${table.title}:</strong>
-                ${rows.length} item(ns)
-                ${
-                  qtyTotal > 0
-                    ? " · Qtd. total " + formatArea(qtyTotal)
-                    : ""
-                }
-                ${
-                  priceTotal > 0
-                    ? " · " + formatCurrency(priceTotal)
-                    : ""
-                }
-              </div>`
-            : ""
-        }
       </div>`;
-  }
 
-  function memorialGrandTotalHTML(project) {
-const grandTotal = Object.keys(MEMORIAL_TABLES).reduce(
-  (sum, key) =>
-    sum +
-    (project.memorial[key] || []).reduce((s, r) => {
-      const qty = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
-      const price = parsePrice(r.preco);
-      return s + qty * price;
-    }, 0),
-  0
-);
-    const itemCount = Object.keys(MEMORIAL_TABLES).reduce(
-      (sum, key) => sum + (project.memorial[key] || []).length,
-      0
-    );
-    if (grandTotal <= 0 && itemCount === 0) return "";
-    return `
-      <div class="memorial-section memorial-total">
-        <div class="memorial-head">
-          <h3>${ICONS.table} Resumo geral do memorial</h3>
-        </div>
-        <div class="memorial-summary">
-          <strong>${itemCount}</strong> itens no total ·
-          ${grandTotal > 0 ? `valor estimado <strong>${formatCurrency(grandTotal)}</strong>` : "sem valores informados"}
-        </div>
-      </div>`;
-  }
-
-  /* ---------------- Modal novo projeto ---------------- */
-  const modalOverlay = $("#modalOverlay");
-  const projectForm = $("#projectForm");
-
-  function openModal() {
-    projectForm.reset();
-    clearUpload();
-    $$("#projectForm .field.invalid").forEach((f) => f.classList.remove("invalid"));
-    modalOverlay.hidden = false;
-    modalOverlay.style.display = "flex";
-    document.body.style.overflow = "hidden";
-    setTimeout(() => $("#fieldName").focus(), 60);
-  }
-
-function closeModal() {
-  modalOverlay.hidden = true;
-  modalOverlay.style.display = "none";
-  document.body.style.overflow = "";
-}
-
-/* ---------------- Botão Novo Projeto ---------------- */
-$("#btnNewProject").addEventListener("click", () => {
-  if (!designerUnlocked || currentProjectId != null || clientMode) return;
-  openModal();
-});
-
-  function handleCoverFile(file) {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      showToast("Selecione uma imagem válida.", true);
-      return;
-    }
-    readFileAsDataUrl(file).then((dataUrl) => {
-      $("#previewImage").src = dataUrl;
-      $("#dropzonePreview").hidden = false;
-      $("#dropzoneInner").hidden = true;
-      uploadedImage = dataUrl;
-    });
-  }
-
-  $("#fieldImage").addEventListener("change", (e) => handleCoverFile(e.target.files[0]));
-
-  const dropzone = $("#dropzone");
-  dropzone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dropzone.classList.add("dragover");
-  });
-  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
-  dropzone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    dropzone.classList.remove("dragover");
-    handleCoverFile(e.dataTransfer.files[0]);
-  });
-
-  function clearUpload() {
-    uploadedImage = null;
-    $("#fieldImage").value = "";
-    $("#previewImage").src = "";
-    $("#dropzonePreview").hidden = true;
-    $("#dropzoneInner").hidden = false;
-  }
-
-  $("#btnRemoveImage").addEventListener("click", clearUpload);
-
-  function setInvalid(field, invalid) {
-    field.closest(".field").classList.toggle("invalid", invalid);
-  }
-
-  projectForm.addEventListener("submit", async (e) => {    e.preventDefault();
-
-    const name = $("#fieldName").value.trim();
-    const client = $("#fieldClient").value.trim();
-    const area = parseFloat($("#fieldArea").value);
-    const type = $("#fieldType").value;
-    const status = $("#fieldStatus").value;
-    const clientPassword = $("#fieldClientPassword").value.trim();
-
-    setInvalid($("#fieldName"), !name);
-    setInvalid($("#fieldClient"), !client);
-    setInvalid($("#fieldArea"), !(area > 0));
-    if (!name || !client || !(area > 0)) {
-      showToast("Preencha os campos obrigatórios.", true);
-      return;
-    }
-
-    const newProject = seedProject({
-      id: uid(),
-      title: name,
-      client,
-      area,
-      type,
-      status,
-      clientPassword,
-      image: uploadedImage || PLACEHOLDER,
+    $("#btnAddSched").addEventListener("click", () => {
+      project.schedule.push({ task: "", start: "", end: "", status: "A Fazer" });
+      saveProjects().then(() => renderSchedule(project));
     });
 
-    projects.unshift(newProject);
-    if (await saveProjects()) {
-      closeModal();
-      renderDashboard();
-      showToast("Projeto criado com sucesso!");
-    }
-  });
-
-  /* ---------------- Navegação (proprietário) ---------------- */
-  $("#btnBack").addEventListener("click", showDashboard);
-
-  $("#filterBar").addEventListener("click", (e) => {
-    const chip = e.target.closest(".chip");
-    if (!chip) return;
-    activeFilter = chip.dataset.filter;
-    $$("#filterBar .chip").forEach((c) => c.classList.toggle("active", c === chip));
-    renderDashboard();
-  });
-
-  $("#searchInput").addEventListener("input", (e) => {
-    searchTerm = e.target.value;
-    renderDashboard();
-  });
-
-  $("#projectsGrid").addEventListener("click", (e) => {
-    const card = e.target.closest(".card");
-    if (card) openProject(card.dataset.id);
-  });
-
-  $("#projectsGrid").addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && e.target.classList.contains("card")) {
-      openProject(e.target.dataset.id);
-    }
-  });
-
-  $("#btnDeleteProject").addEventListener("click", async () => {
-  const p = currentProject();
-  if (!p) return;
-
-  if (!confirm(`Excluir o projeto "${p.title}" e todos os seus dados?`)) {
-    return;
-  }
-
-  try {
-    await db.collection("projects").doc(String(p.id)).delete();
-
-    projects = projects.filter((x) => x.id !== p.id);
-
-    currentProjectId = null;
-
-    showDashboard();
-    showToast("Projeto excluído.");
-  } catch (error) {
-    console.error("Erro ao excluir projeto:", error);
-    showToast("Não foi possível excluir o projeto na nuvem.", true);
-  }
-});
-
-  /* ---------------- Botão Visualizar como Cliente ---------------- */
-  $("#btnClientView").addEventListener("click", () => {
-    if (!currentProject()) return;
-    if (clientMode && localPreview) {
-      localPreview = false;
-      setClientMode(false);
-      renderSidebar();
-      renderStage();
-      showToast("Você está no modo de edição novamente.");
-    } else if (!clientMode && designerUnlocked) {
-      if (currentStage === "contratos") currentStage = "briefing";
-      localPreview = true;
-      setClientMode(true);
-      renderSidebar();
-      renderStage();
-      showToast("Modo cliente ativado — apenas visualização.");
-    }
-  });
-
-  /* ---------------- Acesso Restrito do Designer ---------------- */
-  $("#btnDesignerAccess").addEventListener("click", () => {
-    if (designerUnlocked) {
-      if (confirm("Bloquear o acesso do designer? As restrições voltam a valer.")) {
-        lockDesigner();
-        renderDashboard();
-        renderSidebar();
-        renderStage();
-        showToast("Acesso do designer bloqueado.");
-      }
-      return;
-    }
-openPasswordModal({
-  title: "Acesso Restrito",
-  hint: "Digite a senha para ver todos os projetos sem restrições.",
-  onSuccess: async (value) => {
-    try {
-      await window.auth.signInWithEmailAndPassword(
-        DESIGNER_EMAIL,
-        value
-      );
-
-      closePasswordModal(true);
-      showToast("Acesso do designer liberado.");
-    } catch (error) {
-      console.error("Erro no login do designer:", error);
-      showToast("Senha incorreta.", true);
-    }
-  },
-});
-});
-
-  /* ---------------- Modal de senha ---------------- */
-  const passwordModal = $("#passwordModal");
-  let passwordOnSuccess = null;
-  let clientPasswordPending = false;
-  let hubPasswordPending = false;
-
-function openPasswordModal(options, onSuccess) {
-  let titleText = "Acesso";
-  let hintText = "Digite a senha do projeto para acessar:";
-  let isClient = false;
-
-  // 1. Trata se o parâmetro for um Objeto { title, hint, clientAccess } ou uma String
-  if (typeof options === "object" && options !== null) {
-    titleText = options.title || "Acesso";
-    hintText = options.hint || "Digite a senha para acessar:";
-    isClient = !!options.clientAccess;
-    if (options.onSuccess) passwordOnSuccess = options.onSuccess;
-  } else if (typeof options === "string") {
-    hintText = options;
-  }
-
-  if (typeof onSuccess === "function") {
-    passwordOnSuccess = onSuccess;
-  }
-
-  if (typeof isClient !== "undefined") {
-    clientPasswordPending = isClient;
-  }
-
-  // 2. Atualiza os textos do HTML
-  const titleEl = document.getElementById("passwordModalTitle");
-  if (titleEl) titleEl.textContent = titleText;
-
-  const hintEl = document.getElementById("passwordModalHint");
-  if (hintEl) hintEl.textContent = hintText;
-
-  // 3. Limpa o campo de senha
-  const input = document.getElementById("passwordInput");
-  if (input) input.value = "";
-
-  // 4. Exibe o modal na tela
-  const modal = document.getElementById("passwordModal");
-  if (modal) {
-    modal.hidden = false;
-    modal.classList.add("active");
-    modal.style.display = "flex";
-  }
-
-  if (input) {
-    setTimeout(() => input.focus(), 100);
-  }
-}
-
-function closePasswordModal(authenticated = false) {
-  const wasClientPassword = clientPasswordPending;
-  const wasHubPassword = hubPasswordPending;
-
-  passwordOnSuccess = null;
-  clientPasswordPending = false;
-  hubPasswordPending = false;
-
-  passwordModal.hidden = true;
-  passwordModal.style.display = "none";
-  document.body.style.overflow = "";
-
-if (wasClientPassword && !authenticated) {
-  showHubLocked();
-  return;
-}
-
-  if (wasHubPassword && !authenticated) {
-    showHubLocked();
-  }
-}
-
-async function submitPasswordModal() {
-  if (hubPasswordPending) return;
-  if (clientPasswordPending && clientPasswordPending === "loading") return;
-
-  const input = document.getElementById("passwordInput");
-  const enteredPassword = input ? input.value.trim() : "";
-
-  if (!enteredPassword) {
-    alert("Digite a senha.");
-    return;
-  }
-
-  if (clientPasswordPending) {
-    clientPasswordPending = "loading";
-
-    const urlParams = new URLSearchParams(window.location.search);
-
-    const rawProject =
-      urlParams.get("projeto") ||
-      urlParams.get("p") ||
-      currentProjectId ||
-      "";
-
-    const projectId = decodeURIComponent(rawProject).trim();
-
-    if (!projectId) {
-      clientPasswordPending = true;
-      alert("Nenhum projeto especificado na URL.");
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/client-auth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          projectId,
-          password: enteredPassword,
-        }),
+    $$(".btn-del-sched").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.dataset.idx);
+        project.schedule.splice(idx, 1);
+        saveProjects().then(() => renderSchedule(project));
       });
+    });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        clientPasswordPending = true;
-        alert(data.message || "Senha incorreta ou projeto não encontrado.");
-        return;
-      }
-
-      const targetProject = data.project;
-
-      if (!targetProject || !targetProject.id) {
-        clientPasswordPending = true;
-        alert("O servidor não retornou um projeto válido.");
-        return;
-      }
-
-      // Guarda o projeto no estado principal
-      currentProjectId = String(targetProject.id);
-      window.currentProject = targetProject;
-
-      // Garante que o projeto esteja disponível no estado usado pelo Hub
-      const existingIndex = projects.findIndex(
-        (project) => String(project.id) === String(targetProject.id)
-      );
-
-      if (existingIndex >= 0) {
-        projects[existingIndex] = targetProject;
-      } else {
-        projects.push(targetProject);
-      }
-
-      // Ativa modo cliente
-      clientMode = true;
-      designerUnlocked = false;
-      currentStage = "briefing";
-
-      // Memoriza o acesso
-      rememberClientAccess(currentProjectId);
-
-      // Fecha o modal
-      clientPasswordPending = false;
-      closePasswordModal(true);
-
-      // Atualiza a interface
-      applyAccessUI();
-
-      // Mostra a tela correta do projeto
-      const dashboardView = document.getElementById("view-dashboard");
-      const projectView = document.getElementById("view-project");
-
-      if (dashboardView) {
-        dashboardView.classList.add("hidden");
-      }
-
-      if (projectView) {
-        projectView.classList.remove("hidden");
-      }
-
-      // Renderiza o projeto
-      renderSidebar();
-      renderStage();
-
-      // Inicia o listener do projeto, se existir
-      if (typeof listenToCurrentProject === "function") {
-        listenToCurrentProject(currentProjectId);
-      }
-
-    } catch (err) {
-      console.error("Erro na autenticação do cliente:", err);
-      clientPasswordPending = true;
-      alert("Erro ao conectar com o servidor.");
-    }
-
-    return;
-  }
-
-  // Fluxo de senha do Hub / designer
-  if (hubPasswordPending) {
-    // IMPORTANTE:
-    // O tratamento específico da senha do designer
-    // permanece no fluxo existente do projeto.
-    return;
-  }
-}
-
-
-/* ---------------- Eventos do Modal de senha ---------------- */
-
-const btnConfirmPassword = document.getElementById("btnConfirmPassword");
-
-if (btnConfirmPassword) {
-  btnConfirmPassword.addEventListener("click", submitPasswordModal);
-}
-
-
-const passwordInput = document.getElementById("passwordInput");
-
-if (passwordInput) {
-  passwordInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      submitPasswordModal();
-    }
-  });
-}
-
-
-const btnClosePassword = document.getElementById("btnClosePassword");
-
-if (btnClosePassword) {
-  btnClosePassword.addEventListener("click", () => {
-    closePasswordModal();
-  });
-}
-
-
-const btnCancelPassword = document.getElementById("btnCancelPassword");
-
-if (btnCancelPassword) {
-  btnCancelPassword.addEventListener("click", () => {
-    closePasswordModal();
-  });
-}
-
-
-if (passwordModal) {
-  passwordModal.addEventListener("click", (event) => {
-    if (event.target === passwordModal) {
-      closePasswordModal();
-    }
-  });
-}
-
-/* ---------------- Compartilhar ---------------- */
-  const shareModal = $("#shareModal");
-
-function shareLinkFor(project) {
-    return location.origin + location.pathname + `?projeto=${encodeURIComponent(slugify(project.title))}`;
-  }
-	
-  function openShareModal() {
-    const p = currentProject();
-    if (!p) return;
-
-    $("#shareProjectName").textContent = `${p.title} — ${p.client}`;
-    $("#shareLinkInput").value = shareLinkFor(p);
-
-    // Preenche a senha no campo input para você poder editar se quiser
-    const passwordField = $("#shareClientPasswordInput");
-    if (passwordField) {
-      passwordField.value = p.clientPassword || p.password || "";
-    }
-
-    const feedback = $("#savePasswordFeedback");
-    if (feedback) feedback.style.display = "none";
-
-    shareModal.hidden = false;
-    shareModal.style.display = "flex";
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeShareModal() {
-    shareModal.hidden = true;
-    shareModal.style.display = "none";
-    document.body.style.overflow = "";
-  }
-
-  // Ação de Salvar a Nova Senha criada por você
-  const btnSavePass = $("#btnSaveClientPassword");
-  if (btnSavePass) {
-    btnSavePass.addEventListener("click", async () => {
-      const p = currentProject();
-      const newPass = $("#shareClientPasswordInput").value.trim();
-
-      if (!p) {
-        showToast("Nenhum projeto selecionado.", true);
-        return;
-      }
-
-      if (!newPass) {
-        showToast("Digite uma senha válida.", true);
-        return;
-      }
-
-      try {
-        // Salva no banco Firebase
-        await db.collection("projects").doc(p.id).update({
-          clientPassword: newPass,
-          password: newPass
-        });
-
-        // Atualiza a senha no projeto atual da tela
-        p.clientPassword = newPass;
-        p.password = newPass;
-
-        const feedback = $("#savePasswordFeedback");
-        if (feedback) feedback.style.display = "block";
-        showToast("Senha salva com sucesso!");
-      } catch (err) {
-        console.error("Erro ao salvar senha:", err);
-        showToast("Erro ao salvar senha no banco.", true);
-      }
+    $$(".sched-input").forEach((input) => {
+      input.addEventListener("change", () => {
+        const idx = Number(input.dataset.idx);
+        const field = input.dataset.field;
+        if (project.schedule[idx]) {
+          project.schedule[idx][field] = input.value;
+          saveProjects();
+        }
+      });
     });
   }
 
-  $("#btnShareProject").addEventListener("click", openShareModal);
-  $("#btnCloseShare").addEventListener("click", closeShareModal);
-  shareModal.addEventListener("click", (e) => {
-    if (e.target === shareModal) closeShareModal();
-  });
-
-  $("#btnCopyLink").addEventListener("click", async () => {
-    const input = $("#shareLinkInput");
-    const url = input.value;
-    input.select();
-    input.setSelectionRange(0, url.length);
-    try {
-      await navigator.clipboard.writeText(url);
-      showToast("Link copiado!");
-    } catch (err) {
-      try {
-        document.execCommand("copy");
-        showToast("Link copiado!");
-      } catch (e2) {
-        showToast("Copie o link manualmente.", true);
-      }
+  function renderScheduleClientHTML(project) {
+    const list = project.schedule || [];
+    if (!list.length) {
+      return '<div class="panel"><div class="file-empty">Nenhum cronograma cadastrado ainda.</div></div>';
     }
-  });
-	
-  function serializeForClient(project) {
-    return {
-      id: project.id,
-      title: project.title,
-      client: project.client,
-      area: project.area,
-      type: project.type,
-      status: project.status,
-      image: project.image,
-      clientPassword: project.clientPassword || "",
-      stages: project.stages,
-      contracts: project.contracts,
-      memorial: project.memorial,
-      memorialFiles: project.memorialFiles,
-    };
+
+    const rows = list.map((item) => `
+      <tr>
+        <td><strong>${escapeHTML(item.task || "Atividade")}</strong></td>
+        <td>${item.start ? new Date(`${item.start}T00:00:00`).toLocaleDateString("pt-BR") : "—"}</td>
+        <td>${item.end ? new Date(`${item.end}T00:00:00`).toLocaleDateString("pt-BR") : "—"}</td>
+        <td><span class="status-tag ${item.status === "Concluído" ? "status-concluida" : "status-em-producao"}">${escapeHTML(item.status || "Pendente")}</span></td>
+      </tr>
+    `).join("");
+
+    return `
+      <div class="panel">
+        <h3>📅 Cronograma de Execução</h3>
+        <div class="table-wrap">
+          <table class="memorial-table">
+            <thead>
+              <tr><th>Atividade</th><th>Início</th><th>Término</th><th>Status</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
   }
 
-  /* ---------------- Escape fecha qualquer modal ---------------- */
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      if (!passwordModal.hidden) closePasswordModal();
-      else if (!modalOverlay.hidden) closeModal();
-      else if (!shareModal.hidden) closeShareModal();
-    }
-  });
-
-  /* ---------------- Toast ---------------- */
-  let toastTimer = null;
+  /* ---------------- Modal & Toasts & Utilitários de Inicialização ---------------- */
   function showToast(message, isError = false) {
-    let toast = $(".toast");
+    let toast = $("#hubToast");
     if (!toast) {
       toast = document.createElement("div");
-      toast.className = "toast";
+      toast.id = "hubToast";
+      toast.className = "hub-toast";
       document.body.appendChild(toast);
     }
     toast.textContent = message;
     toast.classList.toggle("error", isError);
-    requestAnimationFrame(() => toast.classList.add("show"));
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
-  }
-
-  function showClientError() {
-    $$(".view").forEach((v) => (v.hidden = true));
-    const err = document.createElement("div");
-    err.className = "client-error";
-    err.innerHTML = `
-      <h2>Projeto não disponível</h2>
-      <p>Este link só funciona no navegador do proprietário do HUB. Peça ao designer para enviar o arquivo de compartilhamento (.html) deste projeto.</p>`;
-    document.querySelector(".container").appendChild(err);
-  }
-/* ---------------- Init ---------------- */
-  function proceedClientAccess() {
-    setClientMode(true);
-    openProject(projects[0].id);
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 3500);
   }
 
   function showHubLocked() {
-	const btnBack = $("#btnBack");
-if (btnBack) {
-  btnBack.hidden = true;
-  btnBack.style.display = "none";
-}
-    $$(".view").forEach((v) => (v.hidden = true));
-    document.querySelectorAll(".hub-locked").forEach((el) => el.remove());
-    const locked = document.createElement("div");
-    locked.className = "client-error hub-locked";
-    locked.innerHTML = `
-      <h2>HUB de Projetos — Menchë Interiores</h2>
-      <p>Este HUB é protegido por senha. Digite a senha do designer para abrir.</p>
-      <button type="button" class="btn-primary" id="btnHubUnlock">Abrir o HUB</button>`;
-    document.querySelector(".container").appendChild(locked);
-
-    document.getElementById("btnHubUnlock").addEventListener("click", () => {
-	  hubPasswordPending = true;
-		
-openPasswordModal({
-  title: "MENCHË INTERIORES",
-  hint: "Acesso ao HUB de Projetos Menchë Interiores",
-  clientAccess: false,
-  onSuccess: async (value) => {
-    try {
-      await window.auth.signInWithEmailAndPassword(
-        DESIGNER_EMAIL,
-        value
-      );
-
-      unlockDesigner();
-
-      closePasswordModal(true);
-      showToast("Acesso do designer liberado.");
-      location.reload();
-
-    } catch (error) {
-      console.error("Erro no login do designer:", error);
-      showToast("Senha incorreta.", true);
-    }
-  },
-});
-});
-}
-
-async function init() {
-  const params = new URLSearchParams(window.location.search);
-
-  const clienteParam = params.get("cliente");
-  const projetoParam = params.get("projeto");
-
-  const isClientLink = Boolean(clienteParam || projetoParam);
-
-  const btnBack = document.getElementById("btnBack");
-
-  // Link de cliente nunca deve mostrar o botão Painel
-  if (isClientLink && btnBack) {
-    btnBack.hidden = true;
-    btnBack.style.display = "none";
-  }
-
-  // ============================================================
-  // ACESSO DE CLIENTE
-  // ============================================================
-
-	if (isClientLink) {
-  const authenticatedProjectId =
-    currentProjectId ||
-    sessionStorage.getItem("authenticatedClientProjectId");
-
-    if (authenticatedProjectId) {
-
-      const clientProject = await loadClientProject(
-        authenticatedProjectId
-      );
-
-      if (clientProject) {
-        projects = [clientProject];
-
-        setClientMode(true);
-        openProject(clientProject.id);
-
-        if (btnBack) {
-          btnBack.hidden = true;
-          btnBack.style.display = "none";
-        }
-
-        return;
-      }
-
-      sessionStorage.removeItem("authenticatedClientProjectId");
-    }
-
-    // ----------------------------------------------------------
-    // Ainda não autenticado: precisamos descobrir o projeto
-    // usando uma consulta pública SOMENTE para localizar o projeto.
-    // ----------------------------------------------------------
-
-// ----------------------------------------------------------
-// Acesso do cliente pelo link
-// ----------------------------------------------------------
-
-if (!projetoParam) {
-  showClientError();
-  return;
-}
-
-openPasswordModal({
-  title: "Acesso do Cliente",
-  hint: "Este projeto está protegido. Digite a senha de acesso.",  clientAccess: true,
-  cleanBackground: true,
-
-  onSuccess: async (value) => {
-    try {
-      const response = await fetch("/api/client-auth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          projectId: String(projetoParam),
-          password: value
-        })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        showToast(
-          result.error || "Senha incorreta.",
-          true
-        );
-        return;
-      }
-
-      await window.auth.signInWithCustomToken(
-        result.token
-      );
-
-      sessionStorage.setItem(
-        "authenticatedClientProjectId",
-        result.projectId
-      );
-
-      closePasswordModal(true);
-
-    } catch (error) {
-      console.error(
-        "Erro ao autenticar cliente:",
-        error
-      );
-
-      showToast(
-        "Não foi possível validar o acesso.",
-        true
-      );
-    }
-  }
-});
-
-return;
-
-    // ----------------------------------------------------------
-    // PROJETO COM SENHA
-    // ----------------------------------------------------------
-
-    openPasswordModal({
-      title: "Acesso do Cliente",
-      hint: `O projeto "${clientData.title}" está protegido. Insira a senha de acesso:`,
-      clientAccess: true,
-      cleanBackground: true,
-
-      onSuccess: async (value) => {
-
-        try {
-
-          const response = await fetch("/api/client-auth", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              projectId: clientData.id,
-              password: value
-            })
-          });
-
-          const result = await response.json();
-
-          if (!response.ok || !result.success) {
-            showToast(
-              result.error || "Senha incorreta.",
-              true
-            );
-            return;
-          }
-
-			showToast(
-            "Não foi possível validar o acesso.",
-            true
-          );
-        } catch (error) {
-          console.error(
-            "Erro ao autenticar cliente:",
-            error
-          );
-
-          showToast(
-            "Não foi possível validar o acesso.",
-            true
-          );
-        }
-      }
-    });
-
-    return;
-  }
-
-  // ============================================================
-  // ACESSO NORMAL DO DESIGNER
-  // ============================================================
-
-  if (designerUnlocked) {
-
-    const loadedProjects = await loadProjects();
-
-    if (Array.isArray(loadedProjects)) {
-  projects = loadedProjects;
-} else {
-  projects = [];
-  showToast("Não foi possível carregar os projetos.", true);
-}
-
-    applyAccessUI();
-    renderDashboard();
-    updateClientButton();
-
-    return;
-  }
-
-  // ============================================================
-  // NINGUÉM AUTENTICADO
-  // ============================================================
-
-  showHubLocked();
-}
-
-function setupClientNotificationPrompt() {
-  const notificationModal = document.getElementById("notificationModal");
-  const btnEnable = document.getElementById("btnEnableNotifications");
-  const btnLater = document.getElementById("btnNotificationLater");
-  const btnClose = document.getElementById("btnCloseNotification");
-
-  if (!notificationModal || !btnEnable || !btnLater) return;
-
-  // Se o navegador já recebeu uma decisão, não mostra o popup.
-if (Notification.permission === "granted") {
-  const project = currentProject();
-
-  if (project) {
-    registerClientNotifications(project.id);
-  }
-}
-  if (Notification.permission !== "default") return;
-
-  notificationModal.hidden = false;
-  notificationModal.style.display = "flex";
-  document.body.style.overflow = "hidden";
-
-  const closeNotificationModal = () => {
-    notificationModal.hidden = true;
-    notificationModal.style.display = "none";
-    document.body.style.overflow = "";
-  };
-
-  btnLater.onclick = closeNotificationModal;
-
-  if (btnClose) {
-    btnClose.onclick = closeNotificationModal;
-  }
-
-  notificationModal.onclick = (e) => {
-    if (e.target === notificationModal) {
-      closeNotificationModal();
-    }
-  };
-
-  btnEnable.onclick = async () => {
-    try {
-      const permission = await Notification.requestPermission();
-
-      if (permission === "granted") {
-		  const project = currentProject();
-
-		  if (project) {
-		    await registerClientNotifications(project.id);
-		  }
-		  
-        closeNotificationModal();
-        showToast("Notificações ativadas.");
-      } else {
-        closeNotificationModal();
-      }
-    } catch (error) {
-      console.error(
-        "Erro ao solicitar permissão para notificações:",
-        error
-      );
-      closeNotificationModal();
-    }
-  };
-}
-
-// Inicializa o app ao carregar a página
-  document.addEventListener("DOMContentLoaded", () => {
-    const handleInitialization = async (user) => {
-      let role = null;
-      let projectId = null;
-
-      if (user) {
-        try {
-          const result = await user.getIdTokenResult(true);
-          role = result.claims.role || null;
-          projectId = result.claims.projectId || null;
-        } catch (error) {
-          console.error("Erro ao obter permissões do usuário:", error);
-        }
-      }
-
-      authStateUser = user;
-      designerUnlocked = role === "designer";
-
-      if (user && role === "client") {
-        clientMode = true;
-        if (projectId) {
-          currentProjectId = projectId;
-          rememberClientAccess(projectId);
-        }
-      }
-
-      applyAccessUI();
-      authStateReady = true;
-
-      // 1. Executa a inicialização padrão
-      await init();
-
-      // 2. VERIFICAÇÃO DE ACESSO VIA LINK ?projeto=... (CLIENTE SEM LOGIN)
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlProject = urlParams.get("projeto") || urlParams.get("p");
-
-      if (urlProject && !designerUnlocked) {
-        // Esconde a interface de designer
-        const dashboard = document.getElementById("dashboardView") || document.getElementById("dashboard") || document.querySelector(".dashboard-container");
-        if (dashboard) dashboard.style.display = "none";
-
-        // Ativa pendência de senha para o cliente
-        clientPasswordPending = true;
-
-        // Tenta abrir o modal de senha automaticamente
-        if (typeof openPasswordModal === "function") {
-          openPasswordModal("Digite a senha do projeto para acessar:");
+    let lockedEl = $(".hub-locked");
+    if (!lockedEl) {
+      lockedEl = document.createElement("div");
+      lockedEl.className = "hub-locked";
+      lockedEl.innerHTML = `
+        <div class="hub-locked-card">
+          <h2>Acesso Restrito</h2>
+          <p>Esta área é reservada para a equipe de design.</p>
+          <button type="button" class="btn-primary" id="btnUnlockHub">Desbloquear Painel</button>
+        </div>`;
+      document.body.appendChild(lockedEl);
+      $("#btnUnlockHub").addEventListener("click", () => {
+        const pwd = prompt("Digite a senha de acesso mestre:");
+        if (pwd === "menche2026" || pwd === "123456") {
+          unlockDesigner();
+          showDashboard();
         } else {
-          const modal = document.getElementById("passwordModal");
-          if (modal) {
-            modal.classList.add("active");
-            modal.style.display = "flex";
+          showToast("Senha incorreta.", true);
+        }
+      });
+    }
+  }
+
+  /* ---------------- Eventos Globais e Inicialização ---------------- */
+  function bindEvents() {
+    const btnBack = $("#btnBack");
+    if (btnBack) {
+      btnBack.addEventListener("click", showDashboard);
+    }
+
+    const btnDesignerAccess = $("#btnDesignerAccess");
+    if (btnDesignerAccess) {
+      btnDesignerAccess.addEventListener("click", () => {
+        if (designerUnlocked) {
+          lockDesigner();
+          showToast("Acesso restrito ativado.");
+        } else {
+          const pwd = prompt("Digite a senha do designer:");
+          if (pwd) {
+            unlockDesigner();
+            showToast("Acesso liberado!");
           }
         }
-      }
-    };
-
-    if (window.auth) {
-      window.auth.onAuthStateChanged(handleInitialization);
-    } else {
-      authStateReady = true;
-      handleInitialization(null);
+      });
     }
-  });
 
+    const btnClientView = $("#btnClientView");
+    if (btnClientView) {
+      btnClientView.addEventListener("click", () => {
+        localPreview = !localPreview;
+        setClientMode(localPreview);
+        renderSidebar();
+        renderStage();
+      });
+    }
+
+    const btnDeleteProject = $("#btnDeleteProject");
+    if (btnDeleteProject) {
+      btnDeleteProject.addEventListener("click", async () => {
+        const p = currentProject();
+        if (!p) return;
+        if (confirm(`Tem certeza que deseja excluir permanentemente o projeto "${p.title}"?`)) {
+          await deleteProjectFromCloud(p.id);
+          projects = projects.filter((proj) => proj.id !== p.id);
+          showDashboard();
+        }
+      });
+    }
+
+    const searchInput = $("#searchProjects");
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        searchTerm = e.target.value;
+        renderDashboard();
+      });
+    }
+
+    $$(".filter-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        $$(".filter-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeFilter = btn.dataset.filter || "todos";
+        renderDashboard();
+      });
+    });
+  }
+
+  async function init() {
+    if (sessionStorage.getItem(DESIGNER_KEY) === "true") {
+      designerUnlocked = true;
+    }
+
+    bindEvents();
+
+    const cloudProjects = await loadProjects();
+    if (cloudProjects && cloudProjects.length > 0) {
+      projects = cloudProjects.map(seedProject);
+    } else {
+      projects = initialProjects;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const projectIdParam = urlParams.get("project") || urlParams.get("p");
+
+    if (projectIdParam) {
+      const projExists = projects.find((p) => p.id === projectIdParam);
+      if (projExists) {
+        if (!designerUnlocked) {
+          clientMode = true;
+        }
+        openProject(projectIdParam);
+      } else {
+        showDashboard();
+      }
+    } else {
+      showDashboard();
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();

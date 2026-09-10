@@ -3544,10 +3544,52 @@ async function init() {
   }
 }
 
-
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init);
 } else {
   init();
 }
 })();
+
+// --- PERMITIR ENTER NO CAMPO DE SENHA DO CLIENTE E DO DESIGNER ---
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    const activeElement = document.activeElement;
+    
+    // Se o usuário estiver digitando em um campo de senha ou texto de login/acesso
+    if (activeElement && (activeElement.type === "password" || activeElement.id.includes("Password") || activeElement.id.includes("Pass"))) {
+      e.preventDefault();
+      
+      // Procura o botão de enviar dentro do mesmo container/form ou pelo ID comum
+      const parent = activeElement.closest("div") || activeElement.closest("form") || document.body;
+      const submitBtn = parent.querySelector("button[type='submit']") || parent.querySelector("button") || $("#btnUnlock") || $("#btnLogin");
+      
+      if (submitBtn) {
+        submitBtn.click();
+      }
+    }
+  }
+});
+// --- FECHAR MODAIS COM A TECLA ESC OU CLICANDO FORA DO CONTEÚDO ---
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") {
+    // Busca qualquer modal que esteja aberto e fecha
+    const openModals = document.querySelectorAll(".modal, .checklist-modal-overlay, [class*='modal']");
+    openModals.forEach((modal) => {
+      if (modal.style.display !== "none") {
+        modal.remove ? modal.remove() : (modal.style.display = "none");
+      }
+    });
+  }
+});
+
+document.addEventListener("click", function (e) {
+  // Se clicar no fundo escuro/overlay do modal (fora da caixa principal)
+  if (
+    e.target.classList.contains("checklist-modal-overlay") ||
+    e.target.classList.contains("modal-overlay") ||
+    e.target.classList.contains("modal")
+  ) {
+    e.target.remove ? e.target.remove() : (e.target.style.display = "none");
+  }
+});

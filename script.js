@@ -3546,11 +3546,15 @@ async function init() {
 
     if (targetProject) {
       // Se NÃO for o designer e o projeto tiver senha cadastrada, exige a senha
-      if (!designerUnlocked && targetProject.clientPassword) {
+if (!designerUnlocked && targetProject.clientPassword) {
         clientMode = true;
+        document.body.classList.add("client-view");
         promptClientPassword(targetProject);
       } else {
-        if (!designerUnlocked) clientMode = true;
+        if (!designerUnlocked) {
+          clientMode = true;
+          document.body.classList.add("client-view");
+        }
         openProject(targetProject.id);
       }
     } else {
@@ -3599,8 +3603,7 @@ document.addEventListener("click", function (e) {
     e.target.classList.contains("modal-overlay") ||
     e.target.classList.contains("modal") ||
     e.target.classList.contains("checklist-modal-overlay") ||
-    e.target.id === "shareModal" ||
-    e.target.id === "authModal"
+    e.target.id === "shareModal"
   ) {
     closeAllOpenModals();
   }

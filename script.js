@@ -3518,9 +3518,10 @@ function promptClientPassword(project) {
 if (btnConfirm) {
     btnConfirm.onclick = handleAuth;
   }
+}
 
 	// Permite submeter a senha pressionando ENTER no campo de texto
-  (function() {
+{
     const inputSenhaCliente = document.querySelector("#passwordInput") || document.querySelector("#pwdInput") || document.querySelector("#clientPassword") || document.querySelector("input[type='password']");
     if (inputSenhaCliente) {
       inputSenhaCliente.addEventListener("keydown", function (e) {
@@ -3534,7 +3535,7 @@ if (btnConfirm) {
         }
       });
     }
-  })();
+  }
 	
 // --- INICIALIZAÇÃO DA APLICAÇÃO ---
 async function init() {

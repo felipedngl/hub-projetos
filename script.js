@@ -3517,11 +3517,11 @@ function promptClientPassword(project) {
     }
   };
 
-  if (btnConfirm) {
+ if (btnConfirm) {
     btnConfirm.onclick = handleAuth;
   }
 }
-	
+
 // --- INICIALIZAÇÃO DA APLICAÇÃO ---
 async function init() {
   if (sessionStorage.getItem(DESIGNER_KEY) === "true") {

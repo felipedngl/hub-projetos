@@ -1773,22 +1773,20 @@ s.progress = progress;
     const designerButton = $("#btnSendDesignerMessage");
 
 // =================================================================
-// FERRAMENTA: Modal bonito para editar mensagem
+// FERRAMENTA: Modal bonito para substituir o prompt cinza do navegador
+// (Declarada apenas UMA VEZ para ser usada pelo cliente e pelo designer)
 // =================================================================
 function customPrompt(title, defaultValue) {
   return new Promise((resolve) => {
-    // Se já existir um modal aberto por algum motivo, remove antes de criar outro
-    const existingModal = document.getElementById("customPromptOverlay");
-    if (existingModal) existingModal.remove();
-
+    // 1. Cria o fundo escuro (overlay)
     const overlay = document.createElement("div");
-    overlay.id = "customPromptOverlay";
     overlay.style.cssText = `
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.7); display: flex; align-items: center;
       justify-content: center; z-index: 9999; backdrop-filter: blur(3px);
     `;
 
+    // 2. Insere a caixa do modal com a área de texto e botões
     overlay.innerHTML = `
       <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); font-family: inherit; color: #fff;">
         <h4 style="margin: 0 0 12px 0; font-size: 1rem; color: #fff;">${title}</h4>
@@ -1807,37 +1805,31 @@ function customPrompt(title, defaultValue) {
     input.select();
 
     const cleanup = (value) => {
-      overlay.remove();
+      document.body.removeChild(overlay);
       resolve(value);
     };
 
+    // Cancela ou Salva
     overlay.querySelector("#customPromptCancel").addEventListener("click", () => cleanup(null));
     overlay.querySelector("#customPromptSave").addEventListener("click", () => cleanup(input.value));
   });
 }
 
 // =================================================================
-// EDIÇÃO DE MENSAGENS (Unificada para Cliente e Designer)
+// 1. EDIÇÃO DE MENSAGENS DO CLIENTE
 // =================================================================
 $$("#stageConversation .btn-message-edit").forEach((button) => {
-  button.addEventListener("click", async (e) => {
-    // Evita que o clique seja disparado duas vezes ou afete elementos pais
-    e.preventDefault();
-    e.stopPropagation();
-
+  button.addEventListener("click", async () => {
     const messageId = button.dataset.messageId;
     const message = s.clientMessages?.find((m) => m.id === messageId);
 
-    if (!message) return;
+    if (!message || message.author !== "client") return;
 
-    // Garante as permissões de autor (cliente só edita cliente, designer só edita designer)
-    if (!designerUnlocked && message.author !== "client") return;
-    if (designerUnlocked && message.author !== "designer") return;
-
+    // AQUI: Usa a ferramenta customPrompt que criamos ali em cima
     const newText = await customPrompt("Edite sua mensagem:", message.text);
     if (newText === null) return;
-
     const text = newText.trim();
+
     if (!text) {
       if (typeof showToast === "function") showToast("A mensagem não pode ficar vazia.", true);
       return;
@@ -1845,7 +1837,6 @@ $$("#stageConversation .btn-message-edit").forEach((button) => {
 
     message.text = text;
     message.edited = true;
-
     if (typeof saveProjects === "function") await saveProjects();
     renderStage();
   });

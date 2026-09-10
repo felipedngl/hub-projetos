@@ -3178,7 +3178,20 @@ function showHubLocked() {
     }
   }
 
-// --- FUNÇÕES DO MODAL DE COMPARTILHAR ---
+// Função auxiliar para transformar nomes em links amigáveis (ex: "Studio 42" -> "studio-42")
+function slugify(text) {
+  if (!text) return "";
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+    .replace(/\s+/g, "-")           // Espaços viram hífens
+    .replace(/[^\w\-]+/g, "")       // Remove caracteres especiais
+    .replace(/\-\-+/g, "-")         // Remove hífens duplicados
+    .trim();
+}
+
 function openShareModal() {
   const p = typeof currentProject === "function" ? currentProject() : null;
   if (!p) {
@@ -3189,24 +3202,22 @@ function openShareModal() {
   const modal = $("#shareModal");
   if (!modal) return;
 
-  // Preenche o nome do projeto no título
   const nameEl = $("#shareProjectName");
   if (nameEl) nameEl.textContent = `Projeto: ${p.title}`;
 
-  // Preenche o campo da Senha do Cliente (se já existir)
   const pwdInput = $("#shareClientPasswordInput");
   if (pwdInput) pwdInput.value = p.clientPassword || "";
 
-  // Reseta o aviso de "Senha atualizada"
   const feedback = $("#savePasswordFeedback");
   if (feedback) feedback.style.display = "none";
 
-  // Gera e preenche o Link de Acesso do Cliente (?p=ID)
-  const shareUrl = `${window.location.origin}${window.location.pathname}?p=${encodeURIComponent(p.id)}`;
+  // Usa o slug (nome do projeto) ou o ID caso não tenha título
+  const projectSlug = p.slug || slugify(p.title) || p.id;
+  const shareUrl = `${window.location.origin}${window.location.pathname}?p=${encodeURIComponent(projectSlug)}`;
+  
   const linkInput = $("#shareLinkInput");
   if (linkInput) linkInput.value = shareUrl;
 
-  // Abre o modal removendo o atributo hidden
   modal.removeAttribute("hidden");
 }
 

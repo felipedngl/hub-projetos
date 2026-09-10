@@ -2974,7 +2974,7 @@ function contractListHTML(contracts) {
       </tr>
     `).join("");
 
-    container.innerHTML = `
+container.innerHTML = `
       <div class="stage-header">
         <h2>${stage.label}</h2>
         <p class="stage-hint">${stage.hint}</p>
@@ -3000,7 +3000,10 @@ function contractListHTML(contracts) {
             </tbody>
           </table>
         </div>
-      </div>`;
+      </div>
+      
+      <!-- Pré-visualização do Gantt adicionada aqui -->
+      ${renderScheduleClientHTML(project)}`;
 
     $("#btnAddSched").addEventListener("click", () => {
       project.schedule.push({ task: "", start: "", end: "", status: "A Fazer" });
@@ -3027,18 +3030,25 @@ function contractListHTML(contracts) {
     });
   }
 
-// --- FUNÇÃO DE MUDANÇA DE MÊS CORRIGIDA ---
+// --- MUDANÇA DE MÊS CORRIGIDA ---
 function changeScheduleMonth(delta) {
   currentScheduleDate.setMonth(currentScheduleDate.getMonth() + delta);
-  
-  // Re-renderiza o contêiner do cronograma na tela do cliente
-  const scheduleContainer = $("#stageContainer") || $("#scheduleContainer");
-  if (scheduleContainer && currentProject) {
-    scheduleContainer.innerHTML = renderScheduleClientHTML(currentProject);
+
+  // Força a atualização do conteúdo na tela dependendo de quem está vendo
+  if (clientMode && typeof renderStageClient === "function" && currentProject) {
+    renderStageClient(currentProject, "cronograma");
+  } else if (typeof renderStage === "function" && currentProject) {
+    renderStage(currentProject, "cronograma");
+  } else {
+    // Fallback direto via seletor
+    const container = document.querySelector("#stageContainer") || document.querySelector("#scheduleContainer");
+    if (container && currentProject) {
+      container.innerHTML = renderScheduleClientHTML(currentProject);
+    }
   }
 }
 
-// --- RENDERSCHEDULECLIENTHTML COM SUPORTE A DIVERSOS NOMES DE CAMPO ---
+// --- TABELA DE GANTT ---
 function renderScheduleClientHTML(project) {
   const schedule = project && project.schedule ? project.schedule : [];
 
@@ -3067,11 +3077,15 @@ function renderScheduleClientHTML(project) {
   } else {
     rowsHTML = schedule
       .map((item) => {
-        // Pega o nome do serviço independente do nome da chave salva
-        const itemTitle = item.title || item.name || item.activity || item.descricao || "Sem título";
+        // Mapeia os campos do seu formulário (title, activity, name ou descricao)
+        const itemTitle = item.title || item.activity || item.name || item.descricao || "Sem título";
 
-        const startDate = item.start ? new Date(`${item.start}T00:00:00`) : null;
-        const endDate = item.end ? new Date(`${item.end}T00:00:00`) : null;
+        // Mapeia as datas (start/end ou inicio/termino)
+        const rawStart = item.start || item.inicio || item.startDate;
+        const rawEnd = item.end || item.termino || item.endDate;
+
+        const startDate = rawStart ? new Date(`${rawStart}T00:00:00`) : null;
+        const endDate = rawEnd ? new Date(`${rawEnd}T00:00:00`) : null;
 
         let barHTML = "";
 
@@ -3124,12 +3138,12 @@ function renderScheduleClientHTML(project) {
   }
 
   return `
-    <div class="panel" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1px solid #333; background: #141414;">
+    <div class="panel" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1px solid #333; background: #141414; margin-top: 24px;">
       
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #1a1a1a; border-bottom: 1px solid #333;">
         <div>
-          <h3 style="margin: 0; color: #fff; font-size: 1.1rem;">📅 Cronograma da Obra</h3>
-          <p style="margin: 4px 0 0 0; color: #888; font-size: 0.8rem;">Visão geral de etapas e prazos de execução</p>
+          <h3 style="margin: 0; color: #fff; font-size: 1.1rem;">📅 Visão do Cronograma (Gantt)</h3>
+          <p style="margin: 4px 0 0 0; color: #888; font-size: 0.8rem;">Gráfico de barras e prazos mensais</p>
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px; background: #222; padding: 6px 12px; border-radius: 8px; border: 1px solid #333;">
@@ -3551,14 +3565,18 @@ if (document.readyState === "loading") {
 }
 })();
 
-// --- CORREÇÃO DE TECLADO E MODAIS (ENTER / ESC / CLIQUE FORA) ---
-document.addEventListener("keydown", function (e) {
-  // 1. Tecla ENTER para fazer Login
+// --- TRATAMENTO DE TECLAS GLOBAL ---
+document.addEventListener("keyup", function (e) {
+  // 1. ENTER no campo de Senha
   if (e.key === "Enter") {
     const active = document.activeElement;
-    if (active && (active.type === "password" || active.id.includes("Password") || active.id.includes("Pass") || active.tagName === "INPUT")) {
-      const container = active.closest(".modal, .modal-overlay, #loginContainer, #authModal") || document.body;
-      const btn = container.querySelector("button[type='submit']") || container.querySelector("button") || document.querySelector("#btnUnlock") || document.querySelector("#btnLogin");
+    if (active && (active.type === "password" || active.tagName === "INPUT")) {
+      // Tenta clicar no botão principal de submeter/entrar
+      const btn = active.closest("form, div")?.querySelector("button[type='submit'], button") || 
+                  document.querySelector("#btnUnlock") || 
+                  document.querySelector("#btnLogin") || 
+                  document.querySelector("button.btn-primary");
+
       if (btn) {
         e.preventDefault();
         btn.click();
@@ -3566,10 +3584,9 @@ document.addEventListener("keydown", function (e) {
     }
   }
 
-  // 2. Tecla ESC para Fechar Modais (sem quebrar a reabertura)
+  // 2. ESC para Fechar Modais sem Quebrar Reabertura
   if (e.key === "Escape") {
-    const modais = document.querySelectorAll(".modal, .checklist-modal-overlay, [class*='modal']");
-    modais.forEach((m) => {
+    document.querySelectorAll(".modal, .checklist-modal-overlay, [class*='modal']").forEach((m) => {
       if (m.style.display !== "none") {
         m.style.display = "none";
       }
@@ -3577,7 +3594,7 @@ document.addEventListener("keydown", function (e) {
   }
 });
 
-// 3. Clique no Fundo Escuro para Fechar Modais
+// 3. CLIQUE FORA DO MODAL PARA FECHAR
 document.addEventListener("click", function (e) {
   if (
     e.target.classList.contains("checklist-modal-overlay") ||

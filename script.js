@@ -3072,15 +3072,31 @@ function showHubLocked() {
           <button type="button" class="btn-primary" id="btnUnlockHub">Desbloquear Painel</button>
         </div>`;
       document.body.appendChild(lockedEl);
-      
-      $("#btnUnlockHub").addEventListener("click", () => {
-        const pwd = prompt("Digite a senha de acesso mestre:");
-        if (pwd && (pwd.trim() === "menche2026" || pwd.trim() === "123456")) {
-          unlockDesigner();
-          lockedEl.remove(); // Remove a tela de bloqueio
-          showDashboard();
-        } else if (pwd !== null) {
-          showToast("Senha incorreta.", true);
+
+      $("#btnUnlockHub").addEventListener("click", async () => {
+        const pwd = prompt("Digite a senha de acesso:");
+        if (!pwd) return;
+
+        try {
+          showToast("Verificando credenciais...");
+          
+          // Busca a senha armazenada na coleção 'settings' ou 'config' do seu Firestore
+          if (typeof db !== "undefined" && db) {
+            const configDoc = await db.collection("settings").doc("access").get();
+            
+            if (configDoc.exists && configDoc.data().password === pwd.trim()) {
+              unlockDesigner();
+              lockedEl.remove();
+              showDashboard();
+              showToast("Acesso liberado com sucesso!");
+              return;
+            }
+          }
+          
+          showToast("Senha incorreta ou erro de autenticação.", true);
+        } catch (error) {
+          console.error("Erro ao validar senha no Firebase:", error);
+          showToast("Erro ao conectar ao Firebase.", true);
         }
       });
     }

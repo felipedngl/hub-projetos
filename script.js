@@ -3533,7 +3533,6 @@ if (btnConfirm) {
       }
     });
   }
-}
 	
 // --- INICIALIZAÇÃO DA APLICAÇÃO ---
 async function init() {

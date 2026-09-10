@@ -153,6 +153,7 @@ const STATUS_CLASS = {
   let designerUnlocked = false;
   let authStateReady = false;
   let authStateUser = null;
+  let currentScheduleDate = new Date();
 
 /* ---------------- Acesso / modos de exibição ---------------- */
   function readOnlyView() {

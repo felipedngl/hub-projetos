@@ -3178,118 +3178,203 @@ function showHubLocked() {
     }
   }
 
-  function bindEvents() {
-    const btnBack = $("#btnBack");
-    if (btnBack) {
-      btnBack.addEventListener("click", showDashboard);
-    }
+// --- FUNÇÕES DO MODAL DE COMPARTILHAR ---
+function openShareModal() {
+  const p = typeof currentProject === "function" ? currentProject() : null;
+  if (!p) {
+    showToast("Nenhum projeto selecionado.", true);
+    return;
+  }
 
-    // Acesso do Designer (Abre o modal em vez do prompt antigo)
-    const btnDesignerAccess = $("#btnDesignerAccess");
-    if (btnDesignerAccess) {
-      btnDesignerAccess.addEventListener("click", () => {
-        if (designerUnlocked) {
-          lockDesigner();
-          showToast("Acesso restrito ativado.");
-        } else {
-          // Exibe o modal de senha
-          const modal = $("#pwdModal");
-          if (modal) {
-            modal.style.display = "flex";
-            const input = $("#pwdInput");
-            if (input) {
-              input.value = "";
-              input.focus();
-            }
-          } else {
-            showHubLocked();
+  const modal = $("#shareModal");
+  if (!modal) return;
+
+  // Preenche o nome do projeto no título
+  const nameEl = $("#shareProjectName");
+  if (nameEl) nameEl.textContent = `Projeto: ${p.title}`;
+
+  // Preenche o campo da Senha do Cliente (se já existir)
+  const pwdInput = $("#shareClientPasswordInput");
+  if (pwdInput) pwdInput.value = p.clientPassword || "";
+
+  // Reseta o aviso de "Senha atualizada"
+  const feedback = $("#savePasswordFeedback");
+  if (feedback) feedback.style.display = "none";
+
+  // Gera e preenche o Link de Acesso do Cliente (?p=ID)
+  const shareUrl = `${window.location.origin}${window.location.pathname}?p=${encodeURIComponent(p.id)}`;
+  const linkInput = $("#shareLinkInput");
+  if (linkInput) linkInput.value = shareUrl;
+
+  // Abre o modal removendo o atributo hidden
+  modal.removeAttribute("hidden");
+}
+
+function closeShareModal() {
+  const modal = $("#shareModal");
+  if (modal) modal.setAttribute("hidden", "");
+}
+
+async function saveClientPassword() {
+  const p = typeof currentProject === "function" ? currentProject() : null;
+  const pwdInput = $("#shareClientPasswordInput");
+  const feedback = $("#savePasswordFeedback");
+
+  if (!p || !pwdInput) return;
+
+  // Salva a senha no projeto
+  p.clientPassword = pwdInput.value.trim();
+
+  if (typeof saveProjects === "function") {
+    await saveProjects();
+  }
+
+  // Exibe o aviso verde de confirmação
+  if (feedback) feedback.style.display = "block";
+  showToast("Senha do cliente salva!");
+}
+
+// --- COPIAR LINK DE ACESSO ---
+function copyShareLink() {
+  const linkInput = $("#shareLinkInput");
+  if (!linkInput || !linkInput.value) return;
+
+  linkInput.select();
+  navigator.clipboard.writeText(linkInput.value).then(() => {
+    showToast("📋 Link copiado com sucesso!");
+  }).catch(() => {
+    prompt("Copie o link abaixo:", linkInput.value);
+  });
+}
+
+function bindEvents() {
+  const btnBack = $("#btnBack");
+  if (btnBack) {
+    btnBack.addEventListener("click", showDashboard);
+  }
+
+  // Acesso do Designer (Abre o modal de senha)
+  const btnDesignerAccess = $("#btnDesignerAccess");
+  if (btnDesignerAccess) {
+    btnDesignerAccess.addEventListener("click", () => {
+      if (designerUnlocked) {
+        lockDesigner();
+        showToast("Acesso restrito ativado.");
+      } else {
+        const modal = $("#passwordModal") || $("#pwdModal");
+        if (modal) {
+          modal.removeAttribute("hidden");
+          modal.style.display = "flex";
+          const input = $("#passwordInput") || $("#pwdInput");
+          if (input) {
+            input.value = "";
+            input.focus();
           }
+        } else {
+          showHubLocked();
         }
-      });
-    }
-
-    const btnClientView = $("#btnClientView");
-    if (btnClientView) {
-      btnClientView.addEventListener("click", () => {
-        localPreview = !localPreview;
-        setClientMode(localPreview);
-        renderSidebar();
-        renderStage();
-      });
-    }
-
-    // Botão de Compartilhar Projeto
-    const btnShareProject = $("#btnShareProject");
-    if (btnShareProject) {
-      btnShareProject.addEventListener("click", shareProject);
-    }
-
-    const btnDeleteProject = $("#btnDeleteProject");
-    if (btnDeleteProject) {
-      btnDeleteProject.addEventListener("click", async () => {
-        const p = currentProject();
-        if (!p) return;
-        if (confirm(`Tem certeza que deseja excluir permanentemente o projeto "${p.title}"?`)) {
-          await deleteProjectFromCloud(p.id);
-          projects = projects.filter((proj) => proj.id !== p.id);
-          showDashboard();
-        }
-      });
-    }
-
-    const searchInput = $("#searchProjects");
-    if (searchInput) {
-      searchInput.addEventListener("input", (e) => {
-        searchTerm = e.target.value;
-        renderDashboard();
-      });
-    }
-
-    $$(".filter-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        $$(".filter-btn").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        activeFilter = btn.dataset.filter || "todos";
-        renderDashboard();
-      });
+      }
     });
   }
 
-  async function init() {
-    if (sessionStorage.getItem(DESIGNER_KEY) === "true") {
-      designerUnlocked = true;
-    }
+  const btnClientView = $("#btnClientView");
+  if (btnClientView) {
+    btnClientView.addEventListener("click", () => {
+      localPreview = !localPreview;
+      setClientMode(localPreview);
+      renderSidebar();
+      renderStage();
+    });
+  }
 
-    bindEvents();
+  // --- BOTÕES DO MODAL DE COMPARTILHAR ---
+  const btnShareProject = $("#btnShareProject");
+  if (btnShareProject) {
+    btnShareProject.addEventListener("click", openShareModal);
+  }
 
-    const cloudProjects = await loadProjects();
-    if (cloudProjects && cloudProjects.length > 0) {
-      projects = cloudProjects.map(seedProject);
-    } else {
-      projects = initialProjects;
-    }
+  const btnCloseShare = $("#btnCloseShare");
+  if (btnCloseShare) {
+    btnCloseShare.addEventListener("click", closeShareModal);
+  }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const projectIdParam = urlParams.get("project") || urlParams.get("p");
+  const btnSavePwd = $("#btnSaveClientPassword");
+  if (btnSavePwd) {
+    btnSavePwd.addEventListener("click", saveClientPassword);
+  }
 
-    if (projectIdParam) {
-      const projExists = projects.find((p) => p.id === projectIdParam);
-      if (projExists) {
-        if (!designerUnlocked) {
-          clientMode = true;
-        }
-        openProject(projectIdParam);
-      } else {
+  const btnCopyLink = $("#btnCopyLink");
+  if (btnCopyLink) {
+    btnCopyLink.addEventListener("click", copyShareLink);
+  }
+
+  // --- RESTANTE DOS EVENTOS ---
+  const btnDeleteProject = $("#btnDeleteProject");
+  if (btnDeleteProject) {
+    btnDeleteProject.addEventListener("click", async () => {
+      const p = currentProject();
+      if (!p) return;
+      if (confirm(`Tem certeza que deseja excluir permanentemente o projeto "${p.title}"?`)) {
+        await deleteProjectFromCloud(p.id);
+        projects = projects.filter((proj) => proj.id !== p.id);
         showDashboard();
       }
+    });
+  }
+
+  const searchInput = $("#searchProjects");
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      searchTerm = e.target.value;
+      renderDashboard();
+    });
+  }
+
+  $$(".filter-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      $$(".filter-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeFilter = btn.dataset.filter || "todos";
+      renderDashboard();
+    });
+  });
+}
+
+async function init() {
+  if (sessionStorage.getItem(DESIGNER_KEY) === "true") {
+    designerUnlocked = true;
+  }
+
+  bindEvents();
+
+  const cloudProjects = await loadProjects();
+  if (cloudProjects && cloudProjects.length > 0) {
+    projects = cloudProjects.map(seedProject);
+  } else {
+    projects = initialProjects;
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectIdParam = urlParams.get("project") || urlParams.get("p");
+
+  if (projectIdParam) {
+    const projExists = projects.find((p) => p.id === projectIdParam);
+    if (projExists) {
+      if (!designerUnlocked) {
+        clientMode = true;
+      }
+      openProject(projectIdParam);
     } else {
       showDashboard();
     }
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
   } else {
-    init();
+    showDashboard();
   }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
 })();

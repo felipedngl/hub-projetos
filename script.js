@@ -3135,13 +3135,56 @@ function showHubLocked() {
     }
   }
 
-  /* ---------------- Eventos Globais e Inicialização ---------------- */
+/* ---------------- Eventos Globais e Inicialização ---------------- */
+
+  // --- FUNÇÃO DE COMPARTILHAMENTO ---
+  function shareProject() {
+    const p = typeof currentProject === "function" ? currentProject() : null;
+    if (!p) {
+      showToast("Nenhum projeto selecionado.", true);
+      return;
+    }
+
+    // Gera a URL direta do projeto para o cliente (?p=ID)
+    const shareUrl = `${window.location.origin}${window.location.pathname}?p=${encodeURIComponent(p.id)}`;
+
+    // 1. Tenta abrir o menu nativo de compartilhamento do celular
+    if (navigator.share) {
+      navigator.share({
+        title: `Projeto: ${p.title}`,
+        text: `Acompanhe o andamento do projeto ${p.title}:`,
+        url: shareUrl
+      }).catch((err) => {
+        if (err.name !== "AbortError") {
+          copyToClipboard(shareUrl);
+        }
+      });
+    } else {
+      // 2. No desktop, copia direto para a área de transferência
+      copyToClipboard(shareUrl);
+    }
+  }
+
+  // Função auxiliar para copiar o link
+  function copyToClipboard(url) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url).then(() => {
+        showToast("📋 Link do cliente copiado com sucesso!");
+      }).catch(() => {
+        prompt("Copie o link do cliente abaixo:", url);
+      });
+    } else {
+      prompt("Copie o link do cliente abaixo:", url);
+    }
+  }
+
   function bindEvents() {
     const btnBack = $("#btnBack");
     if (btnBack) {
       btnBack.addEventListener("click", showDashboard);
     }
 
+    // Acesso do Designer (Abre o modal em vez do prompt antigo)
     const btnDesignerAccess = $("#btnDesignerAccess");
     if (btnDesignerAccess) {
       btnDesignerAccess.addEventListener("click", () => {
@@ -3149,10 +3192,17 @@ function showHubLocked() {
           lockDesigner();
           showToast("Acesso restrito ativado.");
         } else {
-          const pwd = prompt("Digite a senha do designer:");
-          if (pwd) {
-            unlockDesigner();
-            showToast("Acesso liberado!");
+          // Exibe o modal de senha
+          const modal = $("#pwdModal");
+          if (modal) {
+            modal.style.display = "flex";
+            const input = $("#pwdInput");
+            if (input) {
+              input.value = "";
+              input.focus();
+            }
+          } else {
+            showHubLocked();
           }
         }
       });
@@ -3166,6 +3216,12 @@ function showHubLocked() {
         renderSidebar();
         renderStage();
       });
+    }
+
+    // Botão de Compartilhar Projeto
+    const btnShareProject = $("#btnShareProject");
+    if (btnShareProject) {
+      btnShareProject.addEventListener("click", shareProject);
     }
 
     const btnDeleteProject = $("#btnDeleteProject");

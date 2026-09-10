@@ -3523,7 +3523,7 @@ function promptClientPassword(project) {
     } else {
       showToast("Senha incorreta. Tente novamente.", true);
     }
-  };
+  }
 
  if (btnConfirm) {
     btnConfirm.onclick = handleAuth;

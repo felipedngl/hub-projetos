@@ -3515,8 +3515,23 @@ function promptClientPassword(project) {
     }
   };
 
-  if (btnConfirm) {
+if (btnConfirm) {
     btnConfirm.onclick = handleAuth;
+  }
+
+  // Permite submeter a senha pressionando ENTER no campo de texto
+  const pwdInput = document.querySelector("#passwordInput") || document.querySelector("#pwdInput") || document.querySelector("#clientPassword");
+  if (pwdInput) {
+    pwdInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (typeof handleAuth === "function") {
+          handleAuth();
+        } else if (btnConfirm) {
+          btnConfirm.click();
+        }
+      }
+    });
   }
 }
 	

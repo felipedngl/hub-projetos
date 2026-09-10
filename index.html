@@ -373,6 +373,20 @@ if ("serviceWorker" in navigator) {
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Modal de Autenticação Mestre -->
+<div id="pwdModal" class="pwd-modal-overlay" style="display: none;">
+  <div class="pwd-modal-card">
+    <h3>🔐 Acesso Restrito</h3>
+    <p>Digite a senha mestre para desbloquear o painel:</p>
+    <input type="password" id="pwdInput" placeholder="Sua senha..." autocomplete="off" />
+    <div class="pwd-modal-actions">
+      <button type="button" class="btn-secondary" id="btnCancelPwd">Cancelar</button>
+      <button type="button" class="btn-primary" id="btnConfirmPwd">Entrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Seu script original -->
 <script src="script.js"></script>
 </body>

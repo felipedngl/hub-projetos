@@ -3527,10 +3527,11 @@ if (btnConfirm) {
       inputSenhaCliente.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
           e.preventDefault();
-          if (typeof handleAuth === "function") {
+          const targetBtn = document.querySelector("#btnConfirm") || document.querySelector("#btnAuth") || document.querySelector("#btnPasswordConfirm") || document.querySelector(".modal-footer button.primary") || document.querySelector("button[type='submit']");
+          if (targetBtn) {
+            targetBtn.click();
+          } else if (typeof handleAuth === "function") {
             handleAuth();
-          } else if (btnConfirm) {
-            btnConfirm.click();
           }
         }
       });

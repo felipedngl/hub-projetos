@@ -3481,11 +3481,13 @@ function bindEvents() {
 
 // --- TELA DE PEDIR SENHA AO CLIENTE QUE ACESSA VIA LINK DIRETO ---
 function promptClientPassword(project) {
-  const modal = $("#passwordModal") || $("#pwdModal");
-  if (!modal) {
-    openProject(project.id);
-    return;
-  }
+  document.body.classList.add("client-view");
+  const btnBack = document.querySelector("#btnBack");
+  if (btnBack) btnBack.setAttribute("hidden", "true");
+
+  const modal = document.querySelector("#authModal") || document.querySelector("#loginModal");
+  if (modal) modal.style.display = "flex";
+}
 
   const hint = $("#passwordModalHint");
   if (hint) {

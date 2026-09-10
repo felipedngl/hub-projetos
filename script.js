@@ -3048,24 +3048,26 @@ function contractListHTML(contracts) {
     setTimeout(() => toast.classList.remove("show"), 3500);
   }
 
-  function showHubLocked() {
+function showHubLocked() {
     let lockedEl = $(".hub-locked");
     if (!lockedEl) {
       lockedEl = document.createElement("div");
       lockedEl.className = "hub-locked";
       lockedEl.innerHTML = `
-        <div class="hub-locked-card">
+        <div class="hub-locked-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50vh; text-align: center; gap: 15px;">
           <h2>Acesso Restrito</h2>
           <p>Esta área é reservada para a equipe de design.</p>
           <button type="button" class="btn-primary" id="btnUnlockHub">Desbloquear Painel</button>
         </div>`;
       document.body.appendChild(lockedEl);
+      
       $("#btnUnlockHub").addEventListener("click", () => {
         const pwd = prompt("Digite a senha de acesso mestre:");
-        if (pwd === "menche2026" || pwd === "123456") {
+        if (pwd && (pwd.trim() === "menche2026" || pwd.trim() === "123456")) {
           unlockDesigner();
+          lockedEl.remove(); // Remove a tela de bloqueio
           showDashboard();
-        } else {
+        } else if (pwd !== null) {
           showToast("Senha incorreta.", true);
         }
       });

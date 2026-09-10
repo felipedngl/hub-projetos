@@ -1831,7 +1831,6 @@ $$("#stageConversation .btn-message-edit").forEach((button) => {
     if (!designerUnlocked && message.author !== "client") return;
     if (designerUnlocked && message.author !== "designer") return;
 
-    // O "await" funciona porque adicionamos "async (e)" na linha acima
     const newText = await customPrompt("Edite sua mensagem:", message.text);
     if (newText === null) return;
 
@@ -1849,76 +1848,59 @@ $$("#stageConversation .btn-message-edit").forEach((button) => {
   });
 });
 
-    // AQUI: Usa A MESMA ferramenta customPrompt para o designer
-    const newText = await customPrompt("Edite sua mensagem:", message.text);
-    if (newText === null) return;
-    const text = newText.trim();
+designerButton.addEventListener("click", async () => {
+  const text = designerInput.value.trim();
 
-    if (!text) {
-      if (typeof showToast === "function") showToast("A mensagem não pode ficar vazia.", true);
-      return;
-    }
+  if (!text) {
+    showToast("Escreva uma resposta antes de enviar.", true);
+    return;
+  }
 
-    message.text = text;
-    message.edited = true;
-    if (typeof saveProjects === "function") await saveProjects();
+  if (!Array.isArray(s.clientMessages)) {
+    s.clientMessages = [];
+  }
+
+  s.clientMessages.push({
+    id: uid(),
+    author: "designer",
+    text,
+    createdAt: Date.now(),
+    readByClient: false,
+  });
+  designerButton.disabled = true;
+  designerButton.textContent = "Enviando...";
+
+  const saved = await saveProjects();
+
+  if (saved) {
     renderStage();
+    showToast("Resposta enviada.");
+  } else {
+    s.clientMessages.pop();
+    designerButton.disabled = false;
+    designerButton.textContent = "Enviar resposta";
+  }
+});
+
+// Permissão individual de download para o cliente
+$$("#stageFiles .file-download-toggle").forEach((checkbox) => {
+  checkbox.addEventListener("change", async () => {
+    const id = checkbox.dataset.fileId;
+    const file = s.files.find((f) => f.id === id);
+
+    if (!file) return;
+
+    file.allowClientDownload = checkbox.checked;
+
+    if (await saveProjects()) {
+      showToast(
+        checkbox.checked
+          ? "Download liberado para o cliente."
+          : "Download bloqueado para o cliente."
+      );
+    }
   });
 });
-	  
-    designerButton.addEventListener("click", async () => {
-      const text = designerInput.value.trim();
-
-      if (!text) {
-        showToast("Escreva uma resposta antes de enviar.", true);
-        return;
-      }
-
-      if (!Array.isArray(s.clientMessages)) {
-        s.clientMessages = [];
-      }
-
-      s.clientMessages.push({
-  id: uid(),
-  author: "designer",
-  text,
-  createdAt: Date.now(),
-  readByClient: false,
-});
-      designerButton.disabled = true;
-      designerButton.textContent = "Enviando...";
-
-      const saved = await saveProjects();
-
-      if (saved) {
-        renderStage();
-        showToast("Resposta enviada.");
-      } else {
-        s.clientMessages.pop();
-        designerButton.disabled = false;
-        designerButton.textContent = "Enviar resposta";
-      }
-    });
-
-    // Permissão individual de download para o cliente
-    $$("#stageFiles .file-download-toggle").forEach((checkbox) => {
-checkbox.addEventListener("change", async () => {
-        const id = checkbox.dataset.fileId;
-        const file = s.files.find((f) => f.id === id);
-
-        if (!file) return;
-
-        file.allowClientDownload = checkbox.checked;
-
-        if (await saveProjects()) {
-          showToast(
-            checkbox.checked
-              ? "Download liberado para o cliente."
-              : "Download bloqueado para o cliente."
-          );
-        }
-      });
-    });
   }
 
 /* ---------------- Render: etapa (cliente, leitura) ---------------- */

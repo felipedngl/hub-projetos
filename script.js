@@ -1817,11 +1817,10 @@ function customPrompt(title, defaultValue) {
 }
 
 // =================================================================
-// EDIÇÃO DE MENSAGENS (Unificada para Cliente e Designer)
+// EDIÇÃO DE MENSAGENS (ÚNICO BLOCO - Cliente e Designer)
 // =================================================================
 $$("#stageConversation .btn-message-edit").forEach((button) => {
   button.addEventListener("click", async (e) => {
-    // Evita que o clique seja disparado duas vezes ou afete elementos pais
     e.preventDefault();
     e.stopPropagation();
 
@@ -1830,7 +1829,7 @@ $$("#stageConversation .btn-message-edit").forEach((button) => {
 
     if (!message) return;
 
-    // Garante as permissões de autor (cliente só edita cliente, designer só edita designer)
+    // Regra de permissão: Cliente só edita Cliente, Designer só edita Designer
     if (!designerUnlocked && message.author !== "client") return;
     if (designerUnlocked && message.author !== "designer") return;
 
@@ -1850,41 +1849,6 @@ $$("#stageConversation .btn-message-edit").forEach((button) => {
     renderStage();
   });
 });
-
-// =================================================================
-// 2. EDIÇÃO DE MENSAGENS DO DESIGNER
-// =================================================================
-$$("#stageConversation .btn-message-edit").forEach((button) => {
-  button.addEventListener("click", async () => {
-    const messageId = button.dataset.messageId;
-    const message = s.clientMessages?.find((m) => m.id === messageId);
-
-    if (!message || message.author !== "designer") return;
-
-    // AQUI: Usa A MESMA ferramenta customPrompt para o designer
-    const newText = await customPrompt("Edite sua mensagem:", message.text);
-    if (newText === null) return;
-    const text = newText.trim();
-
-    if (!text) {
-      if (typeof showToast === "function") showToast("A mensagem não pode ficar vazia.", true);
-      return;
-    }
-
-    message.text = text;
-    message.edited = true;
-    if (typeof saveProjects === "function") await saveProjects();
-    renderStage();
-  });
-});
-	  
-$$("#stageConversation .btn-message-edit").forEach((button) => {
-  button.addEventListener("click", async () => {
-    const messageId = button.dataset.messageId;
-    const message = s.clientMessages?.find((m) => m.id === messageId);
-
-    if (!message || message.author !== "designer") return;
-
     // AQUI: Troca o prompt do navegador pelo modal customizado
     const newText = await customPrompt("Edite sua mensagem:", message.text);
 
@@ -2241,33 +2205,6 @@ function renderStageClient(project, stage) {
         window.open(targetUrl, "_blank");
       } else {
         if (typeof openClientFile === "function") openClientFile(targetUrl, file.name, false);
-      }
-    });
-  });
-
-  $$("#stageConversation .btn-message-edit").forEach((button) => {
-    button.addEventListener("click", async () => {
-    const messageId = button.dataset.messageId;
-    const message = s.clientMessages?.find((m) => m.id === messageId);
-
-    if (!message || message.author !== "client") return;
-
-    // AQUI: Troca o prompt do navegador pelo modal customizado
-    const newText = await customPrompt("Edite sua mensagem:", message.text);
-    if (newText === null) return;
-    const text = newText.trim();
-
-    if (!text) {
-      if (typeof showToast === "function") showToast("A mensagem não pode ficar vazia.", true);
-      return;
-    }
-
-      message.text = text;
-      message.editedAt = Date.now();
-
-      if (typeof saveProjects === "function" && await saveProjects()) {
-        renderStageClient(project, stage);
-        if (typeof showToast === "function") showToast("Mensagem editada.");
       }
     });
   });

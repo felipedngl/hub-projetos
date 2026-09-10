@@ -2990,8 +2990,12 @@ body.client-password-mode .modal--narrow {
   justify-content: flex-end;
 }
 
-body.client-view #btnDesignerPanel, 
-body.client-view .designer-only, 
-body.client-view #btnPainel { 
-  display: none !important; 
+/* Esconde botão do painel, botão de lock e navegação administrativa no modo cliente */
+body.client-view [id*="panel" i],
+body.client-view [id*="painel" i],
+body.client-view [class*="panel" i],
+body.client-view [class*="painel" i],
+body.client-view [id*="lock" i],
+body.client-view [class*="lock" i] {
+  display: none !important;
 }

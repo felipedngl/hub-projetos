@@ -3029,49 +3029,137 @@ function contractListHTML(contracts) {
 function renderScheduleClientHTML(project) {
   const schedule = project && project.schedule ? project.schedule : [];
 
-  if (!schedule || schedule.length === 0) {
-    return `
-      <div class="panel">
-        <p style="color: #888; font-size: 0.9rem; margin: 0;">Nenhum evento no cronograma até o momento.</p>
+  // Dados do mês/ano atual selecionado
+  const year = currentScheduleDate.getFullYear();
+  const month = currentScheduleDate.getMonth(); // 0 a 11
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthName = currentScheduleDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+
+  // Cabeçalho dos dias (1, 2, 3... 30/31)
+  let daysHeaderHTML = "";
+  for (let day = 1; day <= daysInMonth; day++) {
+    daysHeaderHTML += `
+      <div style="flex: 1; min-width: 24px; text-align: center; font-size: 0.7rem; color: #888; border-left: 1px solid #2a2a2a; padding: 4px 0;">
+        ${day}
       </div>
     `;
   }
 
-  const rowsHTML = schedule
-    .map((item) => {
-      const startDate = item.start ? new Date(`${item.start}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "";
-      const endDate = item.end ? new Date(`${item.end}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "";
-      const dateRange = startDate && endDate ? `${startDate} - ${endDate}` : (startDate || endDate || "");
+  // Linhas dos Serviços/Tarefas
+  let rowsHTML = "";
 
-      return `
-        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: center; padding: 12px 16px; background: #1e1e1e; border-bottom: 1px solid #2a2a2a;">
-          
-          <!-- COLUNA DA ESQUERDA: NOME E DATAS -->
-          <div>
-            <div style="color: #fff; font-weight: 600; font-size: 0.95rem;">${item.title || "Atividade"}</div>
-            <div style="color: #e0a96d; font-size: 0.8rem; margin-top: 2px;">${dateRange}</div>
+  if (schedule.length === 0) {
+    rowsHTML = `
+      <div style="padding: 20px; color: #888; font-size: 0.9rem; text-align: center;">
+        Nenhum evento cadastrado no cronograma.
+      </div>
+    `;
+  } else {
+    rowsHTML = schedule
+      .map((item) => {
+        // Validação das datas de início e fim
+        const startDate = item.start ? new Date(`${item.start}T00:00:00`) : null;
+        const endDate = item.end ? new Date(`${item.end}T00:00:00`) : null;
+
+        let barHTML = "";
+
+        if (startDate && endDate) {
+          // Verifica se o item passa pelo mês exibido
+          const startMonth = startDate.getMonth();
+          const startYear = startDate.getFullYear();
+          const endMonth = endDate.getMonth();
+          const endYear = endDate.getFullYear();
+
+          const monthStart = new Date(year, month, 1);
+          const monthEnd = new Date(year, month, daysInMonth);
+
+          if (endDate >= monthStart && startDate <= monthEnd) {
+            // Calcula início e fim da barra dentro do mês visível
+            let startDay = (startYear === year && startMonth === month) ? startDate.getDate() : 1;
+            let endDay = (endYear === year && endMonth === month) ? endDate.getDate() : daysInMonth;
+
+            const leftPercent = ((startDay - 1) / daysInMonth) * 100;
+            const widthPercent = ((endDay - startDay + 1) / daysInMonth) * 100;
+
+            const startText = startDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+            const endText = endDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+
+            barHTML = `
+              <div 
+                title="${item.title}: ${startText} a ${endText}"
+                style="position: absolute; left: ${leftPercent}%; width: ${widthPercent}%; top: 6px; bottom: 6px; background: linear-gradient(90deg, #e0a96d, #c48b4d); border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; overflow: hidden;"
+              >
+                <span style="font-size: 0.65rem; color: #111; font-weight: bold; white-space: nowrap; padding: 0 4px;">
+                  ${startText} - ${endText}
+                </span>
+              </div>
+            `;
+          }
+        }
+
+        // Grade de linhas verticais (fundo)
+        let gridCols = "";
+        for (let d = 1; d <= daysInMonth; d++) {
+          gridCols += `<div style="flex: 1; min-width: 24px; border-left: 1px solid #222; height: 100%;"></div>`;
+        }
+
+        return `
+          <div style="display: flex; align-items: center; border-bottom: 1px solid #222; min-height: 44px; background: #161616;">
+            <!-- NOME DA TAREFA / SERVIÇO -->
+            <div style="width: 200px; min-width: 200px; padding: 8px 12px; color: #fff; font-size: 0.85rem; font-weight: 500; border-right: 1px solid #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${item.title || "Atividade"}
+            </div>
+
+            <!-- LINHA DO TEMPO COM OS DIAS DA GRADE -->
+            <div style="position: relative; flex: 1; display: flex; height: 44px; align-items: center; background: #1a1a1a;">
+              ${gridCols}
+              ${barHTML}
+            </div>
           </div>
-
-          <!-- COLUNA DA DIREITA: BARRA VISUAL (ESTILO GANTT / IMAGEM 2) -->
-          <div style="position: relative; background: #2a2a2a; height: 12px; border-radius: 6px; overflow: hidden;">
-            <div style="position: absolute; left: 10%; width: 70%; height: 100%; background: linear-gradient(90deg, #e0a96d, #c48b4d); border-radius: 6px;"></div>
-          </div>
-
-        </div>
-      `;
-    })
-    .join("");
+        `;
+      })
+      .join("");
+  }
 
   return `
     <div class="panel" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1px solid #333; background: #141414;">
-      <div style="padding: 20px; border-bottom: 1px solid #333; background: #1a1a1a;">
-        <h3 style="margin: 0; color: #fff; font-size: 1.2rem;">📅 Cronograma de Execução</h3>
-        <p style="margin: 4px 0 0 0; color: #888; font-size: 0.85rem;">Linha do tempo visual do planejamento da obra</p>
+      
+      <!-- CONTROLE DE MÊS / NAVEGAÇÃO -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #1a1a1a; border-bottom: 1px solid #333;">
+        <div>
+          <h3 style="margin: 0; color: #fff; font-size: 1.1rem;">📅 Cronograma da Obra</h3>
+          <p style="margin: 4px 0 0 0; color: #888; font-size: 0.8rem;">Visão geral de etapas e prazos de execução</p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; background: #222; padding: 6px 12px; border-radius: 8px; border: 1px solid #333;">
+          <button onclick="changeScheduleMonth(-1)" style="background: none; border: none; color: #e0a96d; font-size: 1.1rem; cursor: pointer; padding: 0 4px;">◄</button>
+          <span style="color: #fff; font-weight: 600; font-size: 0.9rem; text-transform: capitalize; min-width: 120px; text-align: center;">
+            ${monthName}
+          </span>
+          <button onclick="changeScheduleMonth(1)" style="background: none; border: none; color: #e0a96d; font-size: 1.1rem; cursor: pointer; padding: 0 4px;">►</button>
+        </div>
       </div>
 
-      <div style="display: flex; flex-direction: column;">
-        ${rowsHTML}
+      <!-- TABELA DO GANTT COM ROLAGEM HORIZONTAL SE A TELA FOR PEQUENA -->
+      <div style="overflow-x: auto;">
+        <div style="min-width: 800px;">
+          
+          <!-- CABEÇALHO DOS DIAS DO MÊS -->
+          <div style="display: flex; align-items: center; background: #222; border-bottom: 1px solid #333;">
+            <div style="width: 200px; min-width: 200px; padding: 8px 12px; color: #aaa; font-size: 0.75rem; font-weight: bold; border-right: 1px solid #333;">
+              SERVIÇOS / ETAPAS
+            </div>
+            <div style="flex: 1; display: flex;">
+              ${daysHeaderHTML}
+            </div>
+          </div>
+
+          <!-- LINHAS COM OS SERVIÇOS E BARRAS -->
+          ${rowsHTML}
+
+        </div>
       </div>
+
     </div>
   `;
 }

@@ -3481,21 +3481,11 @@ function bindEvents() {
 
 // --- TELA DE PEDIR SENHA AO CLIENTE QUE ACESSA VIA LINK DIRETO ---
 function promptClientPassword(project) {
-  document.body.classList.add("client-view");
-  const btnBack = document.querySelector("#btnBack");
-  if (btnBack) {
-    btnBack.style.display = "none";
-    btnBack.setAttribute("hidden", "true");
-  }
-
-  const modal = document.querySelector("#passwordModal") || document.querySelector("#pwdModal") || document.querySelector("#authModal") || document.querySelector("#loginModal");
+  const modal = $("#passwordModal") || $("#pwdModal");
   if (!modal) {
     openProject(project.id);
     return;
   }
-
-  modal.style.display = "flex";
-}
 
   const hint = $("#passwordModalHint");
   if (hint) {
@@ -3523,13 +3513,13 @@ function promptClientPassword(project) {
     } else {
       showToast("Senha incorreta. Tente novamente.", true);
     }
-  }
+  };
 
- if (btnConfirm) {
+  if (btnConfirm) {
     btnConfirm.onclick = handleAuth;
   }
 }
-
+	
 // --- INICIALIZAÇÃO DA APLICAÇÃO ---
 async function init() {
   if (sessionStorage.getItem(DESIGNER_KEY) === "true") {

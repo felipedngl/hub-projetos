@@ -3483,10 +3483,18 @@ function bindEvents() {
 function promptClientPassword(project) {
   document.body.classList.add("client-view");
   const btnBack = document.querySelector("#btnBack");
-  if (btnBack) btnBack.setAttribute("hidden", "true");
+  if (btnBack) {
+    btnBack.style.display = "none";
+    btnBack.setAttribute("hidden", "true");
+  }
 
-  const modal = document.querySelector("#authModal") || document.querySelector("#loginModal");
-  if (modal) modal.style.display = "flex";
+  const modal = document.querySelector("#passwordModal") || document.querySelector("#pwdModal") || document.querySelector("#authModal") || document.querySelector("#loginModal");
+  if (!modal) {
+    openProject(project.id);
+    return;
+  }
+
+  modal.style.display = "flex";
 }
 
   const hint = $("#passwordModalHint");

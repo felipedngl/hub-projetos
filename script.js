@@ -3351,6 +3351,48 @@ function bindEvents() {
   });
 }
 
+// --- TELA DE PEDIR SENHA AO CLIENTE QUE ACESSA VIA LINK DIRETO ---
+function promptClientPassword(project) {
+  const modal = $("#passwordModal") || $("#pwdModal");
+  if (!modal) {
+    openProject(project.id);
+    return;
+  }
+
+  const hint = $("#passwordModalHint");
+  if (hint) {
+    hint.textContent = `Digite a senha de acesso para visualizar o projeto "${project.title}":`;
+  }
+
+  modal.removeAttribute("hidden");
+  modal.style.display = "flex";
+
+  const btnConfirm = $("#btnConfirmPassword");
+  const pwdInput = $("#passwordInput") || $("#pwdInput");
+
+  if (pwdInput) {
+    pwdInput.value = "";
+    pwdInput.focus();
+  }
+
+  // Ação ao clicar em "Entrar" no modal
+  const handleAuth = () => {
+    const entered = pwdInput ? pwdInput.value.trim() : "";
+    if (entered === project.clientPassword) {
+      modal.setAttribute("hidden", "");
+      modal.style.display = "none";
+      openProject(project.id);
+    } else {
+      showToast("Senha incorreta. Tente novamente.", true);
+    }
+  };
+
+  if (btnConfirm) {
+    btnConfirm.onclick = handleAuth;
+  }
+}
+	
+// --- INICIALIZAÇÃO DA APLICAÇÃO ---
 async function init() {
   if (sessionStorage.getItem(DESIGNER_KEY) === "true") {
     designerUnlocked = true;
@@ -3369,12 +3411,20 @@ async function init() {
   const projectIdParam = urlParams.get("project") || urlParams.get("p");
 
   if (projectIdParam) {
-    const projExists = projects.find((p) => p.id === projectIdParam);
-    if (projExists) {
-      if (!designerUnlocked) {
+    // Busca o projeto tanto pelo ID exato quanto pelo nome formatado (slug)
+    const targetProject = projects.find(
+      (p) => p.id === projectIdParam || slugify(p.title) === slugify(projectIdParam) || p.slug === projectIdParam
+    );
+
+    if (targetProject) {
+      // Se NÃO for o designer e o projeto tiver senha cadastrada, exige a senha
+      if (!designerUnlocked && targetProject.clientPassword) {
         clientMode = true;
+        promptClientPassword(targetProject);
+      } else {
+        if (!designerUnlocked) clientMode = true;
+        openProject(targetProject.id);
       }
-      openProject(projectIdParam);
     } else {
       showDashboard();
     }

@@ -3329,6 +3329,26 @@ function promptClientPassword(project) {
 function bindEvents() {
   $("#btnBack")?.addEventListener("click", showDashboard);
 
+  $("#btnNewProject")?.addEventListener("click", () => {
+    const modal = $("#modalOverlay");
+    if (!modal) {
+      console.error("Modal de novo projeto não encontrado.");
+      return;
+    }
+
+    modal.removeAttribute("hidden");
+    modal.style.display = "flex";
+
+    const form = $("#projectForm");
+    if (form) form.reset();
+
+    const preview = $("#dropzonePreview");
+    const inner = $("#dropzoneInner");
+
+    if (preview) preview.hidden = true;
+    if (inner) inner.hidden = false;
+  });
+	
   $("#btnDesignerAccess")?.addEventListener("click", () => {
     if (typeof designerUnlocked !== "undefined" && designerUnlocked) {
       if (typeof lockDesigner === "function") lockDesigner();

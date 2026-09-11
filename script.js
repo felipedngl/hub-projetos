@@ -3387,6 +3387,8 @@ function openShareModal() {
 
   modal.removeAttribute("hidden");
   modal.style.display = "flex";
+  modal.style.zIndex = "10001"; // Força o modal a ficar acima do fundo borrado (blur)
+  modal.classList.add("active", "show", "open"); // Garante que a animação e visibilidade ativem
 }
 
 function closeShareModal() {

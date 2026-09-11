@@ -3414,7 +3414,11 @@ async function init() {
 
   bindEvents();
 
-	const cloudProjects = [];  if (cloudProjects && cloudProjects.length > 0) {
+	const cloudProjects = typeof loadProjects === "function"
+  ? await loadProjects()
+  : [];	
+	
+	if (cloudProjects && cloudProjects.length > 0) {
     projects = cloudProjects.map((p) => (typeof seedProject === "function" ? seedProject(p) : p));
   } else if (typeof initialProjects !== "undefined") {
     projects = initialProjects;

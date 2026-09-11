@@ -3310,20 +3310,6 @@ function showHubLocked() {
     }
   }
 
-// Função auxiliar para transformar nomes em links amigáveis (ex: "Studio 42" -> "studio-42")
-function slugify(text) {
-  if (!text) return "";
-  return text
-    .toString()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // Remove acentos
-    .replace(/\s+/g, "-")           // Espaços viram hífens
-    .replace(/[^\w\-]+/g, "")       // Remove caracteres especiais
-    .replace(/\-\-+/g, "-")         // Remove hífens duplicados
-    .trim();
-}
-
 function openShareModal() {
   const p = typeof currentProject === "function" ? currentProject() : null;
   if (!p) {
@@ -3670,3 +3656,5 @@ function closeAllOpenModals() {
     });
   });
 }
+	  
+})();

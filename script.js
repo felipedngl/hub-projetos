@@ -3147,7 +3147,6 @@ function setupNewProjectModal() {
 
   if (btnNew && modal) {
     btnNew.addEventListener("click", () => {
-      console.log("👉 Botão '+ Novo Projeto' clicado.");
       modal.style.display = "flex";
       modal.removeAttribute("hidden");
     });
@@ -3156,74 +3155,77 @@ function setupNewProjectModal() {
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      console.log("👉 Formulário enviado.");
 
-      // Busca os campos de entrada (por ID ou qualquer input de texto dentro do form)
-      const inputs = form.querySelectorAll("input[type='text'], input:not([type])");
-      const titleInput = $("#newProjectTitle") || $("#projectTitleInput") || inputs[0];
-      const clientInput = $("#newProjectClient") || $("#projectClientInput") || inputs[1];
+      // Captura exata dos elementos pelo atributo 'name' ou por seletores alternativos
+      const titleInput = form.querySelector('[name="title"]') || form.querySelector('[name="nome"]') || $("#newProjectTitle") || $("#projectTitleInput");
+      const clientInput = form.querySelector('[name="client"]') || form.querySelector('[name="cliente"]') || $("#newProjectClient") || $("#projectClientInput");
+      const areaInput = form.querySelector('[name="area"]') || form.querySelector('[name="metragem"]') || $("#newProjectArea");
+      const typeSelect = form.querySelector('[name="type"]') || form.querySelector('[name="tipo"]') || $("#newProjectType");
+      const statusSelect = form.querySelector('[name="status"]') || $("#newProjectStatus");
+      const passwordInput = form.querySelector('[name="password"]') || form.querySelector('[name="senha"]') || $("#newProjectPassword");
+      const coverInput = form.querySelector('[name="cover"]') || form.querySelector('[name="capa"]') || $("#newProjectCover");
 
       const titleValue = titleInput ? titleInput.value.trim() : "";
-      const clientValue = clientInput ? clientInput.value.trim() : "";
-
-      console.log("👉 Dados capturados do formulário:", { titulo: titleValue, cliente: clientValue });
-
       if (!titleValue) {
         showToast("Preencha o título do projeto.", true);
         return;
       }
 
-      // Cria a estrutura do projeto
+      // Converte a área para número válido para não dar NaN m²
+      const parsedArea = areaInput ? parseFloat(areaInput.value) : 0;
+
       const rawProj = {
         id: "proj_" + Date.now(),
         title: titleValue,
-        clientName: clientValue,
-        status: "Em Andamento",
+        clientName: clientInput ? clientInput.value.trim() : "",
+        area: isNaN(parsedArea) ? 0 : parsedArea,
+        type: typeSelect ? typeSelect.value : "Residencial",
+        status: statusSelect ? statusSelect.value : "Em Andamento",
+        clientPassword: passwordInput ? passwordInput.value.trim() : "",
+        cover: coverInput ? coverInput.value : "",
         updatedAt: new Date().toISOString()
       };
 
       const newProj = typeof seedProject === "function" ? seedProject(rawProj) : rawProj;
 
-      // 1. Adiciona ao array global de projetos
       if (typeof projects !== "undefined" && Array.isArray(projects)) {
         projects.push(newProj);
-        console.log("✅ Projeto adicionado ao array local 'projects'. Total de projetos:", projects.length);
-      } else {
-        console.error("❌ O array global 'projects' não está definido!");
       }
 
-      // 2. Tenta salvar no Firebase / Nuvem
       try {
         if (typeof saveProjects === "function") {
           await saveProjects();
-          console.log("✅ saveProjects() executado com sucesso.");
         }
       } catch (err) {
-        console.error("❌ Erro ao executar saveProjects():", err);
+        console.error("Erro ao salvar projeto no banco:", err);
       }
 
-      // 3. Força a atualização do painel
       if (typeof activeFilter !== "undefined") activeFilter = "todos";
       if (typeof searchTerm !== "undefined") searchTerm = "";
 
       if (typeof renderDashboard === "function") {
         renderDashboard();
-        console.log("✅ renderDashboard() chamado.");
-      } else {
-        console.error("❌ A função renderDashboard() não foi encontrada!");
       }
 
-      // 4. Limpa e fecha o modal
+      // Reseta o formulário
       form.reset();
-      if (modal) {
-        modal.style.display = "none";
-        modal.setAttribute("hidden", "");
+
+      // Fecha o modal e REMOVE O BLUR/OVERLAY da tela
+      if (typeof closeAllOpenModals === "function") {
+        closeAllOpenModals();
+      } else {
+        if (modal) {
+          modal.style.display = "none";
+          modal.setAttribute("hidden", "");
+        }
+        document.querySelectorAll(".modal-overlay, .modal-backdrop, .overlay").forEach((el) => {
+          el.style.display = "none";
+          el.classList.remove("active", "show", "open");
+        });
       }
 
       showToast("Projeto criado com sucesso!");
     });
-  } else {
-    console.warn("⚠️ Formulário de novo projeto não foi localizado no HTML.");
   }
 }
 

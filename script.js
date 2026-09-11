@@ -3156,22 +3156,29 @@ function setupNewProjectModal() {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      // Captura exata dos elementos pelo atributo 'name' ou por seletores alternativos
-      const titleInput = form.querySelector('[name="title"]') || form.querySelector('[name="nome"]') || $("#newProjectTitle") || $("#projectTitleInput");
-      const clientInput = form.querySelector('[name="client"]') || form.querySelector('[name="cliente"]') || $("#newProjectClient") || $("#projectClientInput");
-      const areaInput = form.querySelector('[name="area"]') || form.querySelector('[name="metragem"]') || $("#newProjectArea");
-      const typeSelect = form.querySelector('[name="type"]') || form.querySelector('[name="tipo"]') || $("#newProjectType");
-      const statusSelect = form.querySelector('[name="status"]') || $("#newProjectStatus");
-      const passwordInput = form.querySelector('[name="password"]') || form.querySelector('[name="senha"]') || $("#newProjectPassword");
-      const coverInput = form.querySelector('[name="cover"]') || form.querySelector('[name="capa"]') || $("#newProjectCover");
+      // Busca todos os inputs/selects do formulário
+      const inputs = Array.from(form.querySelectorAll("input, select"));
+
+      // Captura segura: se não achar por name/id, pega pela ordem em que aparecem no modal
+      const titleInput = form.querySelector('[name="title"], [name="nome"], #newProjectTitle, #projectTitleInput') || inputs[0];
+      const clientInput = form.querySelector('[name="client"], [name="cliente"], #newProjectClient, #projectClientInput') || inputs[1];
+      const areaInput = form.querySelector('[name="area"], [name="metragem"], #newProjectArea') || inputs[2];
+      const typeSelect = form.querySelector('[name="type"], [name="tipo"], #newProjectType') || inputs[3];
+      const statusSelect = form.querySelector('[name="status"], #newProjectStatus') || inputs[4];
+      const passwordInput = form.querySelector('[name="password"], [name="senha"], #newProjectPassword') || inputs[5];
+      const coverInput = form.querySelector('[name="cover"], [name="capa"], #newProjectCover');
 
       const titleValue = titleInput ? titleInput.value.trim() : "";
+
       if (!titleValue) {
-        showToast("Preencha o título do projeto.", true);
+        if (typeof showToast === "function") {
+          showToast("Preencha o título do projeto.", true);
+        } else {
+          alert("Preencha o título do projeto.");
+        }
         return;
       }
 
-      // Converte a área para número válido para não dar NaN m²
       const parsedArea = areaInput ? parseFloat(areaInput.value) : 0;
 
       const rawProj = {
@@ -3197,7 +3204,7 @@ function setupNewProjectModal() {
           await saveProjects();
         }
       } catch (err) {
-        console.error("Erro ao salvar projeto no banco:", err);
+        console.error("Erro ao salvar no banco:", err);
       }
 
       if (typeof activeFilter !== "undefined") activeFilter = "todos";
@@ -3207,10 +3214,9 @@ function setupNewProjectModal() {
         renderDashboard();
       }
 
-      // Reseta o formulário
+      // Limpa o formulário e fecha os modais/overlays
       form.reset();
 
-      // Fecha o modal e REMOVE O BLUR/OVERLAY da tela
       if (typeof closeAllOpenModals === "function") {
         closeAllOpenModals();
       } else {
@@ -3218,13 +3224,15 @@ function setupNewProjectModal() {
           modal.style.display = "none";
           modal.setAttribute("hidden", "");
         }
-        document.querySelectorAll(".modal-overlay, .modal-backdrop, .overlay").forEach((el) => {
+        document.querySelectorAll(".modal-overlay, .modal-backdrop, .overlay, .backdrop").forEach((el) => {
           el.style.display = "none";
           el.classList.remove("active", "show", "open");
         });
       }
 
-      showToast("Projeto criado com sucesso!");
+      if (typeof showToast === "function") {
+        showToast("Projeto criado com sucesso!");
+      }
     });
   }
 }

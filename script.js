@@ -1198,10 +1198,14 @@ function renderDashboard() {
 
   const term = searchTerm.trim().toLowerCase();
   const filtered = projects.filter((p) => {
+    const pType = (p.type || "").toLowerCase();
+    const pStatus = (p.status || "").toLowerCase();
+    const currentFilter = activeFilter.toLowerCase();
+
     const matchFilter =
-      activeFilter === "todos" ||
-      p.type === activeFilter ||
-      p.status === activeFilter;
+      currentFilter === "todos" ||
+      pType === currentFilter ||
+      pStatus === currentFilter;
     const matchSearch =
       !term ||
       (p.title && p.title.toLowerCase().includes(term)) ||
@@ -3531,16 +3535,24 @@ function bindEvents() {
     }
   });
 
-  $("#searchProjects")?.addEventListener("input", (e) => {
-    searchTerm = e.target.value.toLowerCase();
-    renderDashboard();
-  });
+// Busca por qualquer ID de busca existente no HTML
+  const searchEl = $("#searchProjects") || $("#searchInput") || document.querySelector('input[placeholder*="Buscar"]');
+  if (searchEl) {
+    searchEl.addEventListener("input", (e) => {
+      searchTerm = e.target.value.toLowerCase().trim();
+      renderDashboard();
+    });
+  }
 
-  $$(".filter-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      $$(".filter-btn").forEach((b) => b.classList.remove("active"));
+  // Filtros
+  const filterButtons = document.querySelectorAll(".filter-btn, [data-filter]");
+  filterButtons.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      filterButtons.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      activeFilter = btn.dataset.filter || "todos";
+      
+      const filterValue = (btn.dataset.filter || btn.textContent || "").toLowerCase().trim();
+      activeFilter = filterValue;
       renderDashboard();
     });
   });
@@ -3651,24 +3663,24 @@ function enableCardDragging() {
   cards.forEach((card) => {
     card.setAttribute("draggable", "true");
 
-    card.addEventListener("dragstart", () => {
+    card.addEventListener("dragstart", (e) => {
       card.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
     });
 
     card.addEventListener("dragend", () => {
       card.classList.remove("dragging");
-      
-      // Atualiza a ordem da lista
+
+      // Atualiza a nova ordem da lista no array
       const renderedCards = [...container.querySelectorAll(".project-card, .card")];
       const newOrder = [];
       renderedCards.forEach((c) => {
-        const titleEl = c.querySelector("h3, .project-title, strong");
-        const titleText = titleEl ? titleEl.textContent.trim() : "";
-        const found = projects.find((p) => p.title === titleText || p.id === c.dataset.id);
+        const cardId = c.dataset.projectId || c.dataset.id || c.getAttribute("data-id");
+        const found = projects.find((p) => p.id === cardId);
         if (found && !newOrder.includes(found)) newOrder.push(found);
       });
 
-      if (newOrder.length > 0) {
+      if (newOrder.length === projects.length) {
         projects = newOrder;
         if (typeof saveProjects === "function") saveProjects();
       }
@@ -3680,18 +3692,34 @@ function enableCardDragging() {
     const draggingCard = document.querySelector(".dragging");
     if (!draggingCard) return;
 
+    // Descobre qual o card mais próximo com base na posição do mouse (X e Y)
     const siblings = [...container.querySelectorAll(".project-card:not(.dragging), .card:not(.dragging)")];
-    const nextSibling = siblings.find((sibling) => {
+    
+    let closestSibling = null;
+    let minDistance = Number.POSITIVE_INFINITY;
+
+    siblings.forEach((sibling) => {
       const box = sibling.getBoundingClientRect();
-      return e.clientY <= box.top + box.height / 2;
+      const centerX = box.left + box.width / 2;
+      const centerY = box.top + box.height / 2;
+      const distance = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestSibling = sibling;
+      }
     });
 
-    if (nextSibling) {
-      container.insertBefore(draggingCard, nextSibling);
-    } else {
-      container.appendChild(draggingCard);
+    if (closestSibling) {
+      const box = closestSibling.getBoundingClientRect();
+      const isAfter = e.clientX > box.left + box.width / 2;
+      if (isAfter) {
+        container.insertBefore(draggingCard, closestSibling.nextSibling);
+      } else {
+        container.insertBefore(draggingCard, closestSibling);
+      }
     }
   });
 }
-
+	
 })();

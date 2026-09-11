@@ -3664,11 +3664,13 @@ function enableCardDragging() {
   const cards = container.querySelectorAll(".project-card, .card");
 
   cards.forEach((card) => {
-    // Remove o draggable nativo que travava no grid
     card.removeAttribute("draggable");
 
+    // Remove ouvintes antigos para não acumular
+    card.onpointerdown = null;
+
     card.onpointerdown = (e) => {
-      // Ignora cliques em botões, links ou ícones internos do card
+      // Ignora botões, links e inputs
       if (e.target.closest("button") || e.target.closest("a") || e.target.closest("input")) return;
 
       const box = card.getBoundingClientRect();
@@ -3676,6 +3678,8 @@ function enableCardDragging() {
       const shiftY = e.clientY - box.top;
 
       let isDragging = false;
+      
+      // Cria o quadro pontilhado reservado
       const placeholder = document.createElement("div");
       placeholder.className = "card-placeholder";
       placeholder.style.cssText = `
@@ -3683,7 +3687,7 @@ function enableCardDragging() {
         height: ${box.height}px;
         border: 2px dashed #4a5568;
         border-radius: 12px;
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.05);
         box-sizing: border-box;
       `;
 
@@ -3693,30 +3697,32 @@ function enableCardDragging() {
       }
 
       function onPointerMove(moveEvent) {
-        // Ativa o modo arrasto só se mover mais de 5px (evita disparar no clique simples)
+        // Só ativa o modo de arrasto se arrastar mais de 5px (evita disparar no clique simples)
         if (!isDragging) {
           const dist = Math.hypot(moveEvent.clientX - e.clientX, moveEvent.clientY - e.clientY);
           if (dist < 5) return;
 
           isDragging = true;
+
+          // Coloca o placeholder no lugar do card antes de flutuar o card
           container.insertBefore(placeholder, card);
 
           card.style.cssText = `
             position: fixed;
-            z-index: 9999;
+            z-index: 10000;
             width: ${box.width}px;
             height: ${box.height}px;
             pointer-events: none;
-            opacity: 0.85;
-            transform: scale(1.03);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.4);
-            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            opacity: 0.9;
+            transform: scale(1.02);
+            box-shadow: 0 16px 32px rgba(0,0,0,0.3);
+            transition: transform 0.05s ease;
           `;
         }
 
-        moveAt(moveEvent.pageX - window.scrollX, moveEvent.pageY - window.scrollY);
+        moveAt(moveEvent.clientX, moveEvent.clientY);
 
-        // Encontra o card sob o ponteiro e move o placeholder suavemente
+        // Encontra qual card está embaixo do cursor do mouse
         const elementBelow = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY);
         if (!elementBelow) return;
 
@@ -3732,30 +3738,23 @@ function enableCardDragging() {
         }
       }
 
-      document.addEventListener("pointermove", onPointerMove);
-
-      card.onpointerup = () => {
-        document.removeEventListener("pointermove", onPointerMove);
-        card.onpointerup = null;
+      function onPointerUp() {
+        // Remove os ouvintes globais IMEDIATAMENTE ao soltar o mouse
+        window.removeEventListener("pointermove", onPointerMove);
+        window.removeEventListener("pointerup", onPointerUp);
 
         if (isDragging) {
-          // Reinsere o card no local exato onde o placeholder ficou
-          container.insertBefore(card, placeholder);
-          placeholder.remove();
+          // Insere o card de volta exatamente onde ficou o placeholder
+          if (placeholder.parentNode) {
+            container.insertBefore(card, placeholder);
+            placeholder.remove();
+          }
 
-          // Reseta os estilos inline do arrasto
-          card.style.position = "";
-          card.style.zInex = "";
-          card.style.width = "";
-          card.style.height = "";
-          card.style.left = "";
-          card.style.top = "";
-          card.style.pointerEvents = "";
-          card.style.opacity = "";
-          card.style.transform = "";
-          card.style.boxShadow = "";
+          // Reseta completamente os estilos inline aplicados ao arrastar
+          card.removeAttribute("style");
+          card.style.cursor = "pointer";
 
-          // Salva a nova ordem da lista
+          // Recalcula e salva a nova ordem dos projetos
           const renderedCards = [...container.querySelectorAll(".project-card, .card")];
           const newOrder = [];
           renderedCards.forEach((c) => {
@@ -3769,7 +3768,11 @@ function enableCardDragging() {
             if (typeof saveProjects === "function") saveProjects();
           }
         }
-      };
+      }
+
+      // Escuta os eventos na janela inteira (window) para nunca perder a soltura do mouse
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
     };
   });
 }

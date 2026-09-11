@@ -3153,60 +3153,60 @@ function setupNewProjectModal() {
   }
 
   if (form) {
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
 
-      // Busca todos os inputs/selects do formulário
-      const inputs = Array.from(form.querySelectorAll("input, select"));
+      // Pega todos os inputs e selects do formulário
+      const textInputs = Array.from(form.querySelectorAll("input[type='text'], input[type='number'], input:not([type])"));
+      const selects = Array.from(form.querySelectorAll("select"));
 
-      // Captura segura: se não achar por name/id, pega pela ordem em que aparecem no modal
-      const titleInput = form.querySelector('[name="title"], [name="nome"], #newProjectTitle, #projectTitleInput') || inputs[0];
-      const clientInput = form.querySelector('[name="client"], [name="cliente"], #newProjectClient, #projectClientInput') || inputs[1];
-      const areaInput = form.querySelector('[name="area"], [name="metragem"], #newProjectArea') || inputs[2];
-      const typeSelect = form.querySelector('[name="type"], [name="tipo"], #newProjectType') || inputs[3];
-      const statusSelect = form.querySelector('[name="status"], #newProjectStatus') || inputs[4];
-      const passwordInput = form.querySelector('[name="password"], [name="senha"], #newProjectPassword') || inputs[5];
-      const coverInput = form.querySelector('[name="cover"], [name="capa"], #newProjectCover');
+      // 1. TÍTULO: Procura por ID/name ou pega o 1º campo de texto
+      const titleInput = form.querySelector('#newProjectTitle, #projectTitleInput, [name="title"], [name="nome"]') || textInputs[0];
+      
+      // 2. CLIENTE: Procura por ID/name contendo 'client'/'cliente' ou pega o 2º campo de texto
+      const clientInput = form.querySelector('#newProjectClient, #projectClientInput, [name="client"], [name="cliente"], [id*="client"], [name*="client"]') || textInputs[1];
+      
+      // 3. ÁREA: Procura por ID/name contendo 'area'/'metragem' ou pega o 3º campo de texto
+      const areaInput = form.querySelector('#newProjectArea, [name="area"], [name="metragem"], [id*="area"]') || textInputs[2];
+
+      // 4. SELECTS: Tipo e Status
+      const typeSelect = form.querySelector('#newProjectType, [name="type"], [name="tipo"]') || selects[0];
+      const statusSelect = form.querySelector('#newProjectStatus, [name="status"]') || selects[1];
+      
+      // 5. SENHA: Procura por campo de senha ou o 4º campo de texto
+      const passwordInput = form.querySelector('input[type="password"], #newProjectPassword, [name="password"], [name="senha"]') || textInputs[3];
 
       const titleValue = titleInput ? titleInput.value.trim() : "";
+      const clientValue = clientInput ? clientInput.value.trim() : "";
 
       if (!titleValue) {
-        if (typeof showToast === "function") {
-          showToast("Preencha o título do projeto.", true);
-        } else {
-          alert("Preencha o título do projeto.");
-        }
+        if (typeof showToast === "function") showToast("Preencha o título do projeto.", true);
         return;
       }
 
       const parsedArea = areaInput ? parseFloat(areaInput.value) : 0;
 
+      // Objeto com mapeamento duplo (client / clientName) para suportar qualquer estrutura de card
       const rawProj = {
         id: "proj_" + Date.now(),
         title: titleValue,
-        clientName: clientInput ? clientInput.value.trim() : "",
+        client: clientValue,
+        clientName: clientValue,
         area: isNaN(parsedArea) ? 0 : parsedArea,
         type: typeSelect ? typeSelect.value : "Residencial",
         status: statusSelect ? statusSelect.value : "Em Andamento",
         clientPassword: passwordInput ? passwordInput.value.trim() : "",
-        cover: coverInput ? coverInput.value : "",
         updatedAt: new Date().toISOString()
       };
 
       const newProj = typeof seedProject === "function" ? seedProject(rawProj) : rawProj;
 
+      // 1. Adiciona o projeto à lista local imediatamente
       if (typeof projects !== "undefined" && Array.isArray(projects)) {
         projects.push(newProj);
       }
 
-      try {
-        if (typeof saveProjects === "function") {
-          await saveProjects();
-        }
-      } catch (err) {
-        console.error("Erro ao salvar no banco:", err);
-      }
-
+      // 2. Atualiza os filtros e re-renderiza o painel na hora
       if (typeof activeFilter !== "undefined") activeFilter = "todos";
       if (typeof searchTerm !== "undefined") searchTerm = "";
 
@@ -3214,7 +3214,7 @@ function setupNewProjectModal() {
         renderDashboard();
       }
 
-      // Limpa o formulário e fecha os modais/overlays
+      // 3. Limpa e fecha o modal IMEDIATAMENTE (sem esperar o Firebase)
       form.reset();
 
       if (typeof closeAllOpenModals === "function") {
@@ -3232,6 +3232,13 @@ function setupNewProjectModal() {
 
       if (typeof showToast === "function") {
         showToast("Projeto criado com sucesso!");
+      }
+
+      // 4. Salva no Firebase em segundo plano (background) para não travar a interface
+      if (typeof saveProjects === "function") {
+        saveProjects().catch((err) => {
+          console.warn("Aviso: Falha ao sincronizar com o Firebase em segundo plano:", err);
+        });
       }
     });
   }

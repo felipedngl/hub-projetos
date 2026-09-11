@@ -3396,6 +3396,7 @@ function closeShareModal() {
   if (modal) {
     modal.setAttribute("hidden", "");
     modal.style.display = "none";
+    modal.classList.remove("active", "show", "open");
   }
 }
 

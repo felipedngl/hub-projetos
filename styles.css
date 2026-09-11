@@ -2865,3 +2865,22 @@ body.client-view .btn-back {
   z-index: 9999;
   font-size: 14px;
 }
+
+/* Previne seleção de texto e arrasto nativo de imagens nos cards */
+.project-card, .card {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.project-card img, .card img {
+  pointer-events: none;
+}
+
+/* Estilo para a caixa pontilhada de destino (Placeholder) */
+.card-placeholder {
+  border: 2px dashed #4a5568;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}

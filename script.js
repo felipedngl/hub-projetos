@@ -1189,6 +1189,13 @@ function renderDashboard() {
   // Trava de segurança: se 'projects' não for uma lista (array), transforma em lista vazia
   if (!Array.isArray(projects)) projects = [];
 
+  // Esconde barra de busca e filtros se estiver no modo cliente
+  const isClient = typeof isClientView !== "undefined" && isClientView;
+  const controls = document.querySelector(".search-bar-container") || document.querySelector(".dashboard-controls") || document.querySelector(".filters-container") || $("#searchProjects")?.parentElement;
+  if (controls) {
+    controls.style.display = isClient ? "none" : "flex";
+  }
+
   const term = searchTerm.trim().toLowerCase();
   const filtered = projects.filter((p) => {
     const matchFilter =
@@ -1216,11 +1223,13 @@ function renderDashboard() {
   const filteredM2 = filtered.reduce((s, p) => s + (Number(p.area) || 0), 0);
   const activeCount = projects.filter((p) => p.status === "em andamento").length;
   const stats = $("#statsBar");
-  stats.innerHTML = filtered.length === projects.length
-    ? `<strong>${projects.length}</strong> projetos · <strong>${formatArea(totalM2)} m²</strong> totais · <strong>${activeCount}</strong> em andamento`
-    : `<strong>${filtered.length}</strong> de <strong>${projects.length}</strong> projetos · <strong>${formatArea(filteredM2)} m²</strong>`;
+  if (stats) {
+    stats.innerHTML = filtered.length === projects.length
+      ? `<strong>${projects.length}</strong> projetos · <strong>${formatArea(totalM2)} m²</strong> totais · <strong>${activeCount}</strong> em andamento`
+      : `<strong>${filtered.length}</strong> de <strong>${projects.length}</strong> projetos · <strong>${formatArea(filteredM2)} m²</strong>`;
+  }
 
-// --- Atribui o evento de clique aos cards ---
+  // --- Atribui o evento de clique aos cards ---
   $$(".project-card, .card").forEach((card) => {
     card.style.cursor = "pointer"; // Garante a mãozinha ao passar o mouse
     card.addEventListener("click", (e) => {
@@ -1236,7 +1245,11 @@ function renderDashboard() {
       }
     });
   });
+
+  // Ativa a função de arrastar os cards pela tela
+  enableCardDragging();
 }
+
   /* ---------------- Render: visão interna ---------------- */
 function stageHasContent(project, stage) {
   if (stage.special === "schedule") {
@@ -3203,7 +3216,7 @@ function setupNewProjectModal() {
 
       // 1. Adiciona o projeto à lista local imediatamente
       if (typeof projects !== "undefined" && Array.isArray(projects)) {
-        projects.push(newProj);
+        projects.unshift(newProj);
       }
 
       // 2. Atualiza os filtros e re-renderiza o painel na hora
@@ -3246,17 +3259,35 @@ function setupNewProjectModal() {
 
 /* ---------------- Modal & Toasts & Utilitários de Inicialização ---------------- */
 function showToast(message, isError = false) {
-  let toast = $("#hubToast");
-  if (!toast) {
-    toast = document.createElement("div");
-    toast.id = "hubToast";
-    toast.className = "hub-toast";
-    document.body.appendChild(toast);
-  }
+  // Remove toast anterior se existir
+  const existing = document.querySelector(".toast-popup");
+  if (existing) existing.remove();
+
+  const toast = document.createElement("div");
+  toast.className = "toast-popup";
   toast.textContent = message;
-  toast.classList.toggle("error", isError);
-  toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 3500);
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: ${isError ? "#e74c3c" : "#27ae60"};
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 10000;
+    transition: opacity 0.3s ease;
+  `;
+
+  document.body.appendChild(toast);
+
+  // Faz sumir após 3 segundos
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
 function showHubLocked() {
@@ -3501,7 +3532,7 @@ function bindEvents() {
   });
 
   $("#searchProjects")?.addEventListener("input", (e) => {
-    searchTerm = e.target.value;
+    searchTerm = e.target.value.toLowerCase();
     renderDashboard();
   });
 
@@ -3608,6 +3639,58 @@ function closeAllOpenModals() {
         el.classList.remove("active", "open", "show");
       }
     });
+  });
+}
+
+function enableCardDragging() {
+  const container = $("#projectsGrid") || document.querySelector(".projects-grid");
+  if (!container) return;
+
+  const cards = container.querySelectorAll(".project-card, .card");
+
+  cards.forEach((card) => {
+    card.setAttribute("draggable", "true");
+
+    card.addEventListener("dragstart", () => {
+      card.classList.add("dragging");
+    });
+
+    card.addEventListener("dragend", () => {
+      card.classList.remove("dragging");
+      
+      // Atualiza a ordem da lista
+      const renderedCards = [...container.querySelectorAll(".project-card, .card")];
+      const newOrder = [];
+      renderedCards.forEach((c) => {
+        const titleEl = c.querySelector("h3, .project-title, strong");
+        const titleText = titleEl ? titleEl.textContent.trim() : "";
+        const found = projects.find((p) => p.title === titleText || p.id === c.dataset.id);
+        if (found && !newOrder.includes(found)) newOrder.push(found);
+      });
+
+      if (newOrder.length > 0) {
+        projects = newOrder;
+        if (typeof saveProjects === "function") saveProjects();
+      }
+    });
+  });
+
+  container.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    const draggingCard = document.querySelector(".dragging");
+    if (!draggingCard) return;
+
+    const siblings = [...container.querySelectorAll(".project-card:not(.dragging), .card:not(.dragging)")];
+    const nextSibling = siblings.find((sibling) => {
+      const box = sibling.getBoundingClientRect();
+      return e.clientY <= box.top + box.height / 2;
+    });
+
+    if (nextSibling) {
+      container.insertBefore(draggingCard, nextSibling);
+    } else {
+      container.appendChild(draggingCard);
+    }
   });
 }
 

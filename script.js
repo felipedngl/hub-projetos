@@ -3367,7 +3367,7 @@ function openShareModal() {
     return;
   }
 
-  const modal = $("#shareModal");
+  const modal = $("#shareModal") || document.querySelector("#shareModal") || document.querySelector(".share-modal");
   if (!modal) return;
 
   const nameEl = $("#shareProjectName");
@@ -3385,29 +3385,66 @@ function openShareModal() {
   const linkInput = $("#shareLinkInput");
   if (linkInput) linkInput.value = shareUrl;
 
+  // Garante que qualquer overlay existente fique ativo E clicável para fechar
+  let overlay = document.querySelector(".modal-overlay, .backdrop, .modal-backdrop");
+  if (!overlay) {
+    // Se não existir overlay no HTML, cria um dinamicamente
+    overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+    document.body.appendChild(overlay);
+  }
+
+  // Estiliza e exibe o overlay
+  overlay.style.display = "block";
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100vw";
+  overlay.style.height = "100vh";
+  overlay.style.zIndex = "9998";
+  overlay.classList.add("active", "show");
+
+  // Configura o evento de clique NO OVERLAY para fechar tudo
+  overlay.onclick = () => {
+    closeShareModal();
+  };
+
+  // Exibe o modal acima do overlay
   modal.removeAttribute("hidden");
   modal.style.display = "flex";
-  modal.style.zIndex = "10001"; // Força o modal a ficar acima do fundo borrado (blur)
-  modal.classList.add("active", "show", "open"); // Garante que a animação e visibilidade ativem
+  modal.style.position = "fixed";
+  modal.style.zIndex = "9999";
+  modal.classList.add("active", "show", "open");
 }
 
 function closeShareModal() {
   const modal = $("#shareModal") || document.querySelector("#shareModal") || document.querySelector(".share-modal");
   
   if (modal) {
-    // Esconde e reseta atributos/classes do modal
     modal.setAttribute("hidden", "");
     modal.style.display = "none";
     modal.classList.remove("active", "show", "open");
   }
 
-  // Remove/Esconde qualquer overlay ou fundo borrado que tenha ficado aberto
+  // Esconde e desativa TODOS os overlays
   const overlays = document.querySelectorAll(".modal-overlay, .backdrop, .modal-backdrop");
   overlays.forEach((overlay) => {
     overlay.style.display = "none";
     overlay.classList.remove("active", "show", "open");
+    overlay.onclick = null; // Limpa o evento
   });
 }
+
+/* ---------------- Listener Global para Fechar Modais ao Clicar Fora ---------------- */
+window.addEventListener("click", (e) => {
+  const shareModal = document.querySelector("#shareModal");
+  const overlay = document.querySelector(".modal-overlay, .backdrop, .modal-backdrop");
+
+  // Se o clique for exatamente no fundo escuro/overlay ou na área externa do modal
+  if (e.target === shareModal || e.target === overlay) {
+    closeShareModal();
+  }
+});
 
 async function saveClientPassword() {
   const p = typeof currentProject === "function" ? currentProject() : currentProject;

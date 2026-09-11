@@ -3665,8 +3665,6 @@ function enableCardDragging() {
 
   cards.forEach((card) => {
     card.removeAttribute("draggable");
-
-    // Remove ouvintes antigos para não acumular
     card.onpointerdown = null;
 
     card.onpointerdown = (e) => {
@@ -3678,8 +3676,11 @@ function enableCardDragging() {
       const shiftY = e.clientY - box.top;
 
       let isDragging = false;
-      
-      // Cria o quadro pontilhado reservado
+
+      // Impede a seleção azul de texto nativa do navegador
+      document.body.style.userSelect = "none";
+      document.body.style.webkitUserSelect = "none";
+
       const placeholder = document.createElement("div");
       placeholder.className = "card-placeholder";
       placeholder.style.cssText = `
@@ -3697,14 +3698,14 @@ function enableCardDragging() {
       }
 
       function onPointerMove(moveEvent) {
-        // Só ativa o modo de arrasto se arrastar mais de 5px (evita disparar no clique simples)
+        // Cancela qualquer seleção de texto acidental durante o movimento
+        moveEvent.preventDefault();
+
         if (!isDragging) {
           const dist = Math.hypot(moveEvent.clientX - e.clientX, moveEvent.clientY - e.clientY);
           if (dist < 5) return;
 
           isDragging = true;
-
-          // Coloca o placeholder no lugar do card antes de flutuar o card
           container.insertBefore(placeholder, card);
 
           card.style.cssText = `
@@ -3717,12 +3718,13 @@ function enableCardDragging() {
             transform: scale(1.02);
             box-shadow: 0 16px 32px rgba(0,0,0,0.3);
             transition: transform 0.05s ease;
+            user-select: none;
+            -webkit-user-select: none;
           `;
         }
 
         moveAt(moveEvent.clientX, moveEvent.clientY);
 
-        // Encontra qual card está embaixo do cursor do mouse
         const elementBelow = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY);
         if (!elementBelow) return;
 
@@ -3739,22 +3741,22 @@ function enableCardDragging() {
       }
 
       function onPointerUp() {
-        // Remove os ouvintes globais IMEDIATAMENTE ao soltar o mouse
         window.removeEventListener("pointermove", onPointerMove);
         window.removeEventListener("pointerup", onPointerUp);
 
+        // Restaura a capacidade de selecionar texto normalmente no site
+        document.body.style.userSelect = "";
+        document.body.style.webkitUserSelect = "";
+
         if (isDragging) {
-          // Insere o card de volta exatamente onde ficou o placeholder
           if (placeholder.parentNode) {
             container.insertBefore(card, placeholder);
             placeholder.remove();
           }
 
-          // Reseta completamente os estilos inline aplicados ao arrastar
           card.removeAttribute("style");
           card.style.cursor = "pointer";
 
-          // Recalcula e salva a nova ordem dos projetos
           const renderedCards = [...container.querySelectorAll(".project-card, .card")];
           const newOrder = [];
           renderedCards.forEach((c) => {
@@ -3770,7 +3772,6 @@ function enableCardDragging() {
         }
       }
 
-      // Escuta os eventos na janela inteira (window) para nunca perder a soltura do mouse
       window.addEventListener("pointermove", onPointerMove);
       window.addEventListener("pointerup", onPointerUp);
     };

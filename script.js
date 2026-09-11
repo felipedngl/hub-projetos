@@ -3392,12 +3392,21 @@ function openShareModal() {
 }
 
 function closeShareModal() {
-  const modal = $("#shareModal");
+  const modal = $("#shareModal") || document.querySelector("#shareModal") || document.querySelector(".share-modal");
+  
   if (modal) {
+    // Esconde e reseta atributos/classes do modal
     modal.setAttribute("hidden", "");
     modal.style.display = "none";
     modal.classList.remove("active", "show", "open");
   }
+
+  // Remove/Esconde qualquer overlay ou fundo borrado que tenha ficado aberto
+  const overlays = document.querySelectorAll(".modal-overlay, .backdrop, .modal-backdrop");
+  overlays.forEach((overlay) => {
+    overlay.style.display = "none";
+    overlay.classList.remove("active", "show", "open");
+  });
 }
 
 async function saveClientPassword() {

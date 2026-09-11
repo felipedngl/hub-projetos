@@ -3656,5 +3656,3 @@ function closeAllOpenModals() {
     });
   });
 }
-	  
-})();

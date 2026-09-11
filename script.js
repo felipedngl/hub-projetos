@@ -3664,64 +3664,113 @@ function enableCardDragging() {
   const cards = container.querySelectorAll(".project-card, .card");
 
   cards.forEach((card) => {
-    card.setAttribute("draggable", "true");
+    // Remove o draggable nativo que travava no grid
+    card.removeAttribute("draggable");
 
-    card.addEventListener("dragstart", (e) => {
-      card.classList.add("dragging");
-      e.dataTransfer.effectAllowed = "move";
-    });
+    card.onpointerdown = (e) => {
+      // Ignora cliques em botões, links ou ícones internos do card
+      if (e.target.closest("button") || e.target.closest("a") || e.target.closest("input")) return;
 
-    card.addEventListener("dragend", () => {
-      card.classList.remove("dragging");
+      const box = card.getBoundingClientRect();
+      const shiftX = e.clientX - box.left;
+      const shiftY = e.clientY - box.top;
 
-      // Atualiza a nova ordem da lista no array
-      const renderedCards = [...container.querySelectorAll(".project-card, .card")];
-      const newOrder = [];
-      renderedCards.forEach((c) => {
-        const cardId = c.dataset.projectId || c.dataset.id || c.getAttribute("data-id");
-        const found = projects.find((p) => p.id === cardId);
-        if (found && !newOrder.includes(found)) newOrder.push(found);
-      });
+      let isDragging = false;
+      const placeholder = document.createElement("div");
+      placeholder.className = "card-placeholder";
+      placeholder.style.cssText = `
+        width: ${box.width}px;
+        height: ${box.height}px;
+        border: 2px dashed #4a5568;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        box-sizing: border-box;
+      `;
 
-      if (newOrder.length === projects.length) {
-        projects = newOrder;
-        if (typeof saveProjects === "function") saveProjects();
+      function moveAt(pageX, pageY) {
+        card.style.left = pageX - shiftX + "px";
+        card.style.top = pageY - shiftY + "px";
       }
-    });
-  });
 
-  container.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    const draggingCard = document.querySelector(".dragging");
-    if (!draggingCard) return;
+      function onPointerMove(moveEvent) {
+        // Ativa o modo arrasto só se mover mais de 5px (evita disparar no clique simples)
+        if (!isDragging) {
+          const dist = Math.hypot(moveEvent.clientX - e.clientX, moveEvent.clientY - e.clientY);
+          if (dist < 5) return;
 
-    // Descobre qual o card mais próximo com base na posição do mouse (X e Y)
-    const siblings = [...container.querySelectorAll(".project-card:not(.dragging), .card:not(.dragging)")];
-    
-    let closestSibling = null;
-    let minDistance = Number.POSITIVE_INFINITY;
+          isDragging = true;
+          container.insertBefore(placeholder, card);
 
-    siblings.forEach((sibling) => {
-      const box = sibling.getBoundingClientRect();
-      const centerX = box.left + box.width / 2;
-      const centerY = box.top + box.height / 2;
-      const distance = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+          card.style.cssText = `
+            position: fixed;
+            z-index: 9999;
+            width: ${box.width}px;
+            height: ${box.height}px;
+            pointer-events: none;
+            opacity: 0.85;
+            transform: scale(1.03);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+          `;
+        }
 
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestSibling = sibling;
+        moveAt(moveEvent.pageX - window.scrollX, moveEvent.pageY - window.scrollY);
+
+        // Encontra o card sob o ponteiro e move o placeholder suavemente
+        const elementBelow = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY);
+        if (!elementBelow) return;
+
+        const targetCard = elementBelow.closest(".project-card, .card");
+        if (targetCard && targetCard !== card && targetCard.parentNode === container) {
+          const targetBox = targetCard.getBoundingClientRect();
+          const isAfter = moveEvent.clientX > targetBox.left + targetBox.width / 2;
+          if (isAfter) {
+            container.insertBefore(placeholder, targetCard.nextSibling);
+          } else {
+            container.insertBefore(placeholder, targetCard);
+          }
+        }
       }
-    });
 
-    if (closestSibling) {
-      const box = closestSibling.getBoundingClientRect();
-      const isAfter = e.clientX > box.left + box.width / 2;
-      if (isAfter) {
-        container.insertBefore(draggingCard, closestSibling.nextSibling);
-      } else {
-        container.insertBefore(draggingCard, closestSibling);
-      }
-    }
+      document.addEventListener("pointermove", onPointerMove);
+
+      card.onpointerup = () => {
+        document.removeEventListener("pointermove", onPointerMove);
+        card.onpointerup = null;
+
+        if (isDragging) {
+          // Reinsere o card no local exato onde o placeholder ficou
+          container.insertBefore(card, placeholder);
+          placeholder.remove();
+
+          // Reseta os estilos inline do arrasto
+          card.style.position = "";
+          card.style.zInex = "";
+          card.style.width = "";
+          card.style.height = "";
+          card.style.left = "";
+          card.style.top = "";
+          card.style.pointerEvents = "";
+          card.style.opacity = "";
+          card.style.transform = "";
+          card.style.boxShadow = "";
+
+          // Salva a nova ordem da lista
+          const renderedCards = [...container.querySelectorAll(".project-card, .card")];
+          const newOrder = [];
+          renderedCards.forEach((c) => {
+            const cardId = c.dataset.projectId || c.dataset.id || c.getAttribute("data-id");
+            const found = projects.find((p) => p.id === cardId);
+            if (found && !newOrder.includes(found)) newOrder.push(found);
+          });
+
+          if (newOrder.length === projects.length) {
+            projects = newOrder;
+            if (typeof saveProjects === "function") saveProjects();
+          }
+        }
+      };
+    };
   });
 }
 	

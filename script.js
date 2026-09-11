@@ -3477,3 +3477,5 @@ function closeAllOpenModals() {
     });
   });
 }
+
+})();

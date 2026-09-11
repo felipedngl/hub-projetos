@@ -3140,7 +3140,58 @@ function renderScheduleClientHTML(project) {
   `;
 }
 
-/* ---------------- Modal & Toasts & Utilitários ---------------- */
+function setupNewProjectModal() {
+  const btnNew = $("#btnNewProject");
+  const modal = $("#modalNewProject") || $("#newProjectModal");
+  const form = $("#formNewProject");
+
+  if (btnNew && modal) {
+    btnNew.addEventListener("click", () => {
+      modal.style.display = "flex";
+      modal.removeAttribute("hidden");
+    });
+  }
+
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const titleInput = $("#newProjectTitle") || $("#projectTitleInput");
+      const clientInput = $("#newProjectClient") || $("#projectClientInput");
+
+      if (!titleInput || !titleInput.value.trim()) {
+        showToast("Preencha o título do projeto.", true);
+        return;
+      }
+
+      const newProj = seedProject({
+        id: "proj_" + Date.now(),
+        title: titleInput.value.trim(),
+        clientName: clientInput ? clientInput.value.trim() : "",
+        status: "Em Andamento",
+        updatedAt: new Date().toISOString()
+      });
+
+      projects.push(newProj);
+
+      if (typeof saveProjects === "function") {
+        await saveProjects();
+      }
+
+      renderDashboard();
+
+      form.reset();
+      if (modal) {
+        modal.style.display = "none";
+        modal.setAttribute("hidden", "");
+      }
+
+      showToast("Projeto criado com sucesso!");
+    });
+  }
+}
+
+/* ---------------- Modal & Toasts & Utilitários de Inicialização ---------------- */
 function showToast(message, isError = false) {
   let toast = $("#hubToast");
   if (!toast) {
@@ -3327,7 +3378,12 @@ function promptClientPassword(project) {
 }
 
 function bindEvents() {
+  setupNewProjectModal();
+
+  const btnBack = $("#btnBack");
+  if (btnBack) {
   $("#btnBack")?.addEventListener("click", showDashboard);
+  }
 
   $("#btnNewProject")?.addEventListener("click", () => {
     const modal = $("#modalOverlay");

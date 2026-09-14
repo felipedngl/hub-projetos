@@ -1423,26 +1423,40 @@ function openProject(id) {
     return p ? p.title : "Projeto";
   }
 
-  function showDashboard() {
+ function showDashboard() {
   if (!designerUnlocked && !clientMode) {
     showHubLocked();
     return;
   }
-    if (typeof unsubscribeProjectListener === "function") {
-      unsubscribeProjectListener();
-      unsubscribeProjectListener = null;
-    }
-    projectListenerSnapshot = null;
-    currentProjectId = null;
-    document.querySelectorAll(".hub-locked").forEach((el) => el.remove());
-    $("#view-project").hidden = true;
-    $("#view-dashboard").hidden = false;
-    $("#btnBack").hidden = true;
-    updateClientButton();
-    applyAccessUI();
-    renderDashboard();
+
+  // Limpa a trava visual da tela de cliente para reexibir os cards e a busca
+  document.body.classList.remove("client-view");
+
+  if (typeof unsubscribeProjectListener === "function") {
+    unsubscribeProjectListener();
+    unsubscribeProjectListener = null;
+  }
+  projectListenerSnapshot = null;
+  currentProjectId = null;
+
+  document.querySelectorAll(".hub-locked").forEach((el) => el.remove());
+
+  const viewProject = $("#view-project");
+  const viewDashboard = $("#view-dashboard");
+
+  if (viewProject) viewProject.hidden = true;
+  if (viewDashboard) {
+    viewDashboard.hidden = false;
+    viewDashboard.style.display = "block";
   }
 
+  const btnBack = $("#btnBack");
+  if (btnBack) btnBack.hidden = true;
+
+  updateClientButton();
+  applyAccessUI();
+  renderDashboard();
+}
 /* ---------- Modo Cliente (visualização) ---------- */
   function setClientMode(active) {
     clientMode = active;

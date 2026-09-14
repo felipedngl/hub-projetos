@@ -2902,7 +2902,7 @@ body.client-view .btn-back {
   border: 2px solid #ffffff;
 }
 
-/* Reduz o tamanho da caixa de busca */
+/* Altura padronizada para a caixa de busca */
 .search-container, 
 #searchProjects, 
 #searchInput {
@@ -2911,10 +2911,11 @@ body.client-view .btn-back {
   padding: 8px 16px !important;
 }
 
-/* Oculta os elementos do dashboard por padrão até autenticar */
-body:not(.authenticated) .search-container,
-body:not(.authenticated) .filters-container,
-body:not(.authenticated) .projects-grid,
-body:not(.authenticated) #projectsGrid {
+/* Oculta APENAS a busca e filtros quando estiver pedindo a senha do cliente */
+body.client-view .search-container,
+body.client-view .filters-container,
+body.client-view .search-bar,
+body.client-view .filter-tags,
+body.client-view #searchProjects {
   display: none !important;
 }

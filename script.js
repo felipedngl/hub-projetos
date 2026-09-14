@@ -3381,15 +3381,15 @@ function openShareModal() {
     return;
   }
 
-  const modal = $("#shareModal") || document.querySelector("#shareModal");
-  if (!modal) return;
+  const modalOverlay = $("#shareModal") || document.querySelector("#shareModal");
+  if (!modalOverlay) return;
 
-  // Garante que o modal esteja na raiz do HTML para centralizar perfeitamente
-  if (modal.parentNode !== document.body) {
-    document.body.appendChild(modal);
+  // Garante que fique na raiz do body para ter o z-index correto
+  if (modalOverlay.parentNode !== document.body) {
+    document.body.appendChild(modalOverlay);
   }
 
-  // Preenche as informações
+  // Preenche dados do projeto
   const nameEl = $("#shareProjectName");
   if (nameEl) nameEl.textContent = `Projeto: ${p.title}`;
 
@@ -3405,30 +3405,20 @@ function openShareModal() {
   const linkInput = $("#shareLinkInput");
   if (linkInput) linkInput.value = shareUrl;
 
-  // Remove overlay antigo se houver
-  const oldOverlay = document.querySelector("#shareOverlay");
-  if (oldOverlay) oldOverlay.remove();
+  // Garante que a caixa interna fique visível e exibe o modal overlay
+  const innerModal = modalOverlay.querySelector(".modal");
+  if (innerModal) innerModal.style.display = "block";
 
-  // Cria o fundo escuro transparente com blur suave
-  const overlay = document.createElement("div");
-  overlay.id = "shareOverlay";
-  overlay.onclick = closeShareModal;
-  document.body.appendChild(overlay);
-
-  // Exibe o modal centralizado
-  modal.removeAttribute("hidden");
-  modal.style.display = "block";
+  modalOverlay.removeAttribute("hidden");
+  modalOverlay.style.display = "flex";
 }
 
 function closeShareModal() {
-  const modal = $("#shareModal") || document.querySelector("#shareModal");
-  if (modal) {
-    modal.setAttribute("hidden", "");
-    modal.style.display = "none";
+  const modalOverlay = $("#shareModal") || document.querySelector("#shareModal");
+  if (modalOverlay) {
+    modalOverlay.setAttribute("hidden", "");
+    modalOverlay.style.display = "none";
   }
-
-  const overlay = document.querySelector("#shareOverlay");
-  if (overlay) overlay.remove();
 }
 
 /* ---------------- Listener Global para Fechar Modais ao Clicar Fora ---------------- */

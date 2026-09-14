@@ -3374,6 +3374,7 @@ function showHubLocked() {
 }
 
 /* ---------------- Compartilhamento ---------------- */
+
 function openShareModal() {
   const p = typeof currentProject === "function" ? currentProject() : currentProject;
   if (!p) {
@@ -3381,90 +3382,118 @@ function openShareModal() {
     return;
   }
 
-  const modalOverlay = document.getElementById("shareModal");
-  if (!modalOverlay) return;
-
-  // Garante que o overlay fique direto no <body> (fora de qualquer container com transform)
-  if (modalOverlay.parentNode !== document.body) {
-    document.body.appendChild(modalOverlay);
-  }
-
-  // Preenche dados do projeto
-  const nameEl = document.getElementById("shareProjectName");
-  if (nameEl) nameEl.textContent = `Projeto: ${p.title}`;
-
-  const pwdInput = document.getElementById("shareClientPasswordInput");
-  if (pwdInput) pwdInput.value = p.clientPassword || "";
-
-  const feedback = document.getElementById("savePasswordFeedback");
-  if (feedback) feedback.style.display = "none";
+  // Se já existir um modal aberto, remove para não duplicar
+  closeShareModal();
 
   const projectSlug = p.slug || (typeof slugify === "function" ? slugify(p.title) : p.id) || p.id;
   const shareUrl = `${window.location.origin}${window.location.pathname}?p=${encodeURIComponent(projectSlug)}`;
+  const clientPwd = p.clientPassword || "";
 
-  const linkInput = document.getElementById("shareLinkInput");
-  if (linkInput) linkInput.value = shareUrl;
-
-  // 1. FORÇA O OVERLAY (Fundo Blur) A OCUPAR 100% DA TELA E CENTRALIZAR COM FLEXBOX
-  modalOverlay.removeAttribute("hidden");
-  modalOverlay.style.cssText = `
-    display: flex !important;
+  // Cria a estrutura do modal direto no <body> em tempo de execução
+  const wrapper = document.createElement("div");
+  wrapper.id = "customShareWrapper";
+  wrapper.style.cssText = `
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    background-color: rgba(0, 0, 0, 0.75) !important;
+    background: rgba(0, 0, 0, 0.75) !important;
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
     z-index: 9999999 !important;
+    display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    margin: 0 !important;
     padding: 20px !important;
     box-sizing: border-box !important;
-    transform: none !important;
   `;
 
-  // 2. FORÇA A CAIXA INTERNA (.modal) A FICAR RETANGULAR E SEM OFFSETS ESTRANHOS
-  const innerModal = modalOverlay.querySelector(".modal");
-  if (innerModal) {
-    innerModal.style.cssText = `
-      display: block !important;
-      position: relative !important;
-      top: auto !important;
-      left: auto !important;
-      right: auto !important;
-      bottom: auto !important;
-      transform: none !important;
-      width: 100% !important;
-      max-width: 580px !important;
+  wrapper.innerHTML = `
+    <div style="
       background: #181d28 !important;
       border: 1px solid rgba(255, 255, 255, 0.15) !important;
       border-radius: 16px !important;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9) !important;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9) !important;
+      width: 100% !important;
+      max-width: 560px !important;
       padding: 24px !important;
       box-sizing: border-box !important;
-      margin: 0 !important;
-    `;
+      color: #ffffff !important;
+      font-family: inherit !important;
+    ">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
+        <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600;">Compartilhar projeto</h2>
+        <button onclick="closeShareModal()" style="background: transparent; border: none; color: #a0aec0; cursor: pointer; padding: 4px; display: flex; align-items: center;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <p style="margin: 0; font-weight: 600; font-size: 1rem; color: #e2e8f0;">Projeto: ${p.title}</p>
+        <p style="margin: 0; font-size: 0.875rem; color: #a0aec0; line-height: 1.4;">
+          O cliente verá apenas este projeto, em modo de leitura: poderá baixar os arquivos (renders, plantas e PDFs) e consultar o memorial descritivo com os links dos produtos. Contratos ficam ocultos.
+        </p>
+
+        <!-- CAMPO SENHA -->
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+          <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: #a0aec0;">DEFINIR SENHA DO CLIENTE</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="shareClientPasswordInput" value="${clientPwd}" placeholder="Digite a senha (ex: 1234)" style="flex: 1; background: #0f131c; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.9rem; outline: none;">
+            <button type="button" id="btnSaveClientPassword" style="background: #e56a44; border: none; border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">Salvar Senha</button>
+          </div>
+          <p id="savePasswordFeedback" style="display: none; color: #4CAF50; font-size: 0.85rem; margin: 4px 0 0 0;">✓ Senha atualizada com sucesso!</p>
+        </div>
+
+        <!-- CAMPO LINK -->
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+          <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: #a0aec0;">LINK DE ACESSO DO CLIENTE</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="shareLinkInput" value="${shareUrl}" readonly style="flex: 1; background: #0f131c; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.9rem; outline: none;">
+            <button type="button" id="btnCopyLink" style="background: #2d3748; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">Copiar Link</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Fecha ao clicar fora
+  wrapper.onclick = function (e) {
+    if (e.target === wrapper) closeShareModal();
+  };
+
+  document.body.appendChild(wrapper);
+
+  // Reconecta os ouvintes de evento dos botões internos
+  const btnSave = document.getElementById("btnSaveClientPassword");
+  if (btnSave) {
+    btnSave.onclick = function () {
+      const pwdVal = document.getElementById("shareClientPasswordInput").value;
+      p.clientPassword = pwdVal;
+      if (typeof saveProjects === "function") saveProjects();
+      const fb = document.getElementById("savePasswordFeedback");
+      if (fb) fb.style.display = "block";
+    };
   }
 
-  // Evento para fechar se clicar fora do card
-  modalOverlay.onclick = function (e) {
-    if (e.target === modalOverlay) {
-      closeShareModal();
-    }
-  };
+  const btnCopy = document.getElementById("btnCopyLink");
+  if (btnCopy) {
+    btnCopy.onclick = function () {
+      const input = document.getElementById("shareLinkInput");
+      if (input) {
+        input.select();
+        navigator.clipboard.writeText(input.value);
+        if (typeof showToast === "function") showToast("Link copiado para a área de transferência!");
+      }
+    };
+  }
 }
 
 function closeShareModal() {
-  const modalOverlay = document.getElementById("shareModal");
-  if (modalOverlay) {
-    modalOverlay.setAttribute("hidden", "");
-    modalOverlay.style.cssText = "display: none !important;";
-  }
+  const wrapper = document.getElementById("customShareWrapper");
+  if (wrapper) wrapper.remove();
 }
 
 /* ---------------- Listener Global para Fechar Modais ao Clicar Fora ---------------- */

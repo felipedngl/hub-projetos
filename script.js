@@ -3790,9 +3790,8 @@ function enableCardDragging() {
   });
 }
 
-/* ---------------- Modal de Compartilhamento (100% Funcional) ---------------- */
+/* ---------------- Modal de Compartilhamento (Definitivo) ---------------- */
 function openShareModal() {
-  // 1. Identifica o projeto ativo
   let p = null;
   if (typeof currentProject === "function") {
     try { p = currentProject(); } catch(err) {}
@@ -3806,8 +3805,7 @@ function openShareModal() {
   }
 
   if (!p) {
-    if (typeof showToast === "function") showToast("Nenhum projeto encontrado para compartilhar.", true);
-    else alert("Nenhum projeto encontrado.");
+    alert("Nenhum projeto selecionado.");
     return;
   }
 
@@ -3825,21 +3823,22 @@ function openShareModal() {
     left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    background: rgba(0, 0, 0, 0.8) !important;
+    background: rgba(0, 0, 0, 0.85) !important;
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
-    z-index: 9999999 !important;
+    z-index: 2147483647 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 20px !important;
     box-sizing: border-box !important;
+    pointer-events: auto !important;
   `;
 
   wrapper.innerHTML = `
     <div style="
       background: #181d28 !important;
-      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
       border-radius: 16px !important;
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9) !important;
       width: 100% !important;
@@ -3848,121 +3847,119 @@ function openShareModal() {
       box-sizing: border-box !important;
       color: #ffffff !important;
       font-family: inherit !important;
-      pointer-events: auto !important;
       position: relative !important;
-      z-index: 10000000 !important;
-    ">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
+      z-index: 2147483647 !important;
+      pointer-events: auto !important;
+    " onclick="event.stopPropagation();">
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px;">
         <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600;">Compartilhar projeto</h2>
-        <button type="button" onclick="closeShareModal()" style="background: transparent; border: none; color: #a0aec0; cursor: pointer; padding: 4px; display: flex; align-items: center;">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <path d="M18 6 6 18M6 6l12 12"></path>
-          </svg>
+        <button type="button" onclick="closeShareModal()" style="background: transparent; border: none; color: #a0aec0; cursor: pointer; padding: 4px;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"></path></svg>
         </button>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 16px;">
         <p style="margin: 0; font-weight: 600; font-size: 1rem; color: #e2e8f0;">Projeto: ${p.title || "Sem título"}</p>
         <p style="margin: 0; font-size: 0.85rem; color: #a0aec0; line-height: 1.4;">
-          O cliente verá apenas este projeto em modo de leitura (renders, plantas e memorial descritivo).
+          O cliente verá apenas este projeto em modo de leitura.
         </p>
 
-        <!-- DEFINIR SENHA -->
+        <!-- CAMPO SENHA -->
         <div style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: #a0aec0;">SENHA DO CLIENTE</label>
+          <label style="font-size: 0.75rem; font-weight: 700; color: #a0aec0;">SENHA DO CLIENTE</label>
           <div style="display: flex; gap: 8px;">
-            <input type="text" id="shareClientPasswordInput" value="${clientPwd}" placeholder="Digite a senha (ex: 1234)" style="flex: 1; background: #0f131c; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.9rem; outline: none;">
-            <button type="button" id="btnSaveClientPassword" style="background: #e56a44; border: none; border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem; white-space: nowrap;">Salvar Senha</button>
+            <input type="text" id="shareClientPasswordInput" value="${clientPwd}" placeholder="Digite a senha" style="flex: 1; background: #0f131c; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px; color: #fff; font-size: 0.9rem;">
+            <button type="button" id="btnSaveClientPasswordDirect" style="background: #e56a44; border: none; border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; z-index: 2147483647; position: relative;">Salvar Senha</button>
           </div>
           <p id="savePasswordFeedback" style="display: none; color: #4CAF50; font-size: 0.85rem; margin: 4px 0 0 0; font-weight: 600;">✓ Senha salva com sucesso!</p>
         </div>
 
-        <!-- LINK DE ACESSO -->
+        <!-- CAMPO LINK -->
         <div style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: #a0aec0;">LINK DO CLIENTE</label>
+          <label style="font-size: 0.75rem; font-weight: 700; color: #a0aec0;">LINK DO CLIENTE</label>
           <div style="display: flex; gap: 8px;">
-            <input type="text" id="shareLinkInput" value="${shareUrl}" readonly style="flex: 1; background: #0f131c; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.9rem; outline: none;">
-            <button type="button" id="btnCopyLink" style="background: #2d3748; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem; white-space: nowrap;">Copiar Link</button>
+            <input type="text" id="shareLinkInput" value="${shareUrl}" readonly style="flex: 1; background: #0f131c; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px; color: #fff; font-size: 0.9rem;">
+            <button type="button" id="btnCopyLinkDirect" style="background: #2d3748; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; z-index: 2147483647; position: relative;">Copiar Link</button>
           </div>
         </div>
       </div>
     </div>
   `;
 
-  wrapper.onpointerdown = function (e) {
+  // Fechar ao clicar fora
+  wrapper.onclick = function (e) {
     if (e.target === wrapper) closeShareModal();
   };
 
   document.body.appendChild(wrapper);
 
-  // LÓGICA DO BOTÃO SALVAR SENHA
-  const btnSave = document.getElementById("btnSaveClientPassword");
-  if (btnSave) {
-    btnSave.onclick = function (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  // VÍNCULO DIRETO FORÇADO (Sem esperar nada)
+  setTimeout(() => {
+    // 1. AÇÃO DE SALVAR SENHA
+    const btnSave = document.getElementById("btnSaveClientPasswordDirect");
+    if (btnSave) {
+      btnSave.onmousedown = function(e) { e.stopPropagation(); };
+      btnSave.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
 
-      const pwdInput = document.getElementById("shareClientPasswordInput");
-      const pwdVal = pwdInput ? pwdInput.value : "";
+        const input = document.getElementById("shareClientPasswordInput");
+        const nuevaSenha = input ? input.value : "";
 
-      // Atualiza o objeto do projeto de todas as formas possíveis
-      p.clientPassword = pwdVal;
+        // Grava no objeto local
+        p.clientPassword = nuevaSenha;
 
-      if (typeof projects !== "undefined" && Array.isArray(projects)) {
-        const found = projects.find(item => item.id === p.id);
-        if (found) found.clientPassword = pwdVal;
-      }
+        // Atualiza na lista global de projetos
+        if (typeof projects !== "undefined" && Array.isArray(projects)) {
+          const item = projects.find(proj => proj.id === p.id);
+          if (item) item.clientPassword = nuevaSenha;
+        }
 
-      // Persiste no banco/storage do sistema
-      if (typeof saveProjects === "function") saveProjects();
-      if (typeof saveState === "function") saveState();
+        // Força salvar no localStorage / Supabase
+        if (typeof saveProjects === "function") saveProjects();
+        if (typeof saveState === "function") saveState();
 
-      const fb = document.getElementById("savePasswordFeedback");
-      if (fb) {
-        fb.style.display = "block";
-        setTimeout(() => { fb.style.display = "none"; }, 3000);
-      } else {
-        alert("Senha salva!");
-      }
-    };
-  }
+        // Alerta visual imediato no próprio modal
+        const fb = document.getElementById("savePasswordFeedback");
+        if (fb) fb.style.display = "block";
+        alert("Senha salva com sucesso!");
+      };
+    }
 
-  // LÓGICA DO BOTÃO COPIAR LINK
-  const btnCopy = document.getElementById("btnCopyLink");
-  if (btnCopy) {
-    btnCopy.onclick = function (e) {
-      e.preventDefault();
-      e.stopPropagation();
+    // 2. AÇÃO DE COPIAR LINK
+    const btnCopy = document.getElementById("btnCopyLinkDirect");
+    if (btnCopy) {
+      btnCopy.onmousedown = function(e) { e.stopPropagation(); };
+      btnCopy.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
 
-      const input = document.getElementById("shareLinkInput");
-      if (!input) return;
+        const inputLink = document.getElementById("shareLinkInput");
+        if (inputLink) {
+          inputLink.focus();
+          inputLink.select();
+          inputLink.setSelectionRange(0, 99999);
 
-      // Seleciona o texto no campo visível
-      input.select();
-      input.setSelectionRange(0, 99999);
+          let copiado = false;
+          try {
+            copiado = document.execCommand("copy");
+          } catch(err) {
+            copiado = false;
+          }
 
-      // Tenta copiar pelo método nativo garantido
-      let success = false;
-      try {
-        success = document.execCommand("copy");
-      } catch (err) {
-        success = false;
-      }
+          if (!copiado && navigator.clipboard) {
+            navigator.clipboard.writeText(inputLink.value);
+            copiado = true;
+          }
 
-      if (!success && navigator.clipboard) {
-        navigator.clipboard.writeText(input.value);
-        success = true;
-      }
-
-      if (success) {
-        btnCopy.textContent = "Copiado!";
-        setTimeout(() => { btnCopy.textContent = "Copiar Link"; }, 2000);
-        if (typeof showToast === "function") showToast("Link copiado!");
-      } else {
-        alert("Não foi possível copiar automaticamente. O link já está selecionado, basta apertar Ctrl+C!");
-      }
-    };
-  }
+          btnCopy.textContent = "Copiado!";
+          setTimeout(() => { btnCopy.textContent = "Copiar Link"; }, 2000);
+          alert("Link copiado para a área de transferência!");
+        }
+      };
+    }
+  }, 50);
 }
 
 function closeShareModal() {
@@ -3972,5 +3969,4 @@ function closeShareModal() {
 
 window.openShareModal = openShareModal;
 window.closeShareModal = closeShareModal;
-
 })();

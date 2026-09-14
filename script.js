@@ -3384,7 +3384,7 @@ function openShareModal() {
   const modalOverlay = $("#shareModal") || document.querySelector("#shareModal");
   if (!modalOverlay) return;
 
-  // Garante que fique na raiz do body para ter o z-index correto
+  // Garante mover para a raiz do body para z-index correto
   if (modalOverlay.parentNode !== document.body) {
     document.body.appendChild(modalOverlay);
   }
@@ -3405,17 +3405,22 @@ function openShareModal() {
   const linkInput = $("#shareLinkInput");
   if (linkInput) linkInput.value = shareUrl;
 
-  // Garante que a caixa interna fique visível e exibe o modal overlay
-  const innerModal = modalOverlay.querySelector(".modal");
-  if (innerModal) innerModal.style.display = "block";
-
+  // Mostra o modal adicionando a classe active
   modalOverlay.removeAttribute("hidden");
-  modalOverlay.style.display = "flex";
+  modalOverlay.classList.add("active");
+
+  // Evento para fechar se clicar no fundo fora do card
+  modalOverlay.onclick = function (e) {
+    if (e.target === modalOverlay) {
+      closeShareModal();
+    }
+  };
 }
 
 function closeShareModal() {
   const modalOverlay = $("#shareModal") || document.querySelector("#shareModal");
   if (modalOverlay) {
+    modalOverlay.classList.remove("active");
     modalOverlay.setAttribute("hidden", "");
     modalOverlay.style.display = "none";
   }

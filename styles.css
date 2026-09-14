@@ -2901,3 +2901,20 @@ body.client-view .btn-back {
   border-radius: 50%;
   border: 2px solid #ffffff;
 }
+
+/* Reduz o tamanho da caixa de busca */
+.search-container, 
+#searchProjects, 
+#searchInput {
+  max-height: 48px !important;
+  height: 48px !important;
+  padding: 8px 16px !important;
+}
+
+/* Oculta os elementos do dashboard por padrão até autenticar */
+body:not(.authenticated) .search-container,
+body:not(.authenticated) .filters-container,
+body:not(.authenticated) .projects-grid,
+body:not(.authenticated) #projectsGrid {
+  display: none !important;
+}

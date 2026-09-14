@@ -3694,11 +3694,14 @@ async function init() {
 
   bindEvents();
 
-	const cloudProjects = typeof loadProjects === "function"
+  // Inicializa o controle do botão de lupa expandível
+  initSearchToggle();
+
+  const cloudProjects = typeof loadProjects === "function"
   ? await loadProjects()
   : [];	
 	
-	if (cloudProjects && cloudProjects.length > 0) {
+  if (cloudProjects && cloudProjects.length > 0) {
     projects = cloudProjects.map((p) => (typeof seedProject === "function" ? seedProject(p) : p));
   } else if (typeof initialProjects !== "undefined") {
     projects = initialProjects;
@@ -3738,6 +3741,30 @@ if (document.readyState === "loading") {
   init();
 }
 
+/* ---------------- Lógica da Lupa de Busca ---------------- */
+function initSearchToggle() {
+  const btnToggle = document.getElementById("btnToggleSearch");
+  const wrapper = document.getElementById("searchBoxWrapper");
+  const searchInput = document.getElementById("searchInput");
+
+  if (btnToggle && wrapper) {
+    btnToggle.onclick = function (e) {
+      e.stopPropagation();
+      const isHidden = wrapper.style.display === "none" || wrapper.style.display === "";
+      wrapper.style.display = isHidden ? "block" : "none";
+      if (isHidden && searchInput) {
+        searchInput.focus();
+      }
+    };
+
+    document.addEventListener("click", function (e) {
+      if (!wrapper.contains(e.target) && e.target !== btnToggle) {
+        wrapper.style.display = "none";
+      }
+    });
+  }
+}
+
 /* ---------------- Sistema Global de Teclas e Modais ---------------- */
 document.addEventListener("keydown", function (e) {
   if (e.key === "Enter") {
@@ -3769,7 +3796,6 @@ document.addEventListener("click", function (e) {
 });
 
 function closeAllOpenModals() {
-  // Ignora modais de autenticação obrigatórios ao fechar
   const selectors = [".modal", ".modal-overlay", ".checklist-modal-overlay", "#shareModal"];
 
   selectors.forEach((selector) => {
@@ -3793,7 +3819,6 @@ function enableCardDragging() {
     card.onpointerdown = null;
 
     card.onpointerdown = (e) => {
-      // Ignora botões, links e inputs
       if (e.target.closest("button") || e.target.closest("a") || e.target.closest("input")) return;
 
       const box = card.getBoundingClientRect();
@@ -3824,7 +3849,6 @@ function enableCardDragging() {
         const deltaX = Math.abs(moveEvent.clientX - startX);
         const deltaY = Math.abs(moveEvent.clientY - startY);
 
-        // Se o movimento for predominantemente vertical (rolagem de tela no mobile), não inicia o arrasto
         if (!isDragging && deltaY > deltaX && deltaY > 8) {
           onPointerUp();
           return;
@@ -3832,7 +3856,7 @@ function enableCardDragging() {
 
         if (!isDragging) {
           const dist = Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY);
-          if (dist < 10) return; // Tolerância de toque para não disparar à toa
+          if (dist < 10) return;
 
           isDragging = true;
           document.body.classList.add("dragging-active");
@@ -3911,5 +3935,160 @@ function enableCardDragging() {
     };
   });
 }
-	
+
+/* ---------------- Modal de Compartilhamento ---------------- */
+function openShareModal() {
+  let p = null;
+  if (typeof currentProject === "function") {
+    p = currentProject();
+  } else if (typeof currentProject === "object") {
+    p = currentProject;
+  } else if (window.selectedProject) {
+    p = window.selectedProject;
+  }
+
+  if (!p) {
+    if (typeof showToast === "function") showToast("Nenhum projeto selecionado.", true);
+    return;
+  }
+
+  closeShareModal();
+
+  const projectSlug = p.slug || (typeof slugify === "function" ? slugify(p.title) : p.id) || p.id;
+  const shareUrl = `${window.location.origin}${window.location.pathname}?p=${encodeURIComponent(projectSlug)}`;
+  const clientPwd = p.clientPassword || "";
+
+  const wrapper = document.createElement("div");
+  wrapper.id = "customShareWrapper";
+  wrapper.style.cssText = `
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    z-index: 9999999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+  `;
+
+  wrapper.innerHTML = `
+    <div style="
+      background: #181d28 !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9) !important;
+      width: 100% !important;
+      max-width: 560px !important;
+      padding: 24px !important;
+      box-sizing: border-box !important;
+      color: #ffffff !important;
+      font-family: inherit !important;
+    ">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
+        <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600;">Compartilhar projeto</h2>
+        <button type="button" id="btnCustomShareClose" style="background: transparent; border: none; color: #a0aec0; cursor: pointer; padding: 4px; display: flex; align-items: center;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <p style="margin: 0; font-weight: 600; font-size: 1rem; color: #e2e8f0;">Projeto: ${p.title || "Sem título"}</p>
+        <p style="margin: 0; font-size: 0.875rem; color: #a0aec0; line-height: 1.4;">
+          O cliente verá apenas este projeto, em modo de leitura: poderá baixar os arquivos (renders, plantas e PDFs) e consultar o memorial descritivo com os links dos produtos. Contratos ficam ocultos.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+          <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: #a0aec0;">DEFINIR SENHA DO CLIENTE</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="shareClientPasswordInput" value="${clientPwd}" placeholder="Digite a senha (ex: 1234)" style="flex: 1; background: #0f131c; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.9rem; outline: none;">
+            <button type="button" id="btnSaveClientPassword" style="background: #e56a44; border: none; border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">Salvar Senha</button>
+          </div>
+          <p id="savePasswordFeedback" style="display: none; color: #4CAF50; font-size: 0.85rem; margin: 4px 0 0 0;">✓ Senha atualizada com sucesso!</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+          <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: #a0aec0;">LINK DE ACESSO DO CLIENTE</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="shareLinkInput" value="${shareUrl}" readonly style="flex: 1; background: #0f131c; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.9rem; outline: none;">
+            <button type="button" id="btnCopyLink" style="background: #2d3748; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">Copiar Link</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  wrapper.onclick = function (e) {
+    if (e.target === wrapper) closeShareModal();
+  };
+
+  document.body.appendChild(wrapper);
+
+  const btnClose = document.getElementById("btnCustomShareClose");
+  if (btnClose) {
+    btnClose.onclick = function (e) {
+      e.stopPropagation();
+      closeShareModal();
+    };
+  }
+
+  const btnSave = document.getElementById("btnSaveClientPassword");
+  if (btnSave) {
+    btnSave.onclick = function (e) {
+      e.stopPropagation();
+      const pwdVal = document.getElementById("shareClientPasswordInput").value;
+      p.clientPassword = pwdVal;
+
+      if (typeof saveProjects === "function") saveProjects();
+      if (typeof saveState === "function") saveState();
+
+      const fb = document.getElementById("savePasswordFeedback");
+      if (fb) fb.style.display = "block";
+    };
+  }
+
+  const btnCopy = document.getElementById("btnCopyLink");
+  if (btnCopy) {
+    btnCopy.onclick = function (e) {
+      e.stopPropagation();
+      const input = document.getElementById("shareLinkInput");
+      if (input) {
+        input.select();
+        input.setSelectionRange(0, 99999);
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(input.value).then(showCopySuccess);
+        } else {
+          document.execCommand("copy");
+          showCopySuccess();
+        }
+      }
+    };
+  }
+
+  function showCopySuccess() {
+    if (typeof showToast === "function") {
+      showToast("Link copiado para a área de transferência!");
+    } else {
+      alert("Link copiado!");
+    }
+  }
+}
+
+function closeShareModal() {
+  const wrapper = document.getElementById("customShareWrapper");
+  if (wrapper) wrapper.remove();
+}
+
+// Expõe globalmente
+window.openShareModal = openShareModal;
+window.closeShareModal = closeShareModal;
+
 })();

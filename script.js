@@ -3384,12 +3384,12 @@ function openShareModal() {
   const modal = $("#shareModal") || document.querySelector("#shareModal");
   if (!modal) return;
 
-  // Move o modal para a raiz do body para não herdar filtros ou z-index baixos de telas anteriores
+  // Garante que o modal esteja na raiz do HTML para centralizar perfeitamente
   if (modal.parentNode !== document.body) {
     document.body.appendChild(modal);
   }
 
-  // Preenche as informações do projeto
+  // Preenche as informações
   const nameEl = $("#shareProjectName");
   if (nameEl) nameEl.textContent = `Projeto: ${p.title}`;
 
@@ -3405,36 +3405,30 @@ function openShareModal() {
   const linkInput = $("#shareLinkInput");
   if (linkInput) linkInput.value = shareUrl;
 
-  // Remove qualquer overlay duplicado que tenha ficado aberto
-  const oldOverlays = document.querySelectorAll("#shareOverlay, .share-backdrop");
-  oldOverlays.forEach((el) => el.remove());
+  // Remove overlay antigo se houver
+  const oldOverlay = document.querySelector("#shareOverlay");
+  if (oldOverlay) oldOverlay.remove();
 
-  // Cria um único fundo escuro limpo com z-index alto
+  // Cria o fundo escuro transparente com blur suave
   const overlay = document.createElement("div");
   overlay.id = "shareOverlay";
-  overlay.style.cssText = "display: block !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7) !important; z-index: 100000 !important;";
   overlay.onclick = closeShareModal;
   document.body.appendChild(overlay);
 
-  // Exibe o modal no topo absoluto acima de qualquer outro modal da tela
+  // Exibe o modal centralizado
   modal.removeAttribute("hidden");
-  modal.style.cssText = "display: flex !important; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100005 !important; background: #1e293b; color: #ffffff; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);";
-  modal.classList.add("active", "show", "open");
+  modal.style.display = "block";
 }
 
 function closeShareModal() {
   const modal = $("#shareModal") || document.querySelector("#shareModal");
   if (modal) {
     modal.setAttribute("hidden", "");
-    modal.style.cssText = "display: none !important;";
-    modal.classList.remove("active", "show", "open");
+    modal.style.display = "none";
   }
 
-  // Remove o fundo do modal de compartilhamento sem fechar o projeto do fundo
   const overlay = document.querySelector("#shareOverlay");
-  if (overlay) {
-    overlay.remove();
-  }
+  if (overlay) overlay.remove();
 }
 
 /* ---------------- Listener Global para Fechar Modais ao Clicar Fora ---------------- */

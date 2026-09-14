@@ -3836,7 +3836,7 @@ function openShareModal() {
     box-sizing: border-box !important;
   `;
 
-  wrapper.innerHTML = `
+wrapper.innerHTML = `
     <div style="
       background: #181d28 !important;
       border: 1px solid rgba(255, 255, 255, 0.15) !important;
@@ -3848,10 +3848,13 @@ function openShareModal() {
       box-sizing: border-box !important;
       color: #ffffff !important;
       font-family: inherit !important;
+      pointer-events: auto !important;
+      position: relative !important;
+      z-index: 10000000 !important;
     ">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
         <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600;">Compartilhar projeto</h2>
-        <button type="button" id="btnCustomShareClose" style="background: transparent; border: none; color: #a0aec0; cursor: pointer; padding: 4px; display: flex; align-items: center;">
+        <button type="button" onclick="closeShareModal()" style="background: transparent; border: none; color: #a0aec0; cursor: pointer; padding: 4px; display: flex; align-items: center;">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M18 6 6 18M6 6l12 12"></path>
           </svg>
@@ -3869,9 +3872,17 @@ function openShareModal() {
           <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: #a0aec0;">SENHA DO CLIENTE</label>
           <div style="display: flex; gap: 8px;">
             <input type="text" id="shareClientPasswordInput" value="${clientPwd}" placeholder="Digite a senha (ex: 1234)" style="flex: 1; background: #0f131c; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.9rem; outline: none;">
-            <button type="button" id="btnSaveClientPassword" style="background: #e56a44; border: none; border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem; white-space: nowrap;">Salvar Senha</button>
+            <button type="button" onclick="
+              event.preventDefault(); 
+              event.stopPropagation(); 
+              const val = document.getElementById('shareClientPasswordInput').value;
+              window.currentProjectData = window.currentProjectData || {};
+              if (typeof currentProject === 'object' && currentProject) currentProject.clientPassword = val;
+              if (typeof saveProjects === 'function') saveProjects();
+              if (typeof saveState === 'function') saveState();
+              alert('Senha salva: ' + val);
+            " style="background: #e56a44; border: none; border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem; white-space: nowrap; position: relative; z-index: 10;">Salvar Senha</button>
           </div>
-          <p id="savePasswordFeedback" style="display: none; color: #4CAF50; font-size: 0.85rem; margin: 4px 0 0 0; font-weight: 600;">✓ Senha salva com sucesso!</p>
         </div>
 
         <!-- LINK DE ACESSO -->
@@ -3879,7 +3890,14 @@ function openShareModal() {
           <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: #a0aec0;">LINK DO CLIENTE</label>
           <div style="display: flex; gap: 8px;">
             <input type="text" id="shareLinkInput" value="${shareUrl}" readonly style="flex: 1; background: #0f131c; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.9rem; outline: none;">
-            <button type="button" id="btnCopyLink" style="background: #2d3748; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem; white-space: nowrap;">Copiar Link</button>
+            <button type="button" onclick="
+              event.preventDefault(); 
+              event.stopPropagation(); 
+              const input = document.getElementById('shareLinkInput');
+              input.select();
+              navigator.clipboard.writeText(input.value);
+              alert('Link copiado!');
+            " style="background: #2d3748; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem; white-space: nowrap; position: relative; z-index: 10;">Copiar Link</button>
           </div>
         </div>
       </div>

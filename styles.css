@@ -2937,38 +2937,68 @@ body.client-view #searchProjects {
   animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
-/* --- ESTILOS DO MODAL DE COMPARTILHAMENTO --- */
+/* =========================================================
+   MODAL DE COMPARTILHAMENTO DEFINITIVO
+   ========================================================= */
 
-/* O fundo transparente com blur (escondido por padrão) */
+/* Fundo com Blur escuro em tela cheia */
 #shareModal.modal-overlay {
   display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  z-index: 100005;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  z-index: 999999 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  margin: 0 !important;
 }
 
-/* Quando estiver ativo, exibe como flex */
+/* Quando ativo, vira Flex para centralizar perfeitamente */
 #shareModal.modal-overlay.active {
   display: flex !important;
 }
 
-/* A caixa do pop-up centralizada */
+/* Caixa Interna (Pop-up Retangular Largo) */
 #shareModal .modal {
   display: block !important;
-  position: relative;
-  max-width: 480px;
-  width: 100%;
-  background-color: #1a202c;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
-  padding: 24px;
+  position: relative !important;
+  width: 100% !important;
+  max-width: 600px !important; /* Retângulo bem espaçoso */
+  background: #181d28 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85) !important;
+  padding: 28px !important;
+  z-index: 1000000 !important;
+  animation: shareModalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+/* Ajuste dos inputs internos para não espremer o link */
+#shareModal .share-link-row,
+#shareModal .field > div {
+  display: flex !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+
+#shareModal input[type="text"] {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+@keyframes shareModalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

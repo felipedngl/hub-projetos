@@ -3384,12 +3384,12 @@ function openShareModal() {
   const modalOverlay = document.getElementById("shareModal");
   if (!modalOverlay) return;
 
-  // Move para o final do body para não ficar preso dentro do container do projeto
+  // Garante que o overlay fique direto no <body> (fora de qualquer container com transform)
   if (modalOverlay.parentNode !== document.body) {
     document.body.appendChild(modalOverlay);
   }
 
-  // Preenche as informações
+  // Preenche dados do projeto
   const nameEl = document.getElementById("shareProjectName");
   if (nameEl) nameEl.textContent = `Projeto: ${p.title}`;
 
@@ -3405,11 +3405,53 @@ function openShareModal() {
   const linkInput = document.getElementById("shareLinkInput");
   if (linkInput) linkInput.value = shareUrl;
 
-  // Ativa a exibição centralizada
+  // 1. FORÇA O OVERLAY (Fundo Blur) A OCUPAR 100% DA TELA E CENTRALIZAR COM FLEXBOX
   modalOverlay.removeAttribute("hidden");
-  modalOverlay.classList.add("active");
+  modalOverlay.style.cssText = `
+    display: flex !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    z-index: 9999999 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+    transform: none !important;
+  `;
 
-  // Clique no fundo fecha o modal
+  // 2. FORÇA A CAIXA INTERNA (.modal) A FICAR RETANGULAR E SEM OFFSETS ESTRANHOS
+  const innerModal = modalOverlay.querySelector(".modal");
+  if (innerModal) {
+    innerModal.style.cssText = `
+      display: block !important;
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      right: auto !important;
+      bottom: auto !important;
+      transform: none !important;
+      width: 100% !important;
+      max-width: 580px !important;
+      background: #181d28 !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9) !important;
+      padding: 24px !important;
+      box-sizing: border-box !important;
+      margin: 0 !important;
+    `;
+  }
+
+  // Evento para fechar se clicar fora do card
   modalOverlay.onclick = function (e) {
     if (e.target === modalOverlay) {
       closeShareModal();
@@ -3420,8 +3462,8 @@ function openShareModal() {
 function closeShareModal() {
   const modalOverlay = document.getElementById("shareModal");
   if (modalOverlay) {
-    modalOverlay.classList.remove("active");
     modalOverlay.setAttribute("hidden", "");
+    modalOverlay.style.cssText = "display: none !important;";
   }
 }
 

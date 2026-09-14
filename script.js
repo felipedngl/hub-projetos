@@ -3894,10 +3894,10 @@ function openShareModal() {
 
   document.body.appendChild(wrapper);
 
-  // VÍNCULO DIRETO FORÇADO (Sem esperar nada)
+// VÍNCULO DIRETO FORÇADO
   setTimeout(() => {
 
-// 1. AÇÃO DE SALVAR SENHA (Com suporte a form e persistência garantida)
+    // 1. AÇÃO DE SALVAR SENHA
     const btnSave = document.getElementById("btnSaveClientPasswordDirect");
     if (btnSave) {
       btnSave.onclick = function(e) {
@@ -3918,17 +3918,14 @@ function openShareModal() {
             item.clientPassword = novaSenha;
             item.client_password = novaSenha;
           }
-          // Salva no localStorage imediatamente
           try {
             localStorage.setItem("projects", JSON.stringify(projects));
           } catch(err) {}
         }
 
-        // Tenta rodar as funções de salvamento cadastradas no seu script
         if (typeof saveProjects === "function") saveProjects();
         if (typeof saveState === "function") saveState();
 
-        // Envia para o Supabase sem travar a tela
         if (typeof supabaseClient !== "undefined" && p.id) {
           supabaseClient
             .from("projects")
@@ -3938,7 +3935,6 @@ function openShareModal() {
             .catch(err => console.error("Erro Supabase:", err));
         }
 
-        // Feedback visual no próprio botão
         btnSave.textContent = "Salvo!";
         btnSave.style.background = "#2e7d32";
         setTimeout(() => {
@@ -3948,7 +3944,7 @@ function openShareModal() {
       };
     }
 
-    // 2. AÇÃO DE COPIAR LINK (Cópia Direta via Blob/Clipboard sem depender do DOM)
+    // 2. AÇÃO DE COPIAR LINK
     const btnCopy = document.getElementById("btnCopyLinkDirect");
     if (btnCopy) {
       btnCopy.onclick = function(e) {
@@ -3958,7 +3954,6 @@ function openShareModal() {
         const inputLink = document.getElementById("shareLinkInput");
         const urlParaCopiar = inputLink ? inputLink.value : shareUrl;
 
-        // Método 1: Clipboard API Direta (Não depende do campo na tela)
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(urlParaCopiar).then(() => {
             btnCopy.textContent = "Copiado!";
@@ -3976,7 +3971,6 @@ function openShareModal() {
       };
     }
 
-    // Função de contingência para navegadores restritos
     function copiarFallback(texto, botao) {
       const area = document.createElement("textarea");
       area.value = texto;
@@ -3998,7 +3992,10 @@ function openShareModal() {
         botao.style.background = "#2d3748";
       }, 2000);
     }
-	
+
+  }, 50); // Fechamento do setTimeout
+} // Fechamento da função openShareModal
+
 function closeShareModal() {
   const wrapper = document.getElementById("customShareWrapper");
   if (wrapper) wrapper.remove();

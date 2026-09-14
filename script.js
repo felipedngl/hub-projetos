@@ -3384,12 +3384,12 @@ function openShareModal() {
   const modalOverlay = $("#shareModal") || document.querySelector("#shareModal");
   if (!modalOverlay) return;
 
-  // Garante mover para a raiz do body para z-index correto
+  // Move para a raiz do body para não sofrer com z-index de containers pai
   if (modalOverlay.parentNode !== document.body) {
     document.body.appendChild(modalOverlay);
   }
 
-  // Preenche dados do projeto
+  // Preenche informações do projeto
   const nameEl = $("#shareProjectName");
   if (nameEl) nameEl.textContent = `Projeto: ${p.title}`;
 
@@ -3405,11 +3405,11 @@ function openShareModal() {
   const linkInput = $("#shareLinkInput");
   if (linkInput) linkInput.value = shareUrl;
 
-  // Mostra o modal adicionando a classe active
-  modalOverlay.removeAttribute("hidden");
+  // Abre o modal de forma limpa
   modalOverlay.classList.add("active");
+  modalOverlay.removeAttribute("hidden");
 
-  // Evento para fechar se clicar no fundo fora do card
+  // Fecha se clicar no fundo com blur (fora da caixa)
   modalOverlay.onclick = function (e) {
     if (e.target === modalOverlay) {
       closeShareModal();
@@ -3422,7 +3422,6 @@ function closeShareModal() {
   if (modalOverlay) {
     modalOverlay.classList.remove("active");
     modalOverlay.setAttribute("hidden", "");
-    modalOverlay.style.display = "none";
   }
 }
 

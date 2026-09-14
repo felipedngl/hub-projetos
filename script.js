@@ -3722,10 +3722,8 @@ function enableCardDragging() {
       const shiftY = e.clientY - box.top;
 
       let isDragging = false;
-
-      // Impede a seleção azul de texto nativa do navegador
-      document.body.style.userSelect = "none";
-      document.body.style.webkitUserSelect = "none";
+      const startX = e.clientX;
+      const startY = e.clientY;
 
       const placeholder = document.createElement("div");
       placeholder.className = "card-placeholder";
@@ -3744,14 +3742,24 @@ function enableCardDragging() {
       }
 
       function onPointerMove(moveEvent) {
-        // Cancela qualquer seleção de texto acidental durante o movimento
-        moveEvent.preventDefault();
+        const deltaX = Math.abs(moveEvent.clientX - startX);
+        const deltaY = Math.abs(moveEvent.clientY - startY);
+
+        // Se o movimento for predominantemente vertical (rolagem de tela no mobile), não inicia o arrasto
+        if (!isDragging && deltaY > deltaX && deltaY > 8) {
+          onPointerUp();
+          return;
+        }
 
         if (!isDragging) {
-          const dist = Math.hypot(moveEvent.clientX - e.clientX, moveEvent.clientY - e.clientY);
-          if (dist < 5) return;
+          const dist = Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY);
+          if (dist < 10) return; // Tolerância de toque para não disparar à toa
 
           isDragging = true;
+          document.body.classList.add("dragging-active");
+          document.body.style.userSelect = "none";
+          document.body.style.webkitUserSelect = "none";
+
           container.insertBefore(placeholder, card);
 
           card.style.cssText = `
@@ -3769,6 +3777,7 @@ function enableCardDragging() {
           `;
         }
 
+        moveEvent.preventDefault();
         moveAt(moveEvent.clientX, moveEvent.clientY);
 
         const elementBelow = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY);
@@ -3790,7 +3799,7 @@ function enableCardDragging() {
         window.removeEventListener("pointermove", onPointerMove);
         window.removeEventListener("pointerup", onPointerUp);
 
-        // Restaura a capacidade de selecionar texto normalmente no site
+        document.body.classList.remove("dragging-active");
         document.body.style.userSelect = "";
         document.body.style.webkitUserSelect = "";
 
@@ -3818,7 +3827,7 @@ function enableCardDragging() {
         }
       }
 
-      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointermove", onPointerMove, { passive: false });
       window.addEventListener("pointerup", onPointerUp);
     };
   });

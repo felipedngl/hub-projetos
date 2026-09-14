@@ -3896,31 +3896,45 @@ function openShareModal() {
 
   // VÍNCULO DIRETO FORÇADO (Sem esperar nada)
   setTimeout(() => {
-    // 1. AÇÃO DE SALVAR SENHA
+// 1. AÇÃO DE SALVAR SENHA
     const btnSave = document.getElementById("btnSaveClientPasswordDirect");
     if (btnSave) {
-      btnSave.onmousedown = function(e) { e.stopPropagation(); };
-      btnSave.onclick = function(e) {
+      btnSave.onclick = async function(e) {
         e.preventDefault();
         e.stopPropagation();
 
         const input = document.getElementById("shareClientPasswordInput");
         const nuevaSenha = input ? input.value : "";
 
-        // Grava no objeto local
+        // 1. Grava no objeto local (em ambas as variações de nome de propriedade)
         p.clientPassword = nuevaSenha;
+        p.client_password = nuevaSenha;
 
-        // Atualiza na lista global de projetos
+        // 2. Atualiza na lista global de projetos
         if (typeof projects !== "undefined" && Array.isArray(projects)) {
           const item = projects.find(proj => proj.id === p.id);
-          if (item) item.clientPassword = nuevaSenha;
+          if (item) {
+            item.clientPassword = nuevaSenha;
+            item.client_password = nuevaSenha;
+          }
         }
 
-        // Força salvar no localStorage / Supabase
+        // 3. Salva no banco de dados Supabase (se disponível)
+        if (typeof supabaseClient !== "undefined" && p.id) {
+          try {
+            await supabaseClient
+              .from("projects")
+              .update({ client_password: nuevaSenha, clientPassword: nuevaSenha })
+              .eq("id", p.id);
+          } catch (err) {
+            console.error("Erro Supabase:", err);
+          }
+        }
+
+        // 4. Salva no estado local/localStorage
         if (typeof saveProjects === "function") saveProjects();
         if (typeof saveState === "function") saveState();
 
-        // Alerta visual imediato no próprio modal
         const fb = document.getElementById("savePasswordFeedback");
         if (fb) fb.style.display = "block";
         alert("Senha salva com sucesso!");
@@ -3930,32 +3944,44 @@ function openShareModal() {
     // 2. AÇÃO DE COPIAR LINK
     const btnCopy = document.getElementById("btnCopyLinkDirect");
     if (btnCopy) {
-      btnCopy.onmousedown = function(e) { e.stopPropagation(); };
-      btnCopy.onclick = function(e) {
+      btnCopy.onclick = async function(e) {
         e.preventDefault();
         e.stopPropagation();
 
         const inputLink = document.getElementById("shareLinkInput");
-        if (inputLink) {
+        if (!inputLink) return;
+
+        const textoParaCopiar = inputLink.value;
+
+        // Tenta a API moderna Clipboard com await para garantir a gravação antes do alerta
+        let copiado = false;
+        if (navigator.clipboard && window.isSecureContext) {
+          try {
+            await navigator.clipboard.writeText(textoParaCopiar);
+            copiado = true;
+          } catch (err) {
+            copiado = false;
+          }
+        }
+
+        // Fallback nativo caso esteja em ambiente HTTP ou navegador antigo
+        if (!copiado) {
           inputLink.focus();
           inputLink.select();
           inputLink.setSelectionRange(0, 99999);
-
-          let copiado = false;
           try {
             copiado = document.execCommand("copy");
-          } catch(err) {
+          } catch (err) {
             copiado = false;
           }
+        }
 
-          if (!copiado && navigator.clipboard) {
-            navigator.clipboard.writeText(inputLink.value);
-            copiado = true;
-          }
-
+        if (copiado) {
           btnCopy.textContent = "Copiado!";
           setTimeout(() => { btnCopy.textContent = "Copiar Link"; }, 2000);
           alert("Link copiado para a área de transferência!");
+        } else {
+          alert("Não foi possível copiar automaticamente. Use Ctrl+C no texto selecionado.");
         }
       };
     }
@@ -3969,4 +3995,5 @@ function closeShareModal() {
 
 window.openShareModal = openShareModal;
 window.closeShareModal = closeShareModal;
+	
 })();

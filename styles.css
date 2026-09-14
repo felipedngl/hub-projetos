@@ -2982,3 +2982,57 @@ body.client-view #searchProjects {
 #shareModal .modal {
   margin: 0;
 }
+
+/* =========================================================
+   SISTEMA DE BUSCA EXPANDÍVEL (LUPA TOGGLE)
+   ========================================================= */
+
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: #a0aec0;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.search-box-wrapper {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 280px;
+  z-index: 1000;
+  background: #181d28;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.search-box-wrapper input {
+  width: 100%;
+  background: #0f131c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #fff;
+  font-size: 0.875rem;
+  outline: none;
+  box-sizing: border-box;
+}

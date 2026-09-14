@@ -2976,3 +2976,9 @@ body.client-view #searchProjects {
   padding: 24px !important;
   box-sizing: border-box !important;
 }
+
+/* Reseta qualquer interferência antiga no shareModal */
+#shareModal, 
+#shareModal .modal {
+  margin: 0;
+}

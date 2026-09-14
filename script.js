@@ -3381,35 +3381,35 @@ function openShareModal() {
     return;
   }
 
-  const modalOverlay = $("#shareModal") || document.querySelector("#shareModal");
+  const modalOverlay = document.getElementById("shareModal");
   if (!modalOverlay) return;
 
-  // Move para a raiz do body para não sofrer com z-index de containers pai
+  // Move para o final do body para não ficar preso dentro do container do projeto
   if (modalOverlay.parentNode !== document.body) {
     document.body.appendChild(modalOverlay);
   }
 
-  // Preenche informações do projeto
-  const nameEl = $("#shareProjectName");
+  // Preenche as informações
+  const nameEl = document.getElementById("shareProjectName");
   if (nameEl) nameEl.textContent = `Projeto: ${p.title}`;
 
-  const pwdInput = $("#shareClientPasswordInput");
+  const pwdInput = document.getElementById("shareClientPasswordInput");
   if (pwdInput) pwdInput.value = p.clientPassword || "";
 
-  const feedback = $("#savePasswordFeedback");
+  const feedback = document.getElementById("savePasswordFeedback");
   if (feedback) feedback.style.display = "none";
 
   const projectSlug = p.slug || (typeof slugify === "function" ? slugify(p.title) : p.id) || p.id;
   const shareUrl = `${window.location.origin}${window.location.pathname}?p=${encodeURIComponent(projectSlug)}`;
 
-  const linkInput = $("#shareLinkInput");
+  const linkInput = document.getElementById("shareLinkInput");
   if (linkInput) linkInput.value = shareUrl;
 
-  // Abre o modal de forma limpa
-  modalOverlay.classList.add("active");
+  // Ativa a exibição centralizada
   modalOverlay.removeAttribute("hidden");
+  modalOverlay.classList.add("active");
 
-  // Fecha se clicar no fundo com blur (fora da caixa)
+  // Clique no fundo fecha o modal
   modalOverlay.onclick = function (e) {
     if (e.target === modalOverlay) {
       closeShareModal();
@@ -3418,7 +3418,7 @@ function openShareModal() {
 }
 
 function closeShareModal() {
-  const modalOverlay = $("#shareModal") || document.querySelector("#shareModal");
+  const modalOverlay = document.getElementById("shareModal");
   if (modalOverlay) {
     modalOverlay.classList.remove("active");
     modalOverlay.setAttribute("hidden", "");

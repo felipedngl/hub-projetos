@@ -2884,3 +2884,20 @@ body.client-view .btn-back {
   box-sizing: border-box;
   transition: all 0.15s ease;
 }
+
+/* Notificação de mensagem não lida */
+.has-unread-indicator {
+  position: relative;
+}
+
+.has-unread-indicator::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
+  background-color: #ff4d4d;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+}

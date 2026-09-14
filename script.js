@@ -3363,12 +3363,17 @@ function showHubLocked() {
 function openShareModal() {
   const p = typeof currentProject === "function" ? currentProject() : currentProject;
   if (!p) {
-    showToast("Nenhum projeto selecionado.", true);
+    if (typeof showToast === "function") showToast("Nenhum projeto selecionado.", true);
     return;
   }
 
-  const modal = $("#shareModal") || document.querySelector("#shareModal") || document.querySelector(".share-modal");
+  const modal = $("#shareModal") || document.querySelector("#shareModal");
   if (!modal) return;
+
+  // CHAVE DA SOLUÇÃO: Move o modal para a raiz do HTML para nunca travar
+  if (modal.parentNode !== document.body) {
+    document.body.appendChild(modal);
+  }
 
   const nameEl = $("#shareProjectName");
   if (nameEl) nameEl.textContent = `Projeto: ${p.title}`;
@@ -3385,54 +3390,34 @@ function openShareModal() {
   const linkInput = $("#shareLinkInput");
   if (linkInput) linkInput.value = shareUrl;
 
-  // Garante que qualquer overlay existente fique ativo E clicável para fechar
-  let overlay = document.querySelector(".modal-overlay, .backdrop, .modal-backdrop");
+  // Cria/Recupera um overlay de fundo exclusivo para este modal
+  let overlay = document.querySelector("#shareOverlay");
   if (!overlay) {
-    // Se não existir overlay no HTML, cria um dinamicamente
     overlay = document.createElement("div");
-    overlay.className = "modal-overlay";
+    overlay.id = "shareOverlay";
     document.body.appendChild(overlay);
   }
 
-  // Estiliza e exibe o overlay
-  overlay.style.display = "block";
-  overlay.style.position = "fixed";
-  overlay.style.top = "0";
-  overlay.style.left = "0";
-  overlay.style.width = "100vw";
-  overlay.style.height = "100vh";
-  overlay.style.zIndex = "9998";
-  overlay.classList.add("active", "show");
+  overlay.style.cssText = "display: block !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 99998;";
+  overlay.onclick = closeShareModal;
 
-  // Configura o evento de clique NO OVERLAY para fechar tudo
-  overlay.onclick = () => {
-    closeShareModal();
-  };
-
-  // Exibe o modal acima do overlay
   modal.removeAttribute("hidden");
-  modal.style.display = "flex";
-  modal.style.position = "fixed";
-  modal.style.zIndex = "9999";
+  modal.style.cssText = "display: flex !important; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 99999;";
   modal.classList.add("active", "show", "open");
 }
 
 function closeShareModal() {
-  const modal = $("#shareModal") || document.querySelector("#shareModal") || document.querySelector(".share-modal");
-  
+  const modal = $("#shareModal") || document.querySelector("#shareModal");
   if (modal) {
     modal.setAttribute("hidden", "");
-    modal.style.display = "none";
+    modal.style.cssText = "display: none !important;";
     modal.classList.remove("active", "show", "open");
   }
 
-  // Esconde e desativa TODOS os overlays
-  const overlays = document.querySelectorAll(".modal-overlay, .backdrop, .modal-backdrop");
-  overlays.forEach((overlay) => {
-    overlay.style.display = "none";
-    overlay.classList.remove("active", "show", "open");
-    overlay.onclick = null; // Limpa o evento
-  });
+  const overlay = document.querySelector("#shareOverlay");
+  if (overlay) {
+    overlay.style.cssText = "display: none !important;";
+  }
 }
 
 /* ---------------- Listener Global para Fechar Modais ao Clicar Fora ---------------- */
@@ -3476,8 +3461,12 @@ function copyShareLink() {
 }
 
 function promptClientPassword(project) {
+  // Esconde imediatamente a busca e os filtros da tela
+  document.body.classList.add("client-view");
+
   const modal = $("#passwordModal") || $("#pwdModal");
   if (!modal) {
+    document.body.classList.remove("client-view");
     openProject(project.id);
     return;
   }
@@ -3503,6 +3492,8 @@ function promptClientPassword(project) {
     if (entered === project.clientPassword) {
       modal.setAttribute("hidden", "");
       modal.style.display = "none";
+      // Remove a trava visual da tela de senha ao acertar a senha
+      document.body.classList.remove("client-view");
       openProject(project.id);
     } else {
       showToast("Senha incorreta. Tente novamente.", true);

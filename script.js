@@ -3790,9 +3790,9 @@ function enableCardDragging() {
   });
 }
 
-/* ---------------- Modal de Compartilhamento (Detecção por Evento Global) ---------------- */
+/* ---------------- Modal de Compartilhamento (Cliques Diretos + Animação) ---------------- */
 function openShareModal() {
-  // 1. Pega o projeto selecionado
+  // 1. Identifica o projeto ativo
   let p = null;
   if (typeof currentProject === "function") {
     try { p = currentProject(); } catch(err) {}
@@ -3816,114 +3816,131 @@ function openShareModal() {
   const shareUrl = `${window.location.origin}${window.location.pathname}?p=${encodeURIComponent(projectSlug)}`;
   const clientPwd = p.clientPassword || p.client_password || "";
 
-  // 2. Cria o Modal no HTML
+  // 2. Fundo Escuro do Modal
   const wrapper = document.createElement("div");
   wrapper.id = "customShareWrapper";
-  wrapper.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;";
+  wrapper.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;pointer-events:auto !important;";
 
-  wrapper.innerHTML = `
-    <div style="background:#181d28;border:1px solid rgba(255,255,255,0.2);border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,0.9);width:100%;max-width:520px;padding:24px;box-sizing:border-box;color:#fff;font-family:inherit;" onclick="event.stopPropagation();">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:12px;">
-        <h2 style="margin:0;font-size:1.25rem;font-weight:600;">Compartilhar projeto</h2>
-        <button type="button" class="btn-close-share" style="background:transparent;border:none;color:#a0aec0;cursor:pointer;font-size:1.2rem;">✕</button>
+  // 3. Card do Modal
+  const card = document.createElement("div");
+  card.style.cssText = "background:#181d28;border:1px solid rgba(255,255,255,0.2);border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,0.9);width:100%;max-width:520px;padding:24px;box-sizing:border-box;color:#fff;font-family:inherit;position:relative;z-index:2147483647;pointer-events:auto !important;";
+
+  card.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:12px;">
+      <h2 style="margin:0;font-size:1.25rem;font-weight:600;color:#ffffff;">Compartilhar projeto</h2>
+      <button type="button" id="closeShareBtnX" style="background:transparent;border:none;color:#a0aec0;cursor:pointer;font-size:1.2rem;padding:4px;line-height:1;pointer-events:auto !important;">✕</button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <p style="margin:0;font-weight:600;font-size:1rem;color:#e2e8f0;">Projeto: ${p.title || "Sem título"}</p>
+      
+      <!-- CAMPO SENHA -->
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:0.75rem;font-weight:700;color:#a0aec0;">SENHA DO CLIENTE</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="inputClientPwdReal" value="${clientPwd}" placeholder="Digite a senha" style="flex:1;background:#0f131c;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px;color:#fff;font-size:0.9rem;pointer-events:auto !important;">
+          <button type="button" id="btnSavePwdReal" style="background:#e56a44;border:none;border-radius:8px;color:#fff;padding:0 16px;font-weight:600;cursor:pointer;pointer-events:auto !important;transition:all 0.2s ease;">Salvar Senha</button>
+        </div>
       </div>
 
-      <div style="display:flex;flex-direction:column;gap:16px;">
-        <p style="margin:0;font-weight:600;font-size:1rem;color:#e2e8f0;">Projeto: ${p.title || "Sem título"}</p>
-        
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <label style="font-size:0.75rem;font-weight:700;color:#a0aec0;">SENHA DO CLIENTE</label>
-          <div style="display:flex;gap:8px;">
-            <input type="text" class="input-share-pwd" value="${clientPwd}" placeholder="Digite a senha" style="flex:1;background:#0f131c;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px;color:#fff;">
-            <button type="button" class="btn-action-save-pwd" style="background:#e56a44;border:none;border-radius:8px;color:#fff;padding:0 16px;font-weight:600;cursor:pointer;">Salvar Senha</button>
-          </div>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <label style="font-size:0.75rem;font-weight:700;color:#a0aec0;">LINK DO CLIENTE</label>
-          <div style="display:flex;gap:8px;">
-            <input type="text" class="input-share-link" value="${shareUrl}" readonly style="flex:1;background:#0f131c;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px;color:#fff;">
-            <button type="button" class="btn-action-copy-link" style="background:#2d3748;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;padding:0 16px;font-weight:600;cursor:pointer;">Copiar Link</button>
-          </div>
+      <!-- CAMPO LINK -->
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:0.75rem;font-weight:700;color:#a0aec0;">LINK DO CLIENTE</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="inputShareLinkReal" value="${shareUrl}" readonly style="flex:1;background:#0f131c;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px;color:#fff;font-size:0.9rem;pointer-events:auto !important;">
+          <button type="button" id="btnCopyLinkReal" style="background:#2d3748;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;padding:0 16px;font-weight:600;cursor:pointer;pointer-events:auto !important;transition:all 0.2s ease;">Copiar Link</button>
         </div>
       </div>
     </div>
   `;
 
+  wrapper.appendChild(card);
   document.body.appendChild(wrapper);
 
-  // Botão Fechar
-  wrapper.querySelector(".btn-close-share").onclick = closeShareModal;
-  wrapper.onclick = (e) => { if (e.target === wrapper) closeShareModal(); };
+  // Impedir que o clique no card feche o modal
+  card.onclick = function(e) { e.stopPropagation(); };
+  wrapper.onclick = function(e) { if (e.target === wrapper) closeShareModal(); };
 
-  // 3. CAPTURA DE CLIQUE DENTRO DO MODAL (Sem precisar de IDs)
-  wrapper.addEventListener("click", function(e) {
-    const target = e.target;
+  // Botão X para fechar
+  const closeBtn = card.querySelector("#closeShareBtnX");
+  if (closeBtn) closeBtn.onclick = closeShareModal;
 
-    // AÇÃO DE SALVAR SENHA
-    if (target && target.classList.contains("btn-action-save-pwd")) {
-      e.preventDefault();
-      e.stopPropagation();
+  // 4. ATRIBUIÇÃO DIRETA DOS BOTOES (Desbloqueados)
+  const pwdInput = card.querySelector("#inputClientPwdReal");
+  const pwdBtn = card.querySelector("#btnSavePwdReal");
+  const linkInput = card.querySelector("#inputShareLinkReal");
+  const copyBtn = card.querySelector("#btnCopyLinkReal");
 
-      const inputPwd = wrapper.querySelector(".input-share-pwd");
-      const novaSenha = inputPwd ? inputPwd.value : "";
+  // AÇÃO DO BOTÃO SALVAR SENHA
+  pwdBtn.onclick = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
 
-      p.clientPassword = novaSenha;
-      p.client_password = novaSenha;
+    const novaSenha = pwdInput ? pwdInput.value : "";
 
-      if (typeof projects !== "undefined" && Array.isArray(projects)) {
-        const item = projects.find(proj => proj.id === p.id);
-        if (item) {
-          item.clientPassword = novaSenha;
-          item.client_password = novaSenha;
-        }
-        try { localStorage.setItem("projects", JSON.stringify(projects)); } catch(err) {}
+    // Atualiza o objeto do projeto
+    p.clientPassword = novaSenha;
+    p.client_password = novaSenha;
+
+    if (typeof projects !== "undefined" && Array.isArray(projects)) {
+      const item = projects.find(proj => proj.id === p.id);
+      if (item) {
+        item.clientPassword = novaSenha;
+        item.client_password = novaSenha;
       }
-
-      if (typeof saveProjects === "function") saveProjects();
-      if (typeof saveState === "function") saveState();
-
-      if (typeof supabaseClient !== "undefined" && p.id) {
-        supabaseClient
-          .from("projects")
-          .update({ client_password: novaSenha, clientPassword: novaSenha })
-          .eq("id", p.id)
-          .then(() => {})
-          .catch(err => console.error("Erro Supabase:", err));
-      }
-
-      target.textContent = "Salvo!";
-      target.style.background = "#2e7d32";
-      setTimeout(() => {
-        target.textContent = "Salvar Senha";
-        target.style.background = "#e56a44";
-      }, 2000);
+      try { localStorage.setItem("projects", JSON.stringify(projects)); } catch(err) {}
     }
 
-    // AÇÃO DE COPIAR LINK
-    if (target && target.classList.contains("btn-action-copy-link")) {
-      e.preventDefault();
-      e.stopPropagation();
+    if (typeof saveProjects === "function") saveProjects();
+    if (typeof saveState === "function") saveState();
 
-      const inputLink = wrapper.querySelector(".input-share-link");
-      const urlParaCopiar = inputLink ? inputLink.value : shareUrl;
-
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(urlParaCopiar).then(() => {
-          target.textContent = "Copiado!";
-          target.style.background = "#2b6cb0";
-          setTimeout(() => {
-            target.textContent = "Copiar Link";
-            target.style.background = "#2d3748";
-          }, 2000);
-        }).catch(() => copiarNativo(urlParaCopiar, target));
-      } else {
-        copiarNativo(urlParaCopiar, target);
-      }
+    if (typeof supabaseClient !== "undefined" && p.id) {
+      supabaseClient
+        .from("projects")
+        .update({ client_password: novaSenha, clientPassword: novaSenha })
+        .eq("id", p.id)
+        .then(() => {})
+        .catch(err => console.error("Erro Supabase:", err));
     }
-  });
 
-  function copiarNativo(texto, botao) {
+    // ANIMAÇÃO DE ÉXITO (LARANJA -> VERDE "SALVO!")
+    pwdBtn.textContent = "Salvo!";
+    pwdBtn.style.background = "#2e7d32";
+
+    setTimeout(() => {
+      pwdBtn.textContent = "Salvar Senha";
+      pwdBtn.style.background = "#e56a44";
+    }, 2000);
+  };
+
+  // AÇÃO DO BOTÃO COPIAR LINK
+  copyBtn.onclick = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const urlParaCopiar = linkInput ? linkInput.value : shareUrl;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(urlParaCopiar).then(() => {
+        mostrarCopiadoSucesso(copyBtn);
+      }).catch(() => {
+        copiarNativo(urlParaCopiar, copyBtn);
+      });
+    } else {
+      copiarNativo(urlParaCopiar, copyBtn);
+    }
+  };
+
+  function mostrarCopiadoSucesso(btn) {
+    btn.textContent = "Copiado!";
+    btn.style.background = "#2b6cb0";
+    setTimeout(() => {
+      btn.textContent = "Copiar Link";
+      btn.style.background = "#2d3748";
+    }, 2000);
+  }
+
+  function copiarNativo(texto, btn) {
     const area = document.createElement("textarea");
     area.value = texto;
     area.style.position = "fixed";
@@ -3933,16 +3950,11 @@ function openShareModal() {
     area.select();
     try {
       document.execCommand("copy");
-      botao.textContent = "Copiado!";
-      botao.style.background = "#2b6cb0";
+      mostrarCopiadoSucesso(btn);
     } catch (err) {
-      botao.textContent = "Erro ao copiar";
+      btn.textContent = "Erro!";
     }
     document.body.removeChild(area);
-    setTimeout(() => {
-      botao.textContent = "Copiar Link";
-      botao.style.background = "#2d3748";
-    }, 2000);
   }
 }
 

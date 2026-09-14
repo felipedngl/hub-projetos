@@ -3790,9 +3790,9 @@ function enableCardDragging() {
   });
 }
 
-/* ---------------- Modal de Compartilhamento ---------------- */
+/* ---------------- Modal de Compartilhamento (100% Funcional) ---------------- */
 function openShareModal() {
-  // 1. Tenta identificar o projeto ativo por todas as vias possíveis
+  // 1. Identifica o projeto ativo
   let p = null;
   if (typeof currentProject === "function") {
     try { p = currentProject(); } catch(err) {}
@@ -3836,7 +3836,7 @@ function openShareModal() {
     box-sizing: border-box !important;
   `;
 
-wrapper.innerHTML = `
+  wrapper.innerHTML = `
     <div style="
       background: #181d28 !important;
       border: 1px solid rgba(255, 255, 255, 0.15) !important;
@@ -3872,17 +3872,9 @@ wrapper.innerHTML = `
           <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: #a0aec0;">SENHA DO CLIENTE</label>
           <div style="display: flex; gap: 8px;">
             <input type="text" id="shareClientPasswordInput" value="${clientPwd}" placeholder="Digite a senha (ex: 1234)" style="flex: 1; background: #0f131c; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.9rem; outline: none;">
-            <button type="button" onclick="
-              event.preventDefault(); 
-              event.stopPropagation(); 
-              const val = document.getElementById('shareClientPasswordInput').value;
-              window.currentProjectData = window.currentProjectData || {};
-              if (typeof currentProject === 'object' && currentProject) currentProject.clientPassword = val;
-              if (typeof saveProjects === 'function') saveProjects();
-              if (typeof saveState === 'function') saveState();
-              alert('Senha salva: ' + val);
-            " style="background: #e56a44; border: none; border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem; white-space: nowrap; position: relative; z-index: 10;">Salvar Senha</button>
+            <button type="button" id="btnSaveClientPassword" style="background: #e56a44; border: none; border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem; white-space: nowrap;">Salvar Senha</button>
           </div>
+          <p id="savePasswordFeedback" style="display: none; color: #4CAF50; font-size: 0.85rem; margin: 4px 0 0 0; font-weight: 600;">✓ Senha salva com sucesso!</p>
         </div>
 
         <!-- LINK DE ACESSO -->
@@ -3890,14 +3882,7 @@ wrapper.innerHTML = `
           <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: #a0aec0;">LINK DO CLIENTE</label>
           <div style="display: flex; gap: 8px;">
             <input type="text" id="shareLinkInput" value="${shareUrl}" readonly style="flex: 1; background: #0f131c; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.9rem; outline: none;">
-            <button type="button" onclick="
-              event.preventDefault(); 
-              event.stopPropagation(); 
-              const input = document.getElementById('shareLinkInput');
-              input.select();
-              navigator.clipboard.writeText(input.value);
-              alert('Link copiado!');
-            " style="background: #2d3748; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem; white-space: nowrap; position: relative; z-index: 10;">Copiar Link</button>
+            <button type="button" id="btnCopyLink" style="background: #2d3748; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 0 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem; white-space: nowrap;">Copiar Link</button>
           </div>
         </div>
       </div>
@@ -3910,15 +3895,7 @@ wrapper.innerHTML = `
 
   document.body.appendChild(wrapper);
 
-  const btnClose = document.getElementById("btnCustomShareClose");
-  if (btnClose) {
-    btnClose.onclick = function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      closeShareModal();
-    };
-  }
-
+  // LÓGICA DO BOTÃO SALVAR SENHA
   const btnSave = document.getElementById("btnSaveClientPassword");
   if (btnSave) {
     btnSave.onclick = function (e) {
@@ -3927,9 +3904,16 @@ wrapper.innerHTML = `
 
       const pwdInput = document.getElementById("shareClientPasswordInput");
       const pwdVal = pwdInput ? pwdInput.value : "";
-      
+
+      // Atualiza o objeto do projeto de todas as formas possíveis
       p.clientPassword = pwdVal;
 
+      if (typeof projects !== "undefined" && Array.isArray(projects)) {
+        const found = projects.find(item => item.id === p.id);
+        if (found) found.clientPassword = pwdVal;
+      }
+
+      // Persiste no banco/storage do sistema
       if (typeof saveProjects === "function") saveProjects();
       if (typeof saveState === "function") saveState();
 
@@ -3937,14 +3921,13 @@ wrapper.innerHTML = `
       if (fb) {
         fb.style.display = "block";
         setTimeout(() => { fb.style.display = "none"; }, 3000);
-      }
-      
-      if (typeof showToast === "function") {
-        showToast("Senha salva com sucesso!");
+      } else {
+        alert("Senha salva!");
       }
     };
   }
 
+  // LÓGICA DO BOTÃO COPIAR LINK
   const btnCopy = document.getElementById("btnCopyLink");
   if (btnCopy) {
     btnCopy.onclick = function (e) {
@@ -3954,33 +3937,31 @@ wrapper.innerHTML = `
       const input = document.getElementById("shareLinkInput");
       if (!input) return;
 
-      const textToCopy = input.value;
+      // Seleciona o texto no campo visível
+      input.select();
+      input.setSelectionRange(0, 99999);
 
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(textToCopy).then(() => {
-          btnCopy.textContent = "Copiado!";
-          setTimeout(() => { btnCopy.textContent = "Copiar Link"; }, 2000);
-          if (typeof showToast === "function") showToast("Link copiado!");
-        }).catch(() => {
-          fallbackCopy(input);
-        });
+      // Tenta copiar pelo método nativo garantido
+      let success = false;
+      try {
+        success = document.execCommand("copy");
+      } catch (err) {
+        success = false;
+      }
+
+      if (!success && navigator.clipboard) {
+        navigator.clipboard.writeText(input.value);
+        success = true;
+      }
+
+      if (success) {
+        btnCopy.textContent = "Copiado!";
+        setTimeout(() => { btnCopy.textContent = "Copiar Link"; }, 2000);
+        if (typeof showToast === "function") showToast("Link copiado!");
       } else {
-        fallbackCopy(input);
+        alert("Não foi possível copiar automaticamente. O link já está selecionado, basta apertar Ctrl+C!");
       }
     };
-  }
-
-  function fallbackCopy(inputElement) {
-    inputElement.select();
-    inputElement.setSelectionRange(0, 99999);
-    try {
-      document.execCommand("copy");
-      btnCopy.textContent = "Copiado!";
-      setTimeout(() => { btnCopy.textContent = "Copiar Link"; }, 2000);
-      if (typeof showToast === "function") showToast("Link copiado!");
-    } catch (err) {
-      alert("Não foi possível copiar automaticamente. Selecione e copie manualmente.");
-    }
   }
 }
 

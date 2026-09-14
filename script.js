@@ -3374,7 +3374,6 @@ function showHubLocked() {
 }
 
 /* ---------------- Compartilhamento ---------------- */
-
 function openShareModal() {
   const p = typeof currentProject === "function" ? currentProject() : currentProject;
   if (!p) {
@@ -3389,7 +3388,7 @@ function openShareModal() {
   const shareUrl = `${window.location.origin}${window.location.pathname}?p=${encodeURIComponent(projectSlug)}`;
   const clientPwd = p.clientPassword || "";
 
-  // Cria a estrutura do modal direto no <body> em tempo de execução
+  // Cria a estrutura do modal direto no <body>
   const wrapper = document.createElement("div");
   wrapper.id = "customShareWrapper";
   wrapper.style.cssText = `
@@ -3424,7 +3423,7 @@ function openShareModal() {
     ">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
         <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600;">Compartilhar projeto</h2>
-        <button onclick="closeShareModal()" style="background: transparent; border: none; color: #a0aec0; cursor: pointer; padding: 4px; display: flex; align-items: center;">
+        <button type="button" id="btnCustomShareClose" style="background: transparent; border: none; color: #a0aec0; cursor: pointer; padding: 4px; display: flex; align-items: center;">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M18 6 6 18M6 6l12 12"></path>
           </svg>
@@ -3466,6 +3465,15 @@ function openShareModal() {
 
   document.body.appendChild(wrapper);
 
+  // Conecta o evento de clique no botão (X)
+  const btnClose = document.getElementById("btnCustomShareClose");
+  if (btnClose) {
+    btnClose.onclick = function (e) {
+      e.stopPropagation();
+      closeShareModal();
+    };
+  }
+
   // Reconecta os ouvintes de evento dos botões internos
   const btnSave = document.getElementById("btnSaveClientPassword");
   if (btnSave) {
@@ -3495,6 +3503,10 @@ function closeShareModal() {
   const wrapper = document.getElementById("customShareWrapper");
   if (wrapper) wrapper.remove();
 }
+
+// Registra explicitamente no escopo global do navegador (window)
+window.openShareModal = openShareModal;
+window.closeShareModal = closeShareModal;
 
 /* ---------------- Listener Global para Fechar Modais ao Clicar Fora ---------------- */
 window.addEventListener("click", (e) => {

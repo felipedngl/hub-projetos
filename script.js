@@ -3896,93 +3896,94 @@ function openShareModal() {
 
   // VÍNCULO DIRETO FORÇADO (Sem esperar nada)
   setTimeout(() => {
-// 1. AÇÃO DE SALVAR SENHA
+// 1. AÇÃO DE SALVAR SENHA (Sem congelar o navegador)
     const btnSave = document.getElementById("btnSaveClientPasswordDirect");
     if (btnSave) {
-      btnSave.onclick = async function(e) {
+      btnSave.onclick = function(e) {
         e.preventDefault();
         e.stopPropagation();
 
         const input = document.getElementById("shareClientPasswordInput");
-        const nuevaSenha = input ? input.value : "";
+        const novaSenha = input ? input.value : "";
 
-        // 1. Grava no objeto local (em ambas as variações de nome de propriedade)
-        p.clientPassword = nuevaSenha;
-        p.client_password = nuevaSenha;
+        // Atualiza objetos em memória imediatamente
+        p.clientPassword = novaSenha;
+        p.client_password = novaSenha;
 
-        // 2. Atualiza na lista global de projetos
         if (typeof projects !== "undefined" && Array.isArray(projects)) {
           const item = projects.find(proj => proj.id === p.id);
           if (item) {
-            item.clientPassword = nuevaSenha;
-            item.client_password = nuevaSenha;
+            item.clientPassword = novaSenha;
+            item.client_password = novaSenha;
           }
         }
 
-        // 3. Salva no banco de dados Supabase (se disponível)
-        if (typeof supabaseClient !== "undefined" && p.id) {
+        // Feedback visual imediato na tela (Sem alert para não travar)
+        btnSave.textContent = "Salvando...";
+        btnSave.disabled = true;
+
+        // Processa o salvamento pesado em segundo plano
+        setTimeout(async () => {
           try {
-            await supabaseClient
-              .from("projects")
-              .update({ client_password: nuevaSenha, clientPassword: nuevaSenha })
-              .eq("id", p.id);
+            if (typeof saveProjects === "function") saveProjects();
+            if (typeof saveState === "function") saveState();
+
+            if (typeof supabaseClient !== "undefined" && p.id) {
+              await supabaseClient
+                .from("projects")
+                .update({ client_password: novaSenha, clientPassword: novaSenha })
+                .eq("id", p.id);
+            }
           } catch (err) {
-            console.error("Erro Supabase:", err);
+            console.error("Erro ao salvar:", err);
+          } finally {
+            btnSave.textContent = "Salvo!";
+            btnSave.disabled = false;
+            const fb = document.getElementById("savePasswordFeedback");
+            if (fb) fb.style.display = "block";
+            setTimeout(() => { 
+              btnSave.textContent = "Salvar Senha";
+              if (fb) fb.style.display = "none";
+            }, 2500);
           }
-        }
-
-        // 4. Salva no estado local/localStorage
-        if (typeof saveProjects === "function") saveProjects();
-        if (typeof saveState === "function") saveState();
-
-        const fb = document.getElementById("savePasswordFeedback");
-        if (fb) fb.style.display = "block";
-        alert("Senha salva com sucesso!");
+        }, 10);
       };
     }
 
-    // 2. AÇÃO DE COPIAR LINK
+    // 2. AÇÃO DE COPIAR LINK (Instantâneo)
     const btnCopy = document.getElementById("btnCopyLinkDirect");
     if (btnCopy) {
-      btnCopy.onclick = async function(e) {
+      btnCopy.onclick = function(e) {
         e.preventDefault();
         e.stopPropagation();
 
         const inputLink = document.getElementById("shareLinkInput");
         if (!inputLink) return;
 
-        const textoParaCopiar = inputLink.value;
+        // Seleção física e cópia síncrona imediata
+        inputLink.focus();
+        inputLink.select();
+        inputLink.setSelectionRange(0, 99999);
 
-        // Tenta a API moderna Clipboard com await para garantir a gravação antes do alerta
-        let copiado = false;
-        if (navigator.clipboard && window.isSecureContext) {
-          try {
-            await navigator.clipboard.writeText(textoParaCopiar);
-            copiado = true;
-          } catch (err) {
-            copiado = false;
-          }
+        let sucesso = false;
+        try {
+          sucesso = document.execCommand("copy");
+        } catch (err) {
+          sucesso = false;
         }
 
-        // Fallback nativo caso esteja em ambiente HTTP ou navegador antigo
-        if (!copiado) {
-          inputLink.focus();
-          inputLink.select();
-          inputLink.setSelectionRange(0, 99999);
-          try {
-            copiado = document.execCommand("copy");
-          } catch (err) {
-            copiado = false;
-          }
+        if (!sucesso && navigator.clipboard) {
+          navigator.clipboard.writeText(inputLink.value);
+          sucesso = true;
         }
 
-        if (copiado) {
-          btnCopy.textContent = "Copiado!";
-          setTimeout(() => { btnCopy.textContent = "Copiar Link"; }, 2000);
-          alert("Link copiado para a área de transferência!");
-        } else {
-          alert("Não foi possível copiar automaticamente. Use Ctrl+C no texto selecionado.");
-        }
+        // Altera o texto do próprio botão em vez de abrir caixa de alert
+        btnCopy.textContent = "Copiado!";
+        btnCopy.style.background = "#2b6cb0";
+        setTimeout(() => { 
+          btnCopy.textContent = "Copiar Link"; 
+          btnCopy.style.background = "#2d3748";
+        }, 2000);
       };
     }
   }, 50);
@@ -3995,5 +3996,5 @@ function closeShareModal() {
 
 window.openShareModal = openShareModal;
 window.closeShareModal = closeShareModal;
-	
+
 })();

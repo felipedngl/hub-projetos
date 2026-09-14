@@ -3384,11 +3384,12 @@ function openShareModal() {
   const modal = $("#shareModal") || document.querySelector("#shareModal");
   if (!modal) return;
 
-  // CHAVE DA SOLUÇÃO: Move o modal para a raiz do HTML para nunca travar
+  // Move o modal para a raiz do body para não herdar filtros ou z-index baixos de telas anteriores
   if (modal.parentNode !== document.body) {
     document.body.appendChild(modal);
   }
 
+  // Preenche as informações do projeto
   const nameEl = $("#shareProjectName");
   if (nameEl) nameEl.textContent = `Projeto: ${p.title}`;
 
@@ -3404,19 +3405,20 @@ function openShareModal() {
   const linkInput = $("#shareLinkInput");
   if (linkInput) linkInput.value = shareUrl;
 
-  // Cria/Recupera um overlay de fundo exclusivo para este modal
-  let overlay = document.querySelector("#shareOverlay");
-  if (!overlay) {
-    overlay = document.createElement("div");
-    overlay.id = "shareOverlay";
-    document.body.appendChild(overlay);
-  }
+  // Remove qualquer overlay duplicado que tenha ficado aberto
+  const oldOverlays = document.querySelectorAll("#shareOverlay, .share-backdrop");
+  oldOverlays.forEach((el) => el.remove());
 
-  overlay.style.cssText = "display: block !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 99998;";
+  // Cria um único fundo escuro limpo com z-index alto
+  const overlay = document.createElement("div");
+  overlay.id = "shareOverlay";
+  overlay.style.cssText = "display: block !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7) !important; z-index: 100000 !important;";
   overlay.onclick = closeShareModal;
+  document.body.appendChild(overlay);
 
+  // Exibe o modal no topo absoluto acima de qualquer outro modal da tela
   modal.removeAttribute("hidden");
-  modal.style.cssText = "display: flex !important; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 99999;";
+  modal.style.cssText = "display: flex !important; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100005 !important; background: #1e293b; color: #ffffff; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);";
   modal.classList.add("active", "show", "open");
 }
 
@@ -3428,9 +3430,10 @@ function closeShareModal() {
     modal.classList.remove("active", "show", "open");
   }
 
+  // Remove o fundo do modal de compartilhamento sem fechar o projeto do fundo
   const overlay = document.querySelector("#shareOverlay");
   if (overlay) {
-    overlay.style.cssText = "display: none !important;";
+    overlay.remove();
   }
 }
 

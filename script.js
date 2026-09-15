@@ -4180,19 +4180,32 @@ function renderSiteLogHTML(project, isDesigner = false) {
               <p style="margin: 0; white-space: pre-line; color: #e2e8f0; font-size: 0.95rem; line-height: 1.5;">${safeNextSteps}</p>
             </div>` : ""}
 
-<!-- Registros Fotográficos -->
+		  <!-- Registros Fotográficos -->
           ${log.photos && log.photos.length > 0 ? `
             <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
               <span style="font-size: 0.85rem; font-weight: 600; color: #a0aec0; display: block; margin-bottom: 8px;">
                 📸 Registros Fotográficos (${log.photos.length})
               </span>
               <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                ${log.photos.map(photoUrl => {
+                ${log.photos.map((photoUrl, idx) => {
                   const isUrl = photoUrl.startsWith("http://") || photoUrl.startsWith("https://") || photoUrl.startsWith("data:");
                   if (isUrl) {
                     return `
-                      <a href="${photoUrl}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
-                        <img src="${photoUrl}" alt="Foto da obra" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" />
+                      <a href="${photoUrl}" target="_blank" rel="noopener noreferrer" id="photo-link-${log.id}-${idx}" style="text-decoration: none; display: inline-block;">
+                        <img 
+                          src="${photoUrl}" 
+                          alt="Foto ${idx + 1}" 
+                          style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); transition: transform 0.2s;" 
+                          onmouseover="this.style.transform='scale(1.05)'" 
+                          onmouseout="this.style.transform='scale(1)'"
+                          onerror="
+                            this.style.display='none';
+                            const link = document.getElementById('photo-link-${log.id}-${idx}');
+                            if(link) {
+                              link.innerHTML = '<span style=\"display: inline-flex; align-items: center; gap: 6px; background: rgba(229, 106, 68, 0.15); color: #e56a44; border: 1px solid rgba(229, 106, 68, 0.3); padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;\">🖼️ Abrir Foto ${idx + 1} ↗</span>';
+                            }
+                          "
+                        />
                       </a>
                     `;
                   } else {

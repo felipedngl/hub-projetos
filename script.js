@@ -4072,7 +4072,6 @@ window.closeShareModal = closeShareModal;
 
 /* ---------------- DIÁRIO DE OBRA (SITE LOG) ---------------- */
 
-// Gera a tela do Diário de Obra
 function renderSiteLogHTML(project, isDesigner = false) {
   const stageData = project.stages?.site_log || {};
   const logs = Array.isArray(stageData.siteLogs) ? stageData.siteLogs : [];
@@ -4080,41 +4079,48 @@ function renderSiteLogHTML(project, isDesigner = false) {
   let html = `
     <div class="site-log-container">
       <div class="panel">
-        <h3>🏗️ Diário & Relatórios de Obra</h3>
-        <p class="conversation-hint">Acompanhe as atualizações semanais, evoluções do canteiro e pendências.</p>
+        <h3 style="margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px;">🏗️ Diário & Relatórios de Obra</h3>
+        <p class="conversation-hint" style="margin: 0; color: #a0aec0; font-size: 0.9rem;">Acompanhe as atualizações semanais, evoluções do canteiro e pendências.</p>
       </div>`;
 
+  // Formulário de criação/edição para o Designer
   if (isDesigner) {
     html += `
-      <div class="panel site-log-form-panel">
-        <h4 style="margin-bottom: 12px; color: #e56a44;">+ Novo Relatório Semanal</h4>
+      <div class="panel site-log-form-panel" style="margin-top: 16px;">
+        <h4 id="siteLogFormTitle" style="margin-bottom: 12px; color: #e56a44;">+ Novo Relatório Semanal</h4>
         <div style="display: flex; flex-direction: column; gap: 10px;">
-          <input type="text" id="logWeekTitle" class="stage-textarea" style="height: 40px;" placeholder="Título (ex: Semana 10 - Pintura e Iluminação)" />
+          <input type="hidden" id="editingLogId" value="" />
+          <input type="text" id="logWeekTitle" class="stage-textarea" style="height: 40px;" placeholder="Título (ex: Semana 1 - Levantamento atual)" />
           
-          <label><strong>Evoluções da Semana:</strong></label>
+          <label style="color: #a0aec0; font-size: 0.85rem;"><strong>Evoluções da Semana:</strong></label>
           <textarea id="logAdvancements" class="stage-textarea" placeholder="O que avançou na obra nesta semana..."></textarea>
           
-          <label><strong>O que precisa do Cliente (Ações/Aprovações):</strong></label>
+          <label style="color: #a0aec0; font-size: 0.85rem;"><strong>O que precisa do Cliente (Ações/Aprovações):</strong></label>
           <textarea id="logClientAction" class="stage-textarea" placeholder="Definições, compras ou visitas pendentes do cliente..."></textarea>
           
-          <label><strong>Próximos Passos (Fornecedores/Equipe):</strong></label>
+          <label style="color: #a0aec0; font-size: 0.85rem;"><strong>Próximos Passos (Fornecedores/Equipe):</strong></label>
           <textarea id="logNextSteps" class="stage-textarea" placeholder="Próximas etapas para a semana que vem..."></textarea>
           
-          <label><strong>Fotos da Semana (URLs das imagens separadas por vírgula):</strong></label>
+          <label style="color: #a0aec0; font-size: 0.85rem;"><strong>Fotos da Semana (URLs separadas por vírgula):</strong></label>
           <input type="text" id="logPhotos" class="stage-textarea" style="height: 40px;" placeholder="https://link-foto1.com, https://link-foto2.com" />
 
-          <button type="button" id="btnSaveSiteLog" class="btn-primary" style="margin-top: 10px;">
-            Publicar Relatório
-          </button>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button type="button" id="btnSaveSiteLog" class="btn-primary" style="flex: 1;">
+              Publicar Relatório
+            </button>
+            <button type="button" id="btnCancelEditLog" class="btn-secondary" style="display: none;">
+              Cancelar Edição
+            </button>
+          </div>
         </div>
       </div>`;
   }
 
-  html += `<div class="site-log-feed">`;
+  html += `<div class="site-log-feed" style="margin-top: 16px;">`;
 
   if (logs.length === 0) {
     html += `
-      <div class="panel" style="text-align: center; color: #718096; padding: 30px;">
+      <div class="panel" style="text-align: center; color: #a0aec0; padding: 30px;">
         Nenhum relatório de obra publicado ainda.
       </div>`;
   } else {
@@ -4126,41 +4132,60 @@ function renderSiteLogHTML(project, isDesigner = false) {
       const safeNextSteps = typeof escapeHTML === "function" ? escapeHTML(log.nextSteps || "") : (log.nextSteps || "");
 
       html += `
-        <div class="panel site-log-card" style="border-left: 4px solid #e56a44; margin-bottom: 16px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h4 style="margin: 0; font-size: 1.1rem; color: #2d3748;">${safeTitle}</h4>
-            <span style="font-size: 0.8rem; color: #a0aec0;">📅 ${log.date || ""}</span>
+        <div class="panel site-log-card" style="border-left: 3px solid #e56a44; margin-bottom: 16px; padding: 20px;">
+          
+          <!-- Cabeçalho do Card (Título + Data + Editar) -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+            <h4 style="margin: 0; font-size: 1.05rem; color: #cbd5e0; font-weight: 600;">${safeTitle}</h4>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 0.85rem; color: #a0aec0;">📅 ${log.date || ""}</span>
+              ${isDesigner ? `
+                <button type="button" class="btn-edit-sitelog" data-log-id="${log.id}" style="background: none; border: none; color: #e56a44; cursor: pointer; font-size: 0.85rem; font-weight: 600; padding: 0;">
+                  ✏️ Editar
+                </button>
+              ` : ""}
+            </div>
           </div>
 
+          <!-- Evoluções da Semana -->
           ${safeAdvancements ? `
-            <div style="margin-bottom: 12px;">
-              <strong style="color: #4a5568; font-size: 0.85rem;">🔨 EVOLUÇÕES DA SEMANA:</strong>
-              <p style="margin: 4px 0 0 0; white-space: pre-line; color: #2d3748;">${safeAdvancements}</p>
+            <div style="margin-bottom: 14px;">
+              <strong style="color: #718096; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; display: block; margin-bottom: 4px;">🔨 EVOLUÇÕES DA SEMANA:</strong>
+              <p style="margin: 0; white-space: pre-line; color: #e2e8f0; font-size: 0.95rem; line-height: 1.5;">${safeAdvancements}</p>
             </div>` : ""}
 
+          <!-- Pendente do Cliente -->
           ${safeClientAction ? `
-            <div style="margin-bottom: 12px; background: #fffaf0; border: 1px solid #feebc8; padding: 10px; border-radius: 6px;">
-              <strong style="color: #dd6b20; font-size: 0.85rem;">⚠️ PENDENTE DO CLIENTE:</strong>
-              <p style="margin: 4px 0 0 0; white-space: pre-line; color: #744210;">${safeClientAction}</p>
+            <div style="margin-bottom: 14px; background: rgba(254, 243, 199, 0.95); border-radius: 6px; padding: 12px 14px;">
+              <strong style="color: #b45309; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; display: block; margin-bottom: 4px;">⚠️ PENDENTE DO CLIENTE:</strong>
+              <p style="margin: 0; white-space: pre-line; color: #78350f; font-size: 0.95rem; font-weight: 500; line-height: 1.5;">${safeClientAction}</p>
             </div>` : ""}
 
+          <!-- Próximos Passos -->
           ${safeNextSteps ? `
-            <div style="margin-bottom: 12px;">
-              <strong style="color: #4a5568; font-size: 0.85rem;">📋 PRÓXIMOS PASSOS:</strong>
-              <p style="margin: 4px 0 0 0; white-space: pre-line; color: #2d3748;">${safeNextSteps}</p>
+            <div style="margin-bottom: 14px;">
+              <strong style="color: #718096; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; display: block; margin-bottom: 4px;">📋 PRÓXIMOS PASSOS:</strong>
+              <p style="margin: 0; white-space: pre-line; color: #e2e8f0; font-size: 0.95rem; line-height: 1.5;">${safeNextSteps}</p>
             </div>` : ""}
 
+          <!-- Registros Fotográficos -->
           ${photosList.length > 0 ? `
-            <div style="margin-top: 12px;">
-              <strong style="color: #4a5568; font-size: 0.85rem; display: block; margin-bottom: 6px;">📷 REGISTROS FOTOGRÁFICOS:</strong>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <div style="margin-top: 14px;">
+              <strong style="color: #718096; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; display: block; margin-bottom: 8px;">📷 REGISTROS FOTOGRÁFICOS:</strong>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 ${photosList.map(url => `
-                  <a href="${url.trim()}" target="_blank" style="display: block;">
-                    <img src="${url.trim()}" style="width: 90px; height: 90px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0;" />
+                  <a href="${url.trim()}" target="_blank" rel="noopener" style="display: block; width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+                    <img 
+                      src="${url.trim()}" 
+                      alt="Foto da obra"
+                      onerror="this.onerror=null; this.src='https://via.placeholder.com/80?text=Foto';" 
+                      style="width: 100%; height: 100%; object-fit: cover;" 
+                    />
                   </a>
                 `).join("")}
               </div>
             </div>` : ""}
+
         </div>`;
     });
   }

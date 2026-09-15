@@ -1255,126 +1255,149 @@ function renderDashboard() {
   enableCardDragging();
 }
 
-  /* ---------------- Render: visão interna ---------------- */
+/* ---------------- Render: visão interna ---------------- */
 function stageHasContent(project, stage) {
   if (stage.special === "schedule") {
     return Array.isArray(project.schedule) && project.schedule.length > 0;
   }
 
-  if (stage.special === "contracts") return (project.contracts || []).length > 0;
+  // Checa se é o Diário de Obra e se tem relatórios cadastrados (acende a bolinha verde)
+  if (stage.special === "site_log" || stage.id === "site_log") {
+    const logs = project.stages?.site_log?.siteLogs;
+    return Array.isArray(logs) && logs.length > 0;
+  }
+
+  if (stage.special === "contracts") {
+    return (project.contracts || []).length > 0;
+  }
+
   if (stage.special === "memorial") {
     const m = project.memorial || {};
-    const hasRows = Object.values(m).some((rows) => rows.length > 0);
+    const hasRows = Object.values(m).some((rows) => Array.isArray(rows) && rows.length > 0);
     return hasRows || (project.memorialFiles || []).length > 0;
   }
 
-  const s = project.stages[stage.id];
-  return s && (s.text.trim().length > 0 || (s.files || []).length > 0);
+  const s = project.stages?.[stage.id];
+  return s && ((s.text?.trim() || "").length > 0 || (s.files || []).length > 0);
 }
-  function renderSidebar() {
-    const p = currentProject();
-    if (!p) return;
 
-    const fullAccess = designerUnlocked && !clientMode && !localPreview;
+function renderSidebar() {
+  const p = currentProject();
+  if (!p) return;
 
-    $("#projCover").src = p.image;
-    $("#projCover").onerror = () => ($("#projCover").src = PLACEHOLDER);
-    $("#projTitle").textContent = p.title;
-    $("#projMeta").textContent = `${p.client} · ${formatArea(p.area)} m² · ${p.type}`;
+  const fullAccess = designerUnlocked && !clientMode && !localPreview;
 
-    const statusTag = $("#projStatusTag");
-    const statusSel = $("#projStatus");
+  const projCover = $("#projCover");
+  if (projCover) {
+    projCover.src = p.image || PLACEHOLDER;
+    projCover.onerror = () => (projCover.src = PLACEHOLDER);
+  }
+
+  const projTitle = $("#projTitle");
+  if (projTitle) projTitle.textContent = p.title || "Projeto";
+
+  const projMeta = $("#projMeta");
+  if (projMeta) projMeta.textContent = `${p.client || ""} · ${formatArea(p.area)} m² · ${p.type || ""}`;
+
+  const statusTag = $("#projStatusTag");
+  const statusSel = $("#projStatus");
+
+  if (statusTag && statusSel) {
     if (fullAccess) {
       statusTag.hidden = true;
       statusSel.hidden = false;
-      statusSel.value = p.status;
- statusSel.onchange = async () => {
-  p.status = statusSel.value;
-
-  if (await saveProjects()) {
-    showToast("Status atualizado.");
-  }
-};
+      statusSel.value = p.status || "briefing";
+      statusSel.onchange = async () => {
+        p.status = statusSel.value;
+        if (typeof saveProjects === "function" && (await saveProjects())) {
+          if (typeof showToast === "function") showToast("Status atualizado.");
+        }
+      };
     } else {
       statusSel.hidden = true;
       statusTag.textContent = STATUS_LABELS[p.status] || p.status;
       statusTag.className = "status-tag " + (STATUS_CLASS[p.status] || "");
       statusTag.hidden = false;
     }
+  }
 
-    $("#btnShareProject").hidden = !fullAccess;
-    $("#btnDeleteProject").hidden = !fullAccess;
+  const btnShare = $("#btnShareProject");
+  const btnDelete = $("#btnDeleteProject");
+  if (btnShare) btnShare.hidden = !fullAccess;
+  if (btnDelete) btnDelete.hidden = !fullAccess;
 
-const navStages = STAGES;
+  const navStages = STAGES || [];
+  const stageNav = $("#stageNav");
 
-    $("#stageNav").innerHTML =
+  if (stageNav) {
+    stageNav.innerHTML =
       '<div class="stage-nav-title">Etapas do projeto</div>' +
-      navStages.map((stage, index) => {
-        const done = stageHasContent(p, stage);
-        const stageData = p.stages?.[stage.id];
+      navStages
+        .map((stage, index) => {
+          const done = typeof stageHasContent === "function" ? stageHasContent(p, stage) : false;
+          const stageData = p.stages?.[stage.id];
 
-        // Checa se há mensagens não lidas
-        const unreadMsg = clientMode
-          ? hasUnreadDesignerMessage(stageData)
-          : hasUnreadClientMessage(stageData);
+          // Checa não lidos em mensagens
+          const unreadMsg = clientMode
+            ? typeof hasUnreadDesignerMessage === "function" && hasUnreadDesignerMessage(stageData)
+            : typeof hasUnreadClientMessage === "function" && hasUnreadClientMessage(stageData);
 
-        // Checa se há arquivos novos não lidos na etapa
-        const unreadFiles = Array.isArray(stageData?.files) && stageData.files.some((f) => {
-          return clientMode ? f.unreadByClient === true : f.unreadByDesigner === true;
-        });
+          // Checa não lidos em arquivos
+          const unreadFiles =
+            Array.isArray(stageData?.files) &&
+            stageData.files.some((f) => {
+              return clientMode ? f.unreadByClient === true : f.unreadByDesigner === true;
+            });
 
-        const unread = unreadMsg || unreadFiles;
+          const unread = unreadMsg || unreadFiles;
 
-return `
-  <button class="stage-link ${
-    stage.id === currentStage ? "active" : ""
-  } ${unread ? "has-unread-message" : ""}" data-stage="${stage.id}">
-    ${ICONS[stage.id] || ""}
-    <span class="nav-label">${
-      index < 7 ? `${index + 1}. ` : ""
-    }${stage.label}</span>
-    ${unread ? `<span class="unread-badge" title="Novas mensagens ou arquivos">●</span>` : ""}
-    <span class="nav-dot ${done ? "done" : ""}" title="${done ? "Etapa com conteúdo" : "Etapa vazia"}"></span>
-  </button>`;
-      }).join("");
+          return `
+            <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${
+            unread ? "has-unread-message" : ""
+          }" data-stage="${stage.id}">
+              ${(typeof ICONS !== "undefined" && ICONS[stage.id]) || ""}
+              <span class="nav-label">${index < 7 ? `${index + 1}. ` : ""}${stage.label}</span>
+              ${unread ? `<span class="unread-badge" title="Novas mensagens ou arquivos">●</span>` : ""}
+              <span class="nav-dot ${done ? "done" : ""}" title="${
+            done ? "Etapa com conteúdo" : "Etapa vazia"
+          }"></span>
+            </button>`;
+        })
+        .join("");
 
     $$("#stageNav .stage-link").forEach((btn) => {
       btn.addEventListener("click", () => {
         currentStage = btn.dataset.stage;
 
-        // Atualiza visualmente qual etapa está selecionada
         $$("#stageNav .stage-link").forEach((item) => {
           item.classList.toggle("active", item === btn);
         });
 
-        // Abre a etapa imediatamente
-        renderStage();
+        if (typeof renderStage === "function") renderStage();
 
-        // Marca como lidas as mensagens E os arquivos da etapa que acabou de ser aberta
-        const p = currentProject();
-        const stage = p?.stages?.[currentStage];
+        // Marca como lidos sem chamar renderSidebar de novo (evita o congelamento)
+        const currentP = currentProject();
+        const stage = currentP?.stages?.[currentStage];
 
         if (stage) {
           let changed = false;
 
-          // 1. Limpa mensagens não lidas
           if (Array.isArray(stage.clientMessages)) {
-            stage.clientMessages.forEach((message) => {
+            stage.clientMessages.forEach((msg) => {
               if (clientMode) {
-                if (message.author === "designer" && message.readByClient !== true) {
-                  message.readByClient = true;
+                if (msg.author === "designer" && msg.readByClient !== true) {
+                  msg.readByClient = true;
                   changed = true;
                 }
               } else {
-                if (message.author === "client" && message.readByDesigner !== true) {
-                  message.readByDesigner = true;
+                if (msg.author === "client" && msg.readByDesigner !== true) {
+                  msg.readByDesigner = true;
                   changed = true;
                 }
               }
             });
           }
 
-          // 2. Limpa arquivos não lidos
           if (Array.isArray(stage.files)) {
             stage.files.forEach((file) => {
               if (clientMode) {
@@ -1392,13 +1415,18 @@ return `
           }
 
           if (changed) {
-            renderSidebar();
-            saveProjects();
+            // Remove a bolinha visualmente no elemento clicado
+            btn.classList.remove("has-unread-message");
+            const badge = btn.querySelector(".unread-badge");
+            if (badge) badge.remove();
+
+            if (typeof saveProjects === "function") saveProjects();
           }
         }
       });
     });
   }
+}
 	  
 function openProject(id) {
   currentProjectId = id;

@@ -1374,7 +1374,9 @@ function renderSidebar() {
 			
 			const checklistUpdated = stageData?.checklistUpdated === true;
 			
-			const approved = stageData?.approved === true;
+			const approved =
+  			stageData?.approved === true &&
+  			!!stageData?.approvedAt;
 			
 			const dotClass = unreadMsg
 			  ? "message"

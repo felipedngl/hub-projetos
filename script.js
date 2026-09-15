@@ -1366,7 +1366,8 @@ function renderSidebar() {
           }" data-stage="${stage.id}">
               ${(typeof ICONS !== "undefined" && ICONS[stage.id]) || ""}
               <span class="nav-label">${index < 7 ? `${index + 1}. ` : ""}${stage.label}</span>
-              ${unread ? `<span class="unread-badge" title="Novas mensagens ou arquivos">●</span>` : ""}
+              ${unreadMsg ? `<span class="unread-badge message-notification" title="Nova mensagem">●</span>` : ""}
+			  ${unreadFiles ? `<span class="unread-badge file-notification" title="Novo arquivo">●</span>` : ""}
               <span class="nav-dot ${done ? "done" : ""}" title="${
             done ? "Etapa com conteúdo" : "Etapa vazia"
           }"></span>

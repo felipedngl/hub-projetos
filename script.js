@@ -1374,15 +1374,7 @@ function renderSidebar() {
 			  ${unreadFiles ? `<span class="unread-badge file-notification" title="Novo arquivo">●</span>` : ""}
 			  <span
 			  class="nav-dot ${dotClass}"
-			  title="${
-			    unreadMsg
-			      ? "Nova mensagem"
-			      : checklistUpdated
-			        ? "Etapa atualizada"
-			        : done
-			          ? "Etapa com conteúdo"
-			          : "Etapa vazia"
-			  }"
+			  title="Etapa"
 			></span>
             </button>`;
         })

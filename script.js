@@ -1835,7 +1835,11 @@ function openProject(id) {
         if (!Array.isArray(s.checklist) || !s.checklist[index]) return;
 
         s.checklist[index].done = input.checked;
-        const progress = getStageProgress(s);
+
+		// Marca a etapa como tendo uma atualização nova
+		s.checklistUpdated = true;
+		
+		const progress = getStageProgress(s);
 
         if (progress === 0) {
           s.status = "nao-iniciado";

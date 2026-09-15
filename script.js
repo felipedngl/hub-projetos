@@ -1354,11 +1354,15 @@ function renderSidebar() {
               return clientMode ? f.unreadByClient === true : f.unreadByDesigner === true;
             });
 
-          const unread = unreadMsg || unreadFiles;
+          const checklistUpdated = stageData?.checklistUpdated === true;
 
-		  const messageCount = Array.isArray(stageData?.clientMessages)
-		    ? stageData.clientMessages.length
-		    : 0;
+			const dotClass = unreadMsg
+			  ? "message"
+			  : checklistUpdated
+			    ? "checklist"
+			    : done
+			      ? "done"
+			      : "";
 
           return `
             <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${

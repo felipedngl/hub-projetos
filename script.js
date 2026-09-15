@@ -1986,7 +1986,7 @@ function openProject(id) {
       ? new Date(`${s.deadline}T00:00:00`).toLocaleDateString("pt-BR")
       : "";
 
-    const stageStatusHTML = `
+const stageStatusHTML = `
       <div class="panel stage-status-card ${(typeof STATUS_CLASS !== "undefined" && STATUS_CLASS[s.status]) || "status-nao-iniciado"}">
         <div class="stage-status-top">
           <div>

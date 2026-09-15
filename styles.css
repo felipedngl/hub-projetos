@@ -3090,3 +3090,18 @@ body.client-view #searchProjects {
   outline: none;
   box-sizing: border-box;
 }
+
+/* Destaque para o botão quando tem algo não lido */
+.stage-link.has-unread-message {
+  font-weight: bold;
+  background-color: rgba(239, 68, 68, 0.08); /* Fundo suave levemente avermelhado */
+}
+
+/* Bolinha vermelha indicadora */
+.unread-badge {
+  color: #ef4444; /* Vermelho */
+  font-size: 10px;
+  margin-left: auto;
+  margin-right: 6px;
+  animation: pulse 2s infinite;
+}

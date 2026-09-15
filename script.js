@@ -2243,6 +2243,46 @@ const isApproved = s.approved || s.status === "concluida";
         }
       });
     }
+	if (saved) {
+          if (input) input.value = "";
+          renderStageClient(project, stage);
+          if (typeof showToast === "function") showToast("Observação enviada.");
+        } else {
+          s.clientMessages.pop();
+          sendButton.disabled = false;
+          sendButton.textContent = "Enviar observação";
+        }
+      });
+    }
+
+    // ==========================================
+    // COLE O TRECHO DO BOTÃO DE APROVAÇÃO AQUI:
+    // ==========================================
+    const btnApproveStage = $("#btnApproveStageClient");
+    if (btnApproveStage) {
+      btnApproveStage.addEventListener("click", async () => {
+        if (!confirm("Deseja confirmar a aprovação formal desta etapa do projeto?")) return;
+
+        const now = new Date();
+        const formattedDate = now.toLocaleDateString("pt-BR") + " às " + now.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
+
+        s.approved = true;
+        s.approvedAt = formattedDate;
+        s.status = "concluida";
+        s.progress = 100;
+
+        btnApproveStage.disabled = true;
+        btnApproveStage.textContent = "Aprovando...";
+
+        if (typeof saveProjects === "function" && await saveProjects()) {
+          if (typeof showToast === "function") showToast("Etapa aprovada com sucesso!");
+          renderStageClient(project, stage);
+        } else {
+          btnApproveStage.disabled = false;
+          btnApproveStage.textContent = "Aprovar Etapa";
+        }
+      });
+    }
   }
 
 function stageConversationHTML(messages) {

@@ -3179,3 +3179,16 @@ body.client-view #searchProjects {
 .btn-theme span:first-child {
   font-size: 1rem;
 }
+
+/* Alternância das logos conforme o tema */
+.logo-light {
+  display: none;
+}
+
+body.theme-light .logo-dark {
+  display: none;
+}
+
+body.theme-light .logo-light {
+  display: block;
+}

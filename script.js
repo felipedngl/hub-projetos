@@ -4341,11 +4341,38 @@ function attachSiteLogEvents(project) {
 
 // Função auxiliar para tratar erros de carregamento de imagens de obra
 function handleImageError(imgElement, linkId, photoIndex) {
-  imgElement.style.display = 'none';
   const link = document.getElementById(linkId);
-  if (link) {
-    link.innerHTML = `<span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(229, 106, 68, 0.15); color: #e56a44; border: 1px solid rgba(229, 106, 68, 0.3); padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">🖼️ Abrir Foto ${photoIndex} ↗</span>`;
-  }
+
+  if (!link) return;
+
+  // Mantém o espaço da foto e mostra um placeholder visual
+  imgElement.style.display = "none";
+
+  link.innerHTML = `
+    <div
+      style="
+        width: 120px;
+        height: 90px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background: #3B4B52;
+        color: #F1EAE3;
+        border: 1px solid rgba(241, 234, 227, 0.2);
+        border-radius: 8px;
+        font-size: 0.8rem;
+        text-align: center;
+      "
+    >
+      <span style="font-size: 28px;">🖼️</span>
+      <span>Foto ${photoIndex}</span>
+      <span style="font-size: 0.7rem; opacity: 0.7;">
+        Não foi possível carregar
+      </span>
+    </div>
+  `;
 }
 	
 })();

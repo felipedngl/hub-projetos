@@ -1064,21 +1064,26 @@ if (!input) return;
   }
 
 function fileListHTML(files) {
-  if (!files.length) {
+  // 1. Garantia contra o erro: se files não for uma lista (ex: undefined), usa lista vazia []
+  const safeFiles = Array.isArray(files) ? files : [];
+
+  // 2. Se a lista estiver vazia, retorna a mensagem
+  if (safeFiles.length === 0) {
     return '<div class="file-empty">Nenhum arquivo nesta etapa ainda.</div>';
   }
 
-  return files
+  // 3. Renderiza os arquivos usando a lista segura (safeFiles)
+  return safeFiles
     .map((f) => {
       const isExternalLink = f.kind === "link" && f.value;
       const isImg = !isExternalLink && f.type && f.type.startsWith("image/");
 
-const thumbUrl = f.dataUrl || f.url || f.fileUrl || f.src || f.value;
+      const thumbUrl = f.dataUrl || f.url || f.fileUrl || f.src || f.value;
 
-const thumb = isImg
-  ? `<img src="${thumbUrl}" alt="${escapeHTML(f.name)}" onerror="this.onerror=null; this.src='${PLACEHOLDER}'" />`
-  : ICONS.fileDoc;
-		
+      const thumb = isImg
+        ? `<img src="${thumbUrl}" alt="${escapeHTML(f.name)}" onerror="this.onerror=null; this.src='${PLACEHOLDER}'" />`
+        : ICONS.fileDoc;
+
       // Por segurança, arquivos antigos que ainda não possuem
       // a propriedade allowClientDownload começam bloqueados.
       const canDownload = f.allowClientDownload === true;
@@ -1095,7 +1100,7 @@ const thumb = isImg
         : `
           <a
             class="file-open"
-            href="${f.dataUrl}"
+            href="${f.dataUrl || f.url}"
             target="_blank"
             rel="noopener"
           >Abrir</a>

@@ -4210,5 +4210,25 @@ function attachSiteLogEvents(project) {
   });
 }
 
-})();
+/* ---------------- Alternar Tema (Modo Claro / Escuro) ---------------- */
+function toggleTheme() {
+  const isLight = document.body.classList.contains("theme-light");
+  if (isLight) {
+    document.body.classList.remove("theme-light");
+    localStorage.setItem("menche_theme", "dark");
+    if (typeof showToast === "function") showToast("Modo escuro ativado");
+  } else {
+    document.body.classList.add("theme-light");
+    localStorage.setItem("menche_theme", "light");
+    if (typeof showToast === "function") showToast("Modo claro ativado");
+  }
+}
 
+// Aplica o tema salvo assim que a página carrega
+(function initTheme() {
+  const savedTheme = localStorage.getItem("menche_theme");
+  if (savedTheme === "light") {
+    document.body.classList.add("theme-light");
+  }
+
+})();

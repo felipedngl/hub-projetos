@@ -3130,19 +3130,27 @@ body.client-view #searchProjects {
   box-sizing: border-box;
 }
 
-/* Destaque para o botão quando tem algo não lido */
+/* Destaque da etapa quando existe uma notificação nova */
 .stage-link.has-unread-message {
   font-weight: bold;
-  background-color: rgba(239, 68, 68, 0.08); /* Fundo suave levemente avermelhado */
 }
 
-/* Bolinha vermelha indicadora */
+/* Bolinha indicadora de notificação */
 .unread-badge {
-  color: #ef4444; /* Vermelho */
   font-size: 10px;
-  margin-left: auto;
+  margin-left: 6px;
   margin-right: 6px;
   animation: pulse 2s infinite;
+}
+
+/* 🔵 Mensagem nova */
+.unread-badge.message-notification {
+  color: #3B82F6;
+}
+
+/* 🟠 Arquivo novo */
+.unread-badge.file-notification {
+  color: #E86A44;
 }
 
 .site-log-photo {

@@ -1284,14 +1284,20 @@ function stageHasContent(project, stage) {
 
 const s = project.stages?.[stage.id];
 
-return !!(
-  s &&
-  (
-    (s.text?.trim() || "").length > 0 ||
-    (Array.isArray(s.files) && s.files.length > 0) ||
-    (Array.isArray(s.clientMessages) && s.clientMessages.length > 0)
-  )
-);
+const hasText = (s?.text?.trim() || "").length > 0;
+const hasFiles = Array.isArray(s?.files) && s.files.length > 0;
+const hasMessages = Array.isArray(s?.clientMessages) && s.clientMessages.length > 0;
+
+console.log("DIAGNÓSTICO ETAPA:", stage.id, {
+  hasText,
+  hasFiles,
+  hasMessages,
+  text: s?.text,
+  files: s?.files,
+  messages: s?.clientMessages
+});
+
+return !!(hasText || hasFiles || hasMessages);
 }
 
 function renderSidebar() {

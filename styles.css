@@ -831,6 +831,16 @@ body.client-mode.project-restricted .btn-back {
   box-shadow: 0 0 8px rgba(111, 191, 143, 0.7);
 }
 
+.stage-nav .nav-dot.message {
+  background: #3B82F6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+}
+
+.stage-nav .nav-dot.checklist {
+  background: #EAB308;
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.7);
+}
+
 /* ---------- Stage content ---------- */
 .project-content {
   min-width: 0;

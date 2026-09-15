@@ -3181,14 +3181,19 @@ body.client-view #searchProjects {
 }
 
 /* Alternância das logos conforme o tema */
-.logo-light {
+
+.brand-mark .logo-light {
   display: none;
 }
 
-body.theme-light .logo-dark {
+.brand-mark .logo-dark {
+  display: block;
+}
+
+body.theme-light .brand-mark .logo-dark {
   display: none;
 }
 
-body.theme-light .logo-light {
+body.theme-light .brand-mark .logo-light {
   display: block;
 }

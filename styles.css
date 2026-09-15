@@ -827,13 +827,18 @@ body.client-mode.project-restricted .btn-back {
 }
 
 .stage-nav .nav-dot.done {
-  background: var(--success);
-  box-shadow: 0 0 8px rgba(111, 191, 143, 0.7);
+  background: #E86A44;
+  box-shadow: 0 0 8px rgba(232, 106, 68, 0.7);
 }
 
 .stage-nav .nav-dot.message {
   background: #3B82F6;
   box-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+}
+
+.stage-nav .nav-dot.file {
+  background: #8B5CF6;
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.7);
 }
 
 .stage-nav .nav-dot.checklist {

@@ -3134,3 +3134,20 @@ body.client-view #searchProjects {
   margin-right: 6px;
   animation: pulse 2s infinite;
 }
+
+.site-log-photo {
+  width: 100%;
+  margin-top: 14px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #3B4B52;
+  border: 1px solid rgba(241, 234, 227, 0.15);
+}
+
+.site-log-photo img {
+  display: block;
+  width: 100%;
+  max-height: 520px;
+  object-fit: cover;
+  border-radius: 12px;
+}

@@ -1356,6 +1356,10 @@ function renderSidebar() {
 
           const unread = unreadMsg || unreadFiles;
 
+		  const messageCount = Array.isArray(stageData?.clientMessages)
+		    ? stageData.clientMessages.length
+		    : 0;
+
           return `
             <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${
             unread ? "has-unread-message" : ""

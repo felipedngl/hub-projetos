@@ -4138,13 +4138,18 @@ function renderSiteLogHTML(project, isDesigner = false) {
               <p style="margin: 4px 0 0 0; white-space: pre-line; color: #2d3748;">${safeNextSteps}</p>
             </div>` : ""}
 
-          ${photosList.length > 0 ? `
+    ${photosList.length > 0 ? `
             <div style="margin-top: 12px;">
               <strong style="color: #4a5568; font-size: 0.85rem; display: block; margin-bottom: 6px;">📷 REGISTROS FOTOGRÁFICOS:</strong>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 ${photosList.map(url => `
-                  <a href="${url.trim()}" target="_blank" style="display: block;">
-                    <img src="${url.trim()}" style="width: 90px; height: 90px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0;" />
+                  <a href="${url.trim()}" target="_blank" rel="noopener" style="display: block;">
+                    <img 
+                      src="${url.trim()}" 
+                      alt="Foto da obra"
+                      onerror="this.onerror=null; this.src='https://via.placeholder.com/90?text=Link+Invalido';" 
+                      style="width: 90px; height: 90px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0;" 
+                    />
                   </a>
                 `).join("")}
               </div>

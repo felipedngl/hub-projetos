@@ -3562,7 +3562,25 @@ function bindEvents() {
 
   const btnBack = $("#btnBack");
   if (btnBack) {
-  $("#btnBack")?.addEventListener("click", showDashboard);
+  $("#btnBack")?.addEventListener("click", showDashboard);  
+  }
+	  const btnThemeToggle = $("#btnThemeToggle");
+
+  if (btnThemeToggle) {
+    btnThemeToggle.addEventListener("click", () => {
+      const isLight = document.body.classList.toggle("theme-light");
+
+      const icon = $("#themeIcon");
+      const label = $("#themeLabel");
+
+      if (isLight) {
+        if (icon) icon.textContent = "🌙";
+        if (label) label.textContent = "Modo escuro";
+      } else {
+        if (icon) icon.textContent = "☀️";
+        if (label) label.textContent = "Modo claro";
+      }
+    });
   }
 
   $("#btnNewProject")?.addEventListener("click", () => {

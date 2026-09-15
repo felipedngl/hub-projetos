@@ -4141,22 +4141,27 @@ function renderSiteLogHTML(project, isDesigner = false) {
       html += `
         <div class="panel site-log-card" style="border-left: 3px solid #e56a44; margin-bottom: 16px; padding: 20px;">
           
-          <!-- Cabeçalho do Card (Título + Data + Editar) -->
+		<!-- Cabeçalho do Card (Título + Data + Editar + Excluir) -->
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
             <h4 style="margin: 0; font-size: 1.05rem; color: #cbd5e0; font-weight: 600;">${safeTitle}</h4>
             <div style="display: flex; align-items: center; gap: 12px;">
               <span style="font-size: 0.85rem; color: #a0aec0;">📅 ${log.date || ""}</span>
               ${isDesigner ? `
-                <button type="button" class="btn-edit-sitelog" data-log-id="${log.id}" style="background: none; border: none; color: #e56a44; cursor: pointer; font-size: 0.85rem; font-weight: 600; padding: 0;">
-                  ✏️ Editar
-                </button>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" class="btn-edit-sitelog" data-log-id="${log.id}" style="background: none; border: none; color: #e56a44; cursor: pointer; font-size: 0.85rem; font-weight: 600; padding: 0;">
+                    ✏️ Editar
+                  </button>
+                  <button type="button" class="btn-delete-sitelog" data-log-id="${log.id}" style="background: none; border: none; color: #e53e3e; cursor: pointer; font-size: 0.85rem; font-weight: 600; padding: 0;">
+                    🗑️ Excluir
+                  </button>
+                </div>
               ` : ""}
-            </div>
-          </div>
+            </div> <!-- 👈 ADICIONE ESTA DIV DE FECHAMENTO AQUI -->
+          </div> <!-- Fechamento da div do cabeçalho -->
 
           <!-- Evoluções da Semana -->
           ${safeAdvancements ? `
-            <div style="margin-bottom: 14px;">
+		  <div style="margin-bottom: 14px;">
               <strong style="color: #718096; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; display: block; margin-bottom: 4px;">🔨 EVOLUÇÕES DA SEMANA:</strong>
               <p style="margin: 0; white-space: pre-line; color: #e2e8f0; font-size: 0.95rem; line-height: 1.5;">${safeAdvancements}</p>
             </div>` : ""}
@@ -4201,51 +4206,121 @@ function renderSiteLogHTML(project, isDesigner = false) {
   return html;
 }
 
-// Salva o relatório no banco
 function attachSiteLogEvents(project) {
+  const isDesigner = designerUnlocked && !clientMode && !localPreview;
+  if (!isDesigner) return;
+
+  const stageData = project.stages?.site_log || {};
+  if (!Array.isArray(stageData.siteLogs)) {
+    stageData.siteLogs = [];
+  }
+
+  // 1. Salvar ou Publicar Relatório
   const btnSave = $("#btnSaveSiteLog");
-  if (!btnSave) return;
+  if (btnSave) {
+    btnSave.addEventListener("click", async () => {
+      const editingId = $("#editingLogId")?.value;
+      const weekTitle = $("#logWeekTitle")?.value.trim();
+      const advancements = $("#logAdvancements")?.value.trim();
+      const clientAction = $("#logClientAction")?.value.trim();
+      const nextSteps = $("#logNextSteps")?.value.trim();
+      const photosRaw = $("#logPhotos")?.value.trim();
 
-  btnSave.addEventListener("click", async () => {
-    const title = $("#logWeekTitle")?.value.trim();
-    const advancements = $("#logAdvancements")?.value.trim();
-    const clientAction = $("#logClientAction")?.value.trim();
-    const nextSteps = $("#logNextSteps")?.value.trim();
-    const photosRaw = $("#logPhotos")?.value.trim();
+      if (!weekTitle) {
+        showToast("Informe o título da semana.", true);
+        return;
+      }
 
-    if (!title || (!advancements && !clientAction)) {
-      if (typeof showToast === "function") showToast("Preencha ao menos o título e as evoluções.", true);
-      return;
-    }
+      const photos = photosRaw ? photosRaw.split(",").map((p) => p.trim()).filter(Boolean) : [];
 
-    if (!project.stages) project.stages = {};
-    if (!project.stages.site_log) project.stages.site_log = { siteLogs: [] };
-    if (!Array.isArray(project.stages.site_log.siteLogs)) project.stages.site_log.siteLogs = [];
+      if (editingId) {
+        // Modo Edição
+        const log = stageData.siteLogs.find((l) => l.id === editingId);
+        if (log) {
+          log.weekTitle = weekTitle;
+          log.advancements = advancements;
+          log.clientAction = clientAction;
+          log.nextSteps = nextSteps;
+          log.photos = photos;
+        }
+      } else {
+        // Novo Relatório
+        const newLog = {
+          id: uid(),
+          date: new Date().toLocaleDateString("pt-BR"),
+          weekTitle,
+          advancements,
+          clientAction,
+          nextSteps,
+          photos
+        };
+        stageData.siteLogs.push(newLog);
+      }
 
-    const photos = photosRaw ? photosRaw.split(",").map(p => p.trim()).filter(Boolean) : [];
+      if (!project.stages) project.stages = {};
+      project.stages.site_log = stageData;
 
-    const newLog = {
-      id: typeof uid === "function" ? uid() : String(Date.now()),
-      date: new Date().toLocaleDateString("pt-BR"),
-      weekTitle: title,
-      advancements,
-      clientAction,
-      nextSteps,
-      photos
-    };
+      if (await saveProjects([project])) {
+        showToast(editingId ? "Relatório atualizado!" : "Relatório publicado!");
+        renderStage();
+      }
+    });
+  }
 
-    project.stages.site_log.siteLogs.push(newLog);
+  // 2. Ação do Botão Editar
+  $$(".btn-edit-sitelog").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const logId = btn.dataset.logId;
+      const log = stageData.siteLogs.find((l) => l.id === logId);
+      if (!log) return;
 
-    btnSave.disabled = true;
-    btnSave.textContent = "Publicando...";
+      $("#editingLogId").value = log.id;
+      $("#logWeekTitle").value = log.weekTitle || "";
+      $("#logAdvancements").value = log.advancements || "";
+      $("#logClientAction").value = log.clientAction || "";
+      $("#logNextSteps").value = log.nextSteps || "";
+      $("#logPhotos").value = log.photos ? log.photos.join(", ") : "";
 
-    if (typeof saveProjects === "function" && await saveProjects()) {
-      if (typeof showToast === "function") showToast("Relatório publicado com sucesso!");
-      if (typeof renderStageClient === "function") renderStageClient(project, { id: "site_log", special: "site_log" });
-    } else {
-      btnSave.disabled = false;
-      btnSave.textContent = "Publicar Relatório";
-    }
+      $("#siteLogFormTitle").textContent = "✏️ Editar Relatório Semanal";
+      $("#btnSaveSiteLog").textContent = "Salvar Alterações";
+      if ($("#btnCancelEditLog")) $("#btnCancelEditLog").style.display = "inline-block";
+
+      // Rola a tela até o formulário
+      $("#siteLogFormTitle").scrollIntoView({ behavior: "smooth" });
+    });
+  });
+
+  // 3. Cancelar Edição
+  const btnCancel = $("#btnCancelEditLog");
+  if (btnCancel) {
+    btnCancel.addEventListener("click", () => {
+      $("#editingLogId").value = "";
+      $("#logWeekTitle").value = "";
+      $("#logAdvancements").value = "";
+      $("#logClientAction").value = "";
+      $("#logNextSteps").value = "";
+      $("#logPhotos").value = "";
+
+      $("#siteLogFormTitle").textContent = "+ Novo Relatório Semanal";
+      $("#btnSaveSiteLog").textContent = "Publicar Relatório";
+      btnCancel.style.display = "none";
+    });
+  }
+
+  // 4. Ação do Botão Excluir
+  $$(".btn-delete-sitelog").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const logId = btn.dataset.logId;
+      if (!confirm("Tem certeza que deseja apagar este relatório de obra?")) return;
+
+      stageData.siteLogs = stageData.siteLogs.filter((l) => l.id !== logId);
+      project.stages.site_log = stageData;
+
+      if (await saveProjects([project])) {
+        showToast("Relatório removido.");
+        renderStage();
+      }
+    });
   });
 }
 

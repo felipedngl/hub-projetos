@@ -1288,7 +1288,7 @@ const hasText = (s?.text?.trim() || "").length > 0;
 const hasFiles = Array.isArray(s?.files) && s.files.length > 0;
 const hasMessages = Array.isArray(s?.clientMessages) && s.clientMessages.length > 0;
 
-console.log("DIAGNÓSTICO ETAPA:", stage.id, {
+console.log("DIAGNÓSTICO ETAPA:", project.title, stage.id, {
   hasText,
   hasFiles,
   hasMessages,

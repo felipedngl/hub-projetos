@@ -1281,135 +1281,134 @@ function stageHasContent(project, stage) {
 }
 
 function renderSidebar() {
-	
-    const p = currentProject();
-    if (!p) return;
+  const p = currentProject();
+  if (!p) return;
 
-    const fullAccess = designerUnlocked && !clientMode && !localPreview;
+  const fullAccess = designerUnlocked && !clientMode && !localPreview;
 
-    $("#projCover").src = p.image;
-    $("#projCover").onerror = () => ($("#projCover").src = PLACEHOLDER);
-    $("#projTitle").textContent = p.title;
-    $("#projMeta").textContent = `${p.client} · ${formatArea(p.area)} m² · ${p.type}`;
+  $("#projCover").src = p.image;
+  $("#projCover").onerror = () => ($("#projCover").src = PLACEHOLDER);
+  $("#projTitle").textContent = p.title;
+  $("#projMeta").textContent = `${p.client} · ${formatArea(p.area)} m² · ${p.type}`;
 
-    const statusTag = $("#projStatusTag");
-    const statusSel = $("#projStatus");
-    if (fullAccess) {
-      statusTag.hidden = true;
-      statusSel.hidden = false;
-      statusSel.value = p.status;
- statusSel.onchange = async () => {
-  p.status = statusSel.value;
+  const statusTag = $("#projStatusTag");
+  const statusSel = $("#projStatus");
+  if (fullAccess) {
+    statusTag.hidden = true;
+    statusSel.hidden = false;
+    statusSel.value = p.status;
+    statusSel.onchange = async () => {
+      p.status = statusSel.value;
 
-  if (await saveProjects()) {
-    showToast("Status atualizado.");
+      if (await saveProjects()) {
+        showToast("Status atualizado.");
+      }
+    };
+  } else {
+    statusSel.hidden = true;
+    statusTag.textContent = STATUS_LABELS[p.status] || p.status;
+    statusTag.className = "status-tag " + (STATUS_CLASS[p.status] || "");
+    statusTag.hidden = false;
   }
-};
-    } else {
-      statusSel.hidden = true;
-      statusTag.textContent = STATUS_LABELS[p.status] || p.status;
-      statusTag.className = "status-tag " + (STATUS_CLASS[p.status] || "");
-      statusTag.hidden = false;
-    }
 
-    $("#btnShareProject").hidden = !fullAccess;
-    $("#btnDeleteProject").hidden = !fullAccess;
+  $("#btnShareProject").hidden = !fullAccess;
+  $("#btnDeleteProject").hidden = !fullAccess;
 
-const navStages = STAGES;
+  const navStages = STAGES;
 
-    $("#stageNav").innerHTML =
-      '<div class="stage-nav-title">Etapas do projeto</div>' +
-      navStages.map((stage, index) => {
-        const done = stageHasContent(p, stage);
-        const stageData = p.stages?.[stage.id];
+  $("#stageNav").innerHTML =
+    '<div class="stage-nav-title">Etapas do projeto</div>' +
+    navStages.map((stage, index) => {
+      const done = stageHasContent(p, stage);
+      const stageData = p.stages?.[stage.id];
 
-        // Checa se há mensagens não lidas
-        const unreadMsg = clientMode
-          ? hasUnreadDesignerMessage(stageData)
-          : hasUnreadClientMessage(stageData);
+      // Checa se há mensagens não lidas
+      const unreadMsg = clientMode
+        ? hasUnreadDesignerMessage(stageData)
+        : hasUnreadClientMessage(stageData);
 
-        // Checa se há arquivos novos não lidos na etapa
-        const unreadFiles = Array.isArray(stageData?.files) && stageData.files.some((f) => {
-          return clientMode ? f.unreadByClient === true : f.unreadByDesigner === true;
-        });
-
-        const unread = unreadMsg || unreadFiles;
-
-return `
-  <button class="stage-link ${
-    stage.id === currentStage ? "active" : ""
-  } ${unread ? "has-unread-message" : ""}" data-stage="${stage.id}">
-    ${ICONS[stage.id] || ""}
-    <span class="nav-label">${
-      index < 7 ? `${index + 1}. ` : ""
-    }${stage.label}</span>
-    ${unread ? `<span class="unread-badge" title="Novas mensagens ou arquivos">●</span>` : ""}
-    <span class="nav-dot ${done ? "done" : ""}" title="${done ? "Etapa com conteúdo" : "Etapa vazia"}"></span>
-  </button>`;
-      }).join("");
-
-    $$("#stageNav .stage-link").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        currentStage = btn.dataset.stage;
-
-        // Atualiza visualmente qual etapa está selecionada
-        $$("#stageNav .stage-link").forEach((item) => {
-          item.classList.toggle("active", item === btn);
-        });
-
-        // Abre a etapa imediatamente
-        renderStage();
-
-        // Marca como lidas as mensagens E os arquivos da etapa que acabou de ser aberta
-        const p = currentProject();
-        const stage = p?.stages?.[currentStage];
-
-        if (stage) {
-          let changed = false;
-
-          // 1. Limpa mensagens não lidas
-          if (Array.isArray(stage.clientMessages)) {
-            stage.clientMessages.forEach((message) => {
-              if (clientMode) {
-                if (message.author === "designer" && message.readByClient !== true) {
-                  message.readByClient = true;
-                  changed = true;
-                }
-              } else {
-                if (message.author === "client" && message.readByDesigner !== true) {
-                  message.readByDesigner = true;
-                  changed = true;
-                }
-              }
-            });
-          }
-
-          // 2. Limpa arquivos não lidos
-          if (Array.isArray(stage.files)) {
-            stage.files.forEach((file) => {
-              if (clientMode) {
-                if (file.unreadByClient === true) {
-                  file.unreadByClient = false;
-                  changed = true;
-                }
-              } else {
-                if (file.unreadByDesigner === true) {
-                  file.unreadByDesigner = false;
-                  changed = true;
-                }
-              }
-            });
-          }
-
-          if (changed) {
-            renderSidebar();
-            saveProjects();
-          }
-        }
+      // Checa se há arquivos novos não lidos na etapa
+      const unreadFiles = Array.isArray(stageData?.files) && stageData.files.some((f) => {
+        return clientMode ? f.unreadByClient === true : f.unreadByDesigner === true;
       });
+
+      const unread = unreadMsg || unreadFiles;
+
+      return `
+        <button class="stage-link ${
+          stage.id === currentStage ? "active" : ""
+        } ${unread ? "has-unread-message" : ""}" data-stage="${stage.id}">
+          ${ICONS[stage.id] || ""}
+          <span class="nav-label">${
+            index < 7 ? `${index + 1}. ` : ""
+          }${stage.label}</span>
+          ${unread ? `<span class="unread-badge" title="Novas mensagens ou arquivos">●</span>` : ""}
+          <span class="nav-dot ${done ? "done" : ""}" title="${done ? "Etapa com conteúdo" : "Etapa vazia"}"></span>
+        </button>`;
+    }).join("");
+
+  $$("#stageNav .stage-link").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      currentStage = btn.dataset.stage;
+
+      // Atualiza visualmente qual etapa está selecionada
+      $$("#stageNav .stage-link").forEach((item) => {
+        item.classList.toggle("active", item === btn);
+      });
+
+      // Abre a etapa imediatamente
+      renderStage();
+
+      // Marca como lidas as mensagens E os arquivos da etapa que acabou de ser aberta
+      const p = currentProject();
+      const stage = p?.stages?.[currentStage];
+
+      if (stage) {
+        let changed = false;
+
+        // 1. Limpa mensagens não lidas
+        if (Array.isArray(stage.clientMessages)) {
+          stage.clientMessages.forEach((message) => {
+            if (clientMode) {
+              if (message.author === "designer" && message.readByClient !== true) {
+                message.readByClient = true;
+                changed = true;
+              }
+            } else {
+              if (message.author === "client" && message.readByDesigner !== true) {
+                message.readByDesigner = true;
+                changed = true;
+              }
+            }
+          });
+        }
+
+        // 2. Limpa arquivos não lidos
+        if (Array.isArray(stage.files)) {
+          stage.files.forEach((file) => {
+            if (clientMode) {
+              if (file.unreadByClient === true) {
+                file.unreadByClient = false;
+                changed = true;
+              }
+            } else {
+              if (file.unreadByDesigner === true) {
+                file.unreadByDesigner = false;
+                changed = true;
+              }
+            }
+          });
+        }
+
+        if (changed) {
+          renderSidebar();
+          saveProjects();
+        }
+      }
     });
-  }
-	  
+  });
+}
+
 function openProject(id) {
   currentProjectId = id;
   listenToCurrentProject(id);
@@ -1430,12 +1429,12 @@ function openProject(id) {
   }
 }
 
-  function currentProjectTitle() {
-    const p = currentProject();
-    return p ? p.title : "Projeto";
-  }
+function currentProjectTitle() {
+  const p = currentProject();
+  return p ? p.title : "Projeto";
+}
 
- function showDashboard() {
+function showDashboard() {
   if (!designerUnlocked && !clientMode) {
     showHubLocked();
     return;
@@ -1469,68 +1468,69 @@ function openProject(id) {
   applyAccessUI();
   renderDashboard();
 }
+
 /* ---------- Modo Cliente (visualização) ---------- */
-  function setClientMode(active) {
-    clientMode = active;
-    updateClientButton();
-    applyAccessUI();
+function setClientMode(active) {
+  clientMode = active;
+  updateClientButton();
+  applyAccessUI();
+}
+
+function updateClientButton() {
+  const btn = $("#btnClientView");
+  if (!btn) return;
+  if (currentProjectId == null || !designerUnlocked || (clientMode && !localPreview)) {
+    btn.hidden = true;
+    return;
   }
-
-  function updateClientButton() {
-    const btn = $("#btnClientView");
-    if (!btn) return;
-    if (currentProjectId == null || !designerUnlocked || (clientMode && !localPreview)) {
-      btn.hidden = true;
-      return;
-    }
-    btn.hidden = false;
-    if (clientMode && localPreview) {
-      btn.classList.add("active");
-      btn.innerHTML = `${ICONS.eyeOff}<span>${btn.dataset.exitLabel || "Sair do modo Cliente"}</span>`;
-    } else {
-      btn.classList.remove("active");
-      btn.innerHTML = `${ICONS.eye}<span>${btn.dataset.viewLabel || "Visualizar como Cliente"}</span>`;
-    }
+  btn.hidden = false;
+  if (clientMode && localPreview) {
+    btn.classList.add("active");
+    btn.innerHTML = `${ICONS.eyeOff}<span>${btn.dataset.exitLabel || "Sair do modo Cliente"}</span>`;
+  } else {
+    btn.classList.remove("active");
+    btn.innerHTML = `${ICONS.eye}<span>${btn.dataset.viewLabel || "Visualizar como Cliente"}</span>`;
   }
+}
 
-  // =================================================================
-  // FERRAMENTA: Modal bonito para substituir o prompt cinza do navegador
-  // =================================================================
-  function customPrompt(title, defaultValue) {
-    return new Promise((resolve) => {
-      const overlay = document.createElement("div");
-      overlay.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        background: rgba(0,0,0,0.7); display: flex; align-items: center;
-        justify-content: center; z-index: 9999; backdrop-filter: blur(3px);
-      `;
+// =================================================================
+// FERRAMENTA: Modal bonito para substituir o prompt cinza do navegador
+// =================================================================
+function customPrompt(title, defaultValue) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.style.cssText = `
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.7); display: flex; align-items: center;
+      justify-content: center; z-index: 9999; backdrop-filter: blur(3px);
+    `;
 
-      overlay.innerHTML = `
-        <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); font-family: inherit; color: #fff;">
-          <h4 style="margin: 0 0 12px 0; font-size: 1rem; color: #fff;">${title}</h4>
-          <textarea id="customPromptInput" style="width: 100%; min-height: 80px; padding: 8px; border-radius: 6px; background: #2a2a2a; color: #fff; border: 1px solid #444; font-family: inherit; resize: vertical; box-sizing: border-box;">${defaultValue}</textarea>
-          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
-            <button id="customPromptCancel" style="padding: 6px 12px; border-radius: 4px; background: transparent; border: 1px solid #555; color: #ccc; cursor: pointer;">Cancelar</button>
-            <button id="customPromptSave" style="padding: 6px 12px; border-radius: 4px; background: #e0a96d; border: none; color: #111; font-weight: bold; cursor: pointer;">Salvar</button>
-          </div>
+    overlay.innerHTML = `
+      <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); font-family: inherit; color: #fff;">
+        <h4 style="margin: 0 0 12px 0; font-size: 1rem; color: #fff;">${title}</h4>
+        <textarea id="customPromptInput" style="width: 100%; min-height: 80px; padding: 8px; border-radius: 6px; background: #2a2a2a; color: #fff; border: 1px solid #444; font-family: inherit; resize: vertical; box-sizing: border-box;">${defaultValue}</textarea>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
+          <button id="customPromptCancel" style="padding: 6px 12px; border-radius: 4px; background: transparent; border: 1px solid #555; color: #ccc; cursor: pointer;">Cancelar</button>
+          <button id="customPromptSave" style="padding: 6px 12px; border-radius: 4px; background: #e0a96d; border: none; color: #111; font-weight: bold; cursor: pointer;">Salvar</button>
         </div>
-      `;
+      </div>
+    `;
 
-      document.body.appendChild(overlay);
+    document.body.appendChild(overlay);
 
-      const input = overlay.querySelector("#customPromptInput");
-      input.focus();
-      input.select();
+    const input = overlay.querySelector("#customPromptInput");
+    input.focus();
+    input.select();
 
-      const cleanup = (value) => {
-        document.body.removeChild(overlay);
-        resolve(value);
-      };
+    const cleanup = (value) => {
+      document.body.removeChild(overlay);
+      resolve(value);
+    };
 
-      overlay.querySelector("#customPromptCancel").addEventListener("click", () => cleanup(null));
-      overlay.querySelector("#customPromptSave").addEventListener("click", () => cleanup(input.value));
-    });
-  }
+    overlay.querySelector("#customPromptCancel").addEventListener("click", () => cleanup(null));
+    overlay.querySelector("#customPromptSave").addEventListener("click", () => cleanup(input.value));
+  });
+}
 
   /* ---------------- Render: etapa (proprietário) ---------------- */
   function renderStage(autoRefresh = false) {

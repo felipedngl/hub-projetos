@@ -1566,8 +1566,14 @@ function openProject(id) {
     if (stage.special === "contracts") return renderContracts(project);
     if (stage.special === "memorial") return renderMemorial(project);
     if (stage.special === "schedule") return renderSchedule(project);
-	if (stage.special === "site_log" || stage.id === "site_log") return renderSiteLog(project);
-
+	if (stage.special === "site_log" || stage.id === "site_log") {
+      const container = $("#stageContainer");
+      if (container) {
+        container.innerHTML = renderSiteLogHTML(project, true);
+        if (typeof attachSiteLogEvents === "function") attachSiteLogEvents(project);
+      }
+      return;
+    }
     const s = project.stages[stage.id];
     const container = $("#stageContainer");
     if (!container) return;

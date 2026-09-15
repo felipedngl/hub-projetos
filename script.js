@@ -1366,7 +1366,7 @@ function renderSidebar() {
 
           return `
             <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${
-			(unreadMsg || checklistUpdated) ? "has-unread-message" : ""
+			unreadMsg ? "has-unread-message" : ""
 			}" data-stage="${stage.id}">
               ${(typeof ICONS !== "undefined" && ICONS[stage.id]) || ""}
               <span class="nav-label">${index < 7 ? `${index + 1}. ` : ""}${stage.label}</span>
@@ -1429,14 +1429,22 @@ function renderSidebar() {
             });
           }
 
-          if (changed) {
-            // Remove a bolinha visualmente no elemento clicado
-            btn.classList.remove("has-unread-message");
-            const badge = btn.querySelector(".unread-badge");
-            if (badge) badge.remove();
-
-            if (typeof saveProjects === "function") saveProjects();
-          }
+			if (changed || stage.checklistUpdated === true) {
+			  // Marca a atualização da checklist como lida
+			  if (stage.checklistUpdated === true) {
+				stage.checklistUpdated = false;
+			  }
+			
+			  // Remove a indicação visual de notificação
+			  btn.classList.remove("has-unread-message");
+			
+			  const badge = btn.querySelector(".unread-badge");
+			  if (badge) badge.remove();
+			
+			  if (typeof saveProjects === "function") {
+				saveProjects();
+			  }
+			}
         }
       });
     });

@@ -1,5 +1,7 @@
 body {
   font-family: 'Inter', sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text);
 }
 
 /* Títulos elegantes usando a fonte manuscrita da logo */
@@ -8,6 +10,7 @@ body {
   font-weight: 400;
 }
 
+/* MODO ESCURO (Padrão) */
 :root {
   --primary: #3B4B52;
   --primary-dark: #2a363b;
@@ -21,13 +24,29 @@ body {
   --border: rgba(241, 234, 227, 0.09);
   --border-strong: rgba(241, 234, 227, 0.2);
   --text: #f1eae3;
-  --text-dim: rgba(241, 234, 227, 0.62);
+  --text-dim: rgba(241, 234, 227, 0.85); /* Aumentado o brilho para ficar bem visível */
   --text-dark: #3b4b52;
   --success: #6fbf8f;
   --warning: #e8b04a;
   --danger: #e05d5d;
   --danger-soft: rgba(224, 93, 93, 0.14);
   --sidebar-w: 288px;
+}
+
+/* MODO CLARO (Quando o modo claro for ativado) */
+body.theme-light {
+  --bg-dark: #F1EAE3;
+  --surface: #FFFFFF;
+  --surface-2: #EAE3DC;
+  --text: #3B4B52;
+  --text-dim: #5F737C;
+  --border: rgba(59, 75, 82, 0.12);
+  --border-strong: rgba(59, 75, 82, 0.25);
+}
+
+/* Força os textos do Diário de Obra a ficarem claros e visíveis */
+.stage-card, .stage-card p, .stage-card span, .stage-card strong {
+  color: var(--text) !important;
 }
 
 * {

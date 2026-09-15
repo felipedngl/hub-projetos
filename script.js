@@ -4075,8 +4075,9 @@ function renderSiteLogHTML(project, isDesigner = false) {
   if (isDesigner) {
     html += `
       <div class="panel site-log-form-panel">
-        <h4 style="margin-bottom: 12px; color: #e56a44;">+ Novo Relatório Semanal</h4>
+        <h4 id="siteLogFormTitle" style="margin-bottom: 12px; color: #e56a44;">+ Novo Relatório Semanal</h4>
         <div style="display: flex; flex-direction: column; gap: 10px;">
+          <input type="hidden" id="editingLogId" value="" />
           <input type="text" id="logWeekTitle" class="stage-textarea" style="height: 40px;" placeholder="Título (ex: Semana 10 - Pintura e Iluminação)" />
           
           <label><strong>Evoluções da Semana:</strong></label>
@@ -4091,9 +4092,14 @@ function renderSiteLogHTML(project, isDesigner = false) {
           <label><strong>Fotos da Semana (URLs das imagens separadas por vírgula):</strong></label>
           <input type="text" id="logPhotos" class="stage-textarea" style="height: 40px;" placeholder="https://link-foto1.com, https://link-foto2.com" />
 
-          <button type="button" id="btnSaveSiteLog" class="btn-primary" style="margin-top: 10px;">
-            Publicar Relatório
-          </button>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button type="button" id="btnSaveSiteLog" class="btn-primary" style="flex: 1;">
+              Publicar Relatório
+            </button>
+            <button type="button" id="btnCancelEditLog" class="btn-secondary" style="display: none;">
+              Cancelar Edição
+            </button>
+          </div>
         </div>
       </div>`;
   }
@@ -4102,7 +4108,7 @@ function renderSiteLogHTML(project, isDesigner = false) {
 
   if (logs.length === 0) {
     html += `
-      <div class="panel" style="text-align: center; color: #718096; padding: 30px;">
+      <div class="panel" style="text-align: center; color: var(--text-dim, #718096); padding: 30px;">
         Nenhum relatório de obra publicado ainda.
       </div>`;
   } else {
@@ -4114,33 +4120,40 @@ function renderSiteLogHTML(project, isDesigner = false) {
       const safeNextSteps = typeof escapeHTML === "function" ? escapeHTML(log.nextSteps || "") : (log.nextSteps || "");
 
       html += `
-        <div class="panel site-log-card" style="border-left: 4px solid #e56a44; margin-bottom: 16px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h4 style="margin: 0; font-size: 1.1rem; color: #2d3748;">${safeTitle}</h4>
-            <span style="font-size: 0.8rem; color: #a0aec0;">📅 ${log.date || ""}</span>
+        <div class="panel site-log-card" style="border-left: 4px solid var(--accent, #e56a44); margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+            <h4 style="margin: 0; font-size: 1.1rem; color: var(--text, #2d3748);">${safeTitle}</h4>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 0.8rem; color: var(--text-dim, #a0aec0);">📅 ${log.date || ""}</span>
+              ${isDesigner ? `
+                <button type="button" class="btn-edit-sitelog" data-log-id="${log.id}" style="background: none; border: none; color: var(--accent, #e56a44); cursor: pointer; font-size: 0.85rem; font-weight: 600; padding: 0;">
+                  ✏️ Editar
+                </button>
+              ` : ""}
+            </div>
           </div>
 
           ${safeAdvancements ? `
             <div style="margin-bottom: 12px;">
-              <strong style="color: #4a5568; font-size: 0.85rem;">🔨 EVOLUÇÕES DA SEMANA:</strong>
-              <p style="margin: 4px 0 0 0; white-space: pre-line; color: #2d3748;">${safeAdvancements}</p>
+              <strong style="color: var(--text-dim, #4a5568); font-size: 0.85rem;">🔨 EVOLUÇÕES DA SEMANA:</strong>
+              <p style="margin: 4px 0 0 0; white-space: pre-line; color: var(--text, #2d3748);">${safeAdvancements}</p>
             </div>` : ""}
 
           ${safeClientAction ? `
-            <div style="margin-bottom: 12px; background: #fffaf0; border: 1px solid #feebc8; padding: 10px; border-radius: 6px;">
-              <strong style="color: #dd6b20; font-size: 0.85rem;">⚠️ PENDENTE DO CLIENTE:</strong>
-              <p style="margin: 4px 0 0 0; white-space: pre-line; color: #744210;">${safeClientAction}</p>
+            <div style="margin-bottom: 12px; background: rgba(232, 106, 68, 0.12); border: 1px solid var(--accent, #e56a44); padding: 10px; border-radius: 6px;">
+              <strong style="color: var(--accent, #e56a44); font-size: 0.85rem;">⚠️ PENDENTE DO CLIENTE:</strong>
+              <p style="margin: 4px 0 0 0; white-space: pre-line; color: var(--text, #744210);">${safeClientAction}</p>
             </div>` : ""}
 
           ${safeNextSteps ? `
             <div style="margin-bottom: 12px;">
-              <strong style="color: #4a5568; font-size: 0.85rem;">📋 PRÓXIMOS PASSOS:</strong>
-              <p style="margin: 4px 0 0 0; white-space: pre-line; color: #2d3748;">${safeNextSteps}</p>
+              <strong style="color: var(--text-dim, #4a5568); font-size: 0.85rem;">📋 PRÓXIMOS PASSOS:</strong>
+              <p style="margin: 4px 0 0 0; white-space: pre-line; color: var(--text, #2d3748);">${safeNextSteps}</p>
             </div>` : ""}
 
-    ${photosList.length > 0 ? `
+          ${photosList.length > 0 ? `
             <div style="margin-top: 12px;">
-              <strong style="color: #4a5568; font-size: 0.85rem; display: block; margin-bottom: 6px;">📷 REGISTROS FOTOGRÁFICOS:</strong>
+              <strong style="color: var(--text-dim, #4a5568); font-size: 0.85rem; display: block; margin-bottom: 6px;">📷 REGISTROS FOTOGRÁFICOS:</strong>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 ${photosList.map(url => `
                   <a href="${url.trim()}" target="_blank" rel="noopener" style="display: block;">
@@ -4148,7 +4161,7 @@ function renderSiteLogHTML(project, isDesigner = false) {
                       src="${url.trim()}" 
                       alt="Foto da obra"
                       onerror="this.onerror=null; this.src='https://via.placeholder.com/90?text=Link+Invalido';" 
-                      style="width: 90px; height: 90px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0;" 
+                      style="width: 90px; height: 90px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border, #e2e8f0);" 
                     />
                   </a>
                 `).join("")}
@@ -4162,12 +4175,56 @@ function renderSiteLogHTML(project, isDesigner = false) {
   return html;
 }
 
-// Salva o relatório no banco
+// Salva e edita relatórios no banco
 function attachSiteLogEvents(project) {
   const btnSave = $("#btnSaveSiteLog");
+  const btnCancel = $("#btnCancelEditLog");
   if (!btnSave) return;
 
+  // Evento dos botões de Editar nos cards
+  $$(".btn-edit-sitelog").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const logId = btn.dataset.logId;
+      const logs = project.stages?.site_log?.siteLogs || [];
+      const logToEdit = logs.find(l => l.id === logId);
+
+      if (!logToEdit) return;
+
+      $("#editingLogId").value = logToEdit.id;
+      $("#logWeekTitle").value = logToEdit.weekTitle || "";
+      $("#logAdvancements").value = logToEdit.advancements || "";
+      $("#logClientAction").value = logToEdit.clientAction || "";
+      $("#logNextSteps").value = logToEdit.nextSteps || "";
+      $("#logPhotos").value = (logToEdit.photos || []).join(", ");
+
+      $("#siteLogFormTitle").textContent = "✏️ Editando Relatório";
+      btnSave.textContent = "Salvar Alterações";
+      if (btnCancel) btnCancel.style.display = "inline-block";
+
+      const formPanel = $(".site-log-form-panel");
+      if (formPanel) formPanel.scrollIntoView({ behavior: "smooth" });
+    });
+  });
+
+  // Evento de Cancelar Edição
+  if (btnCancel) {
+    btnCancel.addEventListener("click", () => {
+      $("#editingLogId").value = "";
+      $("#logWeekTitle").value = "";
+      $("#logAdvancements").value = "";
+      $("#logClientAction").value = "";
+      $("#logNextSteps").value = "";
+      $("#logPhotos").value = "";
+
+      $("#siteLogFormTitle").textContent = "+ Novo Relatório Semanal";
+      btnSave.textContent = "Publicar Relatório";
+      btnCancel.style.display = "none";
+    });
+  }
+
+  // Evento do botão Publicar / Salvar Alterações
   btnSave.addEventListener("click", async () => {
+    const editingId = $("#editingLogId")?.value;
     const title = $("#logWeekTitle")?.value.trim();
     const advancements = $("#logAdvancements")?.value.trim();
     const clientAction = $("#logClientAction")?.value.trim();
@@ -4185,27 +4242,39 @@ function attachSiteLogEvents(project) {
 
     const photos = photosRaw ? photosRaw.split(",").map(p => p.trim()).filter(Boolean) : [];
 
-    const newLog = {
-      id: typeof uid === "function" ? uid() : String(Date.now()),
-      date: new Date().toLocaleDateString("pt-BR"),
-      weekTitle: title,
-      advancements,
-      clientAction,
-      nextSteps,
-      photos
-    };
-
-    project.stages.site_log.siteLogs.push(newLog);
+    if (editingId) {
+      // Atualiza relatório existente
+      const logIndex = project.stages.site_log.siteLogs.findIndex(l => l.id === editingId);
+      if (logIndex !== -1) {
+        project.stages.site_log.siteLogs[logIndex].weekTitle = title;
+        project.stages.site_log.siteLogs[logIndex].advancements = advancements;
+        project.stages.site_log.siteLogs[logIndex].clientAction = clientAction;
+        project.stages.site_log.siteLogs[logIndex].nextSteps = nextSteps;
+        project.stages.site_log.siteLogs[logIndex].photos = photos;
+      }
+    } else {
+      // Cria novo relatório
+      const newLog = {
+        id: typeof uid === "function" ? uid() : String(Date.now()),
+        date: new Date().toLocaleDateString("pt-BR"),
+        weekTitle: title,
+        advancements,
+        clientAction,
+        nextSteps,
+        photos
+      };
+      project.stages.site_log.siteLogs.push(newLog);
+    }
 
     btnSave.disabled = true;
-    btnSave.textContent = "Publicando...";
+    btnSave.textContent = editingId ? "Salvando..." : "Publicando...";
 
     if (typeof saveProjects === "function" && await saveProjects()) {
-      if (typeof showToast === "function") showToast("Relatório publicado com sucesso!");
-      if (typeof renderStageClient === "function") renderStageClient(project, { id: "site_log", special: "site_log" });
+      if (typeof showToast === "function") showToast(editingId ? "Relatório atualizado com sucesso!" : "Relatório publicado com sucesso!");
+      if (typeof renderStage === "function") renderStage();
     } else {
       btnSave.disabled = false;
-      btnSave.textContent = "Publicar Relatório";
+      btnSave.textContent = editingId ? "Salvar Alterações" : "Publicar Relatório";
     }
   });
 }
@@ -4230,5 +4299,4 @@ function toggleTheme() {
   if (savedTheme === "light") {
     document.body.classList.add("theme-light");
   }
-
 })();

@@ -1255,160 +1255,151 @@ function renderDashboard() {
   enableCardDragging();
 }
 
-/* ---------------- Render: visão interna ---------------- */
+  /* ---------------- Render: visão interna ---------------- */
 function stageHasContent(project, stage) {
   if (stage.special === "schedule") {
     return Array.isArray(project.schedule) && project.schedule.length > 0;
   }
 
-  if (stage.special === "site_log" || stage.id === "site_log") {
-    const logs = project.stages?.site_log?.siteLogs;
-    return Array.isArray(logs) && logs.length > 0;
-  }
-
-  if (stage.special === "contracts") {
-    return (project.contracts || []).length > 0;
-  }
-
+  if (stage.special === "contracts") return (project.contracts || []).length > 0;
   if (stage.special === "memorial") {
     const m = project.memorial || {};
-    const hasRows = Object.values(m).some((rows) => Array.isArray(rows) && rows.length > 0);
+    const hasRows = Object.values(m).some((rows) => rows.length > 0);
     return hasRows || (project.memorialFiles || []).length > 0;
   }
 
-  const s = project.stages?.[stage.id];
-  return s && ((s.text?.trim() || "").length > 0 || (s.files || []).length > 0);
+  const s = project.stages[stage.id];
+  return s && (s.text.trim().length > 0 || (s.files || []).length > 0);
 }
+  function renderSidebar() {
+    const p = currentProject();
+    if (!p) return;
 
-function renderSidebar() {
-  const p = currentProject();
-  if (!p) return;
+    const fullAccess = designerUnlocked && !clientMode && !localPreview;
 
-  const fullAccess = designerUnlocked && !clientMode && !localPreview;
+    $("#projCover").src = p.image;
+    $("#projCover").onerror = () => ($("#projCover").src = PLACEHOLDER);
+    $("#projTitle").textContent = p.title;
+    $("#projMeta").textContent = `${p.client} · ${formatArea(p.area)} m² · ${p.type}`;
 
-  $("#projCover").src = p.image;
-  $("#projCover").onerror = () => ($("#projCover").src = PLACEHOLDER);
-  $("#projTitle").textContent = p.title;
-  $("#projMeta").textContent = `${p.client} · ${formatArea(p.area)} m² · ${p.type}`;
+    const statusTag = $("#projStatusTag");
+    const statusSel = $("#projStatus");
+    if (fullAccess) {
+      statusTag.hidden = true;
+      statusSel.hidden = false;
+      statusSel.value = p.status;
+ statusSel.onchange = async () => {
+  p.status = statusSel.value;
 
-  const statusTag = $("#projStatusTag");
-  const statusSel = $("#projStatus");
-  if (fullAccess) {
-    statusTag.hidden = true;
-    statusSel.hidden = false;
-    statusSel.value = p.status;
-    statusSel.onchange = async () => {
-      p.status = statusSel.value;
-
-      if (await saveProjects()) {
-        showToast("Status atualizado.");
-      }
-    };
-  } else {
-    statusSel.hidden = true;
-    statusTag.textContent = STATUS_LABELS[p.status] || p.status;
-    statusTag.className = "status-tag " + (STATUS_CLASS[p.status] || "");
-    statusTag.hidden = false;
+  if (await saveProjects()) {
+    showToast("Status atualizado.");
   }
+};
+    } else {
+      statusSel.hidden = true;
+      statusTag.textContent = STATUS_LABELS[p.status] || p.status;
+      statusTag.className = "status-tag " + (STATUS_CLASS[p.status] || "");
+      statusTag.hidden = false;
+    }
 
-  $("#btnShareProject").hidden = !fullAccess;
-  $("#btnDeleteProject").hidden = !fullAccess;
+    $("#btnShareProject").hidden = !fullAccess;
+    $("#btnDeleteProject").hidden = !fullAccess;
 
-  const navStages = STAGES;
+const navStages = STAGES;
 
-  $("#stageNav").innerHTML =
-    '<div class="stage-nav-title">Etapas do projeto</div>' +
-    navStages.map((stage, index) => {
-      const done = stageHasContent(p, stage);
-      const stageData = p.stages?.[stage.id];
+    $("#stageNav").innerHTML =
+      '<div class="stage-nav-title">Etapas do projeto</div>' +
+      navStages.map((stage, index) => {
+        const done = stageHasContent(p, stage);
+        const stageData = p.stages?.[stage.id];
 
-      // Checa se há mensagens não lidas
-      const unreadMsg = clientMode
-        ? hasUnreadDesignerMessage(stageData)
-        : hasUnreadClientMessage(stageData);
+        // Checa se há mensagens não lidas
+        const unreadMsg = clientMode
+          ? hasUnreadDesignerMessage(stageData)
+          : hasUnreadClientMessage(stageData);
 
-      // Checa se há arquivos novos não lidos na etapa
-      const unreadFiles = Array.isArray(stageData?.files) && stageData.files.some((f) => {
-        return clientMode ? f.unreadByClient === true : f.unreadByDesigner === true;
+        // Checa se há arquivos novos não lidos na etapa
+        const unreadFiles = Array.isArray(stageData?.files) && stageData.files.some((f) => {
+          return clientMode ? f.unreadByClient === true : f.unreadByDesigner === true;
+        });
+
+        const unread = unreadMsg || unreadFiles;
+
+return `
+  <button class="stage-link ${
+    stage.id === currentStage ? "active" : ""
+  } ${unread ? "has-unread-message" : ""}" data-stage="${stage.id}">
+    ${ICONS[stage.id] || ""}
+    <span class="nav-label">${
+      index < 7 ? `${index + 1}. ` : ""
+    }${stage.label}</span>
+    ${unread ? `<span class="unread-badge" title="Novas mensagens ou arquivos">●</span>` : ""}
+    <span class="nav-dot ${done ? "done" : ""}" title="${done ? "Etapa com conteúdo" : "Etapa vazia"}"></span>
+  </button>`;
+      }).join("");
+
+    $$("#stageNav .stage-link").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        currentStage = btn.dataset.stage;
+
+        // Atualiza visualmente qual etapa está selecionada
+        $$("#stageNav .stage-link").forEach((item) => {
+          item.classList.toggle("active", item === btn);
+        });
+
+        // Abre a etapa imediatamente
+        renderStage();
+
+        // Marca como lidas as mensagens E os arquivos da etapa que acabou de ser aberta
+        const p = currentProject();
+        const stage = p?.stages?.[currentStage];
+
+        if (stage) {
+          let changed = false;
+
+          // 1. Limpa mensagens não lidas
+          if (Array.isArray(stage.clientMessages)) {
+            stage.clientMessages.forEach((message) => {
+              if (clientMode) {
+                if (message.author === "designer" && message.readByClient !== true) {
+                  message.readByClient = true;
+                  changed = true;
+                }
+              } else {
+                if (message.author === "client" && message.readByDesigner !== true) {
+                  message.readByDesigner = true;
+                  changed = true;
+                }
+              }
+            });
+          }
+
+          // 2. Limpa arquivos não lidos
+          if (Array.isArray(stage.files)) {
+            stage.files.forEach((file) => {
+              if (clientMode) {
+                if (file.unreadByClient === true) {
+                  file.unreadByClient = false;
+                  changed = true;
+                }
+              } else {
+                if (file.unreadByDesigner === true) {
+                  file.unreadByDesigner = false;
+                  changed = true;
+                }
+              }
+            });
+          }
+
+          if (changed) {
+            renderSidebar();
+            saveProjects();
+          }
+        }
       });
-
-      const unread = unreadMsg || unreadFiles;
-
-      return `
-        <button class="stage-link ${
-          stage.id === currentStage ? "active" : ""
-        } ${unread ? "has-unread-message" : ""}" data-stage="${stage.id}">
-          ${ICONS[stage.id] || ""}
-          <span class="nav-label">${
-            index < 7 ? `${index + 1}. ` : ""
-          }${stage.label}</span>
-          ${unread ? `<span class="unread-badge" title="Novas mensagens ou arquivos">●</span>` : ""}
-          <span class="nav-dot ${done ? "done" : ""}" title="${done ? "Etapa com conteúdo" : "Etapa vazia"}"></span>
-        </button>`;
-    }).join("");
-
-  $$("#stageNav .stage-link").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      currentStage = btn.dataset.stage;
-
-      // Atualiza visualmente qual etapa está selecionada
-      $$("#stageNav .stage-link").forEach((item) => {
-        item.classList.toggle("active", item === btn);
-      });
-
-      // Abre a etapa imediatamente
-      renderStage();
-
-      // Marca como lidas as mensagens E os arquivos da etapa que acabou de ser aberta
-      const p = currentProject();
-      const stage = p?.stages?.[currentStage];
-
-      if (stage) {
-        let changed = false;
-
-        // 1. Limpa mensagens não lidas
-        if (Array.isArray(stage.clientMessages)) {
-          stage.clientMessages.forEach((message) => {
-            if (clientMode) {
-              if (message.author === "designer" && message.readByClient !== true) {
-                message.readByClient = true;
-                changed = true;
-              }
-            } else {
-              if (message.author === "client" && message.readByDesigner !== true) {
-                message.readByDesigner = true;
-                changed = true;
-              }
-            }
-          });
-        }
-
-        // 2. Limpa arquivos não lidos
-        if (Array.isArray(stage.files)) {
-          stage.files.forEach((file) => {
-            if (clientMode) {
-              if (file.unreadByClient === true) {
-                file.unreadByClient = false;
-                changed = true;
-              }
-            } else {
-              if (file.unreadByDesigner === true) {
-                file.unreadByDesigner = false;
-                changed = true;
-              }
-            }
-          });
-        }
-
-        if (changed) {
-          renderSidebar();
-          saveProjects();
-        }
-      }
     });
-  });
-}
-
+  }
+	  
 function openProject(id) {
   currentProjectId = id;
   listenToCurrentProject(id);
@@ -1429,12 +1420,12 @@ function openProject(id) {
   }
 }
 
-function currentProjectTitle() {
-  const p = currentProject();
-  return p ? p.title : "Projeto";
-}
+  function currentProjectTitle() {
+    const p = currentProject();
+    return p ? p.title : "Projeto";
+  }
 
-function showDashboard() {
+ function showDashboard() {
   if (!designerUnlocked && !clientMode) {
     showHubLocked();
     return;
@@ -1468,69 +1459,68 @@ function showDashboard() {
   applyAccessUI();
   renderDashboard();
 }
-
 /* ---------- Modo Cliente (visualização) ---------- */
-function setClientMode(active) {
-  clientMode = active;
-  updateClientButton();
-  applyAccessUI();
-}
-
-function updateClientButton() {
-  const btn = $("#btnClientView");
-  if (!btn) return;
-  if (currentProjectId == null || !designerUnlocked || (clientMode && !localPreview)) {
-    btn.hidden = true;
-    return;
+  function setClientMode(active) {
+    clientMode = active;
+    updateClientButton();
+    applyAccessUI();
   }
-  btn.hidden = false;
-  if (clientMode && localPreview) {
-    btn.classList.add("active");
-    btn.innerHTML = `${ICONS.eyeOff}<span>${btn.dataset.exitLabel || "Sair do modo Cliente"}</span>`;
-  } else {
-    btn.classList.remove("active");
-    btn.innerHTML = `${ICONS.eye}<span>${btn.dataset.viewLabel || "Visualizar como Cliente"}</span>`;
+
+  function updateClientButton() {
+    const btn = $("#btnClientView");
+    if (!btn) return;
+    if (currentProjectId == null || !designerUnlocked || (clientMode && !localPreview)) {
+      btn.hidden = true;
+      return;
+    }
+    btn.hidden = false;
+    if (clientMode && localPreview) {
+      btn.classList.add("active");
+      btn.innerHTML = `${ICONS.eyeOff}<span>${btn.dataset.exitLabel || "Sair do modo Cliente"}</span>`;
+    } else {
+      btn.classList.remove("active");
+      btn.innerHTML = `${ICONS.eye}<span>${btn.dataset.viewLabel || "Visualizar como Cliente"}</span>`;
+    }
   }
-}
 
-// =================================================================
-// FERRAMENTA: Modal bonito para substituir o prompt cinza do navegador
-// =================================================================
-function customPrompt(title, defaultValue) {
-  return new Promise((resolve) => {
-    const overlay = document.createElement("div");
-    overlay.style.cssText = `
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.7); display: flex; align-items: center;
-      justify-content: center; z-index: 9999; backdrop-filter: blur(3px);
-    `;
+  // =================================================================
+  // FERRAMENTA: Modal bonito para substituir o prompt cinza do navegador
+  // =================================================================
+  function customPrompt(title, defaultValue) {
+    return new Promise((resolve) => {
+      const overlay = document.createElement("div");
+      overlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.7); display: flex; align-items: center;
+        justify-content: center; z-index: 9999; backdrop-filter: blur(3px);
+      `;
 
-    overlay.innerHTML = `
-      <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); font-family: inherit; color: #fff;">
-        <h4 style="margin: 0 0 12px 0; font-size: 1rem; color: #fff;">${title}</h4>
-        <textarea id="customPromptInput" style="width: 100%; min-height: 80px; padding: 8px; border-radius: 6px; background: #2a2a2a; color: #fff; border: 1px solid #444; font-family: inherit; resize: vertical; box-sizing: border-box;">${defaultValue}</textarea>
-        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
-          <button id="customPromptCancel" style="padding: 6px 12px; border-radius: 4px; background: transparent; border: 1px solid #555; color: #ccc; cursor: pointer;">Cancelar</button>
-          <button id="customPromptSave" style="padding: 6px 12px; border-radius: 4px; background: #e0a96d; border: none; color: #111; font-weight: bold; cursor: pointer;">Salvar</button>
+      overlay.innerHTML = `
+        <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); font-family: inherit; color: #fff;">
+          <h4 style="margin: 0 0 12px 0; font-size: 1rem; color: #fff;">${title}</h4>
+          <textarea id="customPromptInput" style="width: 100%; min-height: 80px; padding: 8px; border-radius: 6px; background: #2a2a2a; color: #fff; border: 1px solid #444; font-family: inherit; resize: vertical; box-sizing: border-box;">${defaultValue}</textarea>
+          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
+            <button id="customPromptCancel" style="padding: 6px 12px; border-radius: 4px; background: transparent; border: 1px solid #555; color: #ccc; cursor: pointer;">Cancelar</button>
+            <button id="customPromptSave" style="padding: 6px 12px; border-radius: 4px; background: #e0a96d; border: none; color: #111; font-weight: bold; cursor: pointer;">Salvar</button>
+          </div>
         </div>
-      </div>
-    `;
+      `;
 
-    document.body.appendChild(overlay);
+      document.body.appendChild(overlay);
 
-    const input = overlay.querySelector("#customPromptInput");
-    input.focus();
-    input.select();
+      const input = overlay.querySelector("#customPromptInput");
+      input.focus();
+      input.select();
 
-    const cleanup = (value) => {
-      document.body.removeChild(overlay);
-      resolve(value);
-    };
+      const cleanup = (value) => {
+        document.body.removeChild(overlay);
+        resolve(value);
+      };
 
-    overlay.querySelector("#customPromptCancel").addEventListener("click", () => cleanup(null));
-    overlay.querySelector("#customPromptSave").addEventListener("click", () => cleanup(input.value));
-  });
-}
+      overlay.querySelector("#customPromptCancel").addEventListener("click", () => cleanup(null));
+      overlay.querySelector("#customPromptSave").addEventListener("click", () => cleanup(input.value));
+    });
+  }
 
   /* ---------------- Render: etapa (proprietário) ---------------- */
   function renderStage(autoRefresh = false) {
@@ -1543,18 +1533,6 @@ function customPrompt(title, defaultValue) {
     if (stage.special === "contracts") return renderContracts(project);
     if (stage.special === "memorial") return renderMemorial(project);
     if (stage.special === "schedule") return renderSchedule(project);
-	if (stage.special === "site_log") {
-      const container = $("#stageContainer");
-      if (container) {
-        container.innerHTML = `
-          <div class="stage-header">
-            <h2>${stage.label}</h2>
-            <p class="stage-hint">${stage.hint}</p>
-          </div>` + renderSiteLogHTML(project, true);
-        attachSiteLogEvents(project);
-      }
-      return;
-    }
 
     const s = project.stages[stage.id];
     const container = $("#stageContainer");
@@ -4076,9 +4054,8 @@ function renderSiteLogHTML(project, isDesigner = false) {
   if (isDesigner) {
     html += `
       <div class="panel site-log-form-panel">
-        <h4 id="siteLogFormTitle" style="margin-bottom: 12px; color: #e56a44;">+ Novo Relatório Semanal</h4>
+        <h4 style="margin-bottom: 12px; color: #e56a44;">+ Novo Relatório Semanal</h4>
         <div style="display: flex; flex-direction: column; gap: 10px;">
-          <input type="hidden" id="editingLogId" value="" />
           <input type="text" id="logWeekTitle" class="stage-textarea" style="height: 40px;" placeholder="Título (ex: Semana 10 - Pintura e Iluminação)" />
           
           <label><strong>Evoluções da Semana:</strong></label>
@@ -4093,14 +4070,9 @@ function renderSiteLogHTML(project, isDesigner = false) {
           <label><strong>Fotos da Semana (URLs das imagens separadas por vírgula):</strong></label>
           <input type="text" id="logPhotos" class="stage-textarea" style="height: 40px;" placeholder="https://link-foto1.com, https://link-foto2.com" />
 
-          <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button type="button" id="btnSaveSiteLog" class="btn-primary" style="flex: 1;">
-              Publicar Relatório
-            </button>
-            <button type="button" id="btnCancelEditLog" class="btn-secondary" style="display: none;">
-              Cancelar Edição
-            </button>
-          </div>
+          <button type="button" id="btnSaveSiteLog" class="btn-primary" style="margin-top: 10px;">
+            Publicar Relatório
+          </button>
         </div>
       </div>`;
   }
@@ -4109,7 +4081,7 @@ function renderSiteLogHTML(project, isDesigner = false) {
 
   if (logs.length === 0) {
     html += `
-      <div class="panel" style="text-align: center; color: var(--text-dim, #718096); padding: 30px;">
+      <div class="panel" style="text-align: center; color: #718096; padding: 30px;">
         Nenhum relatório de obra publicado ainda.
       </div>`;
   } else {
@@ -4121,49 +4093,37 @@ function renderSiteLogHTML(project, isDesigner = false) {
       const safeNextSteps = typeof escapeHTML === "function" ? escapeHTML(log.nextSteps || "") : (log.nextSteps || "");
 
       html += `
-        <div class="panel site-log-card" style="border-left: 4px solid var(--accent, #e56a44); margin-bottom: 16px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-            <h4 style="margin: 0; font-size: 1.1rem; color: var(--text, #2d3748);">${safeTitle}</h4>
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <span style="font-size: 0.8rem; color: var(--text-dim, #a0aec0);">📅 ${log.date || ""}</span>
-              ${isDesigner ? `
-                <button type="button" class="btn-edit-sitelog" data-log-id="${log.id}" style="background: none; border: none; color: var(--accent, #e56a44); cursor: pointer; font-size: 0.85rem; font-weight: 600; padding: 0;">
-                  ✏️ Editar
-                </button>
-              ` : ""}
-            </div>
+        <div class="panel site-log-card" style="border-left: 4px solid #e56a44; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h4 style="margin: 0; font-size: 1.1rem; color: #2d3748;">${safeTitle}</h4>
+            <span style="font-size: 0.8rem; color: #a0aec0;">📅 ${log.date || ""}</span>
           </div>
 
           ${safeAdvancements ? `
             <div style="margin-bottom: 12px;">
-              <strong style="color: var(--text-dim, #4a5568); font-size: 0.85rem;">🔨 EVOLUÇÕES DA SEMANA:</strong>
-              <p style="margin: 4px 0 0 0; white-space: pre-line; color: var(--text, #2d3748);">${safeAdvancements}</p>
+              <strong style="color: #4a5568; font-size: 0.85rem;">🔨 EVOLUÇÕES DA SEMANA:</strong>
+              <p style="margin: 4px 0 0 0; white-space: pre-line; color: #2d3748;">${safeAdvancements}</p>
             </div>` : ""}
 
           ${safeClientAction ? `
-            <div style="margin-bottom: 12px; background: rgba(232, 106, 68, 0.12); border: 1px solid var(--accent, #e56a44); padding: 10px; border-radius: 6px;">
-              <strong style="color: var(--accent, #e56a44); font-size: 0.85rem;">⚠️ PENDENTE DO CLIENTE:</strong>
-              <p style="margin: 4px 0 0 0; white-space: pre-line; color: var(--text, #744210);">${safeClientAction}</p>
+            <div style="margin-bottom: 12px; background: #fffaf0; border: 1px solid #feebc8; padding: 10px; border-radius: 6px;">
+              <strong style="color: #dd6b20; font-size: 0.85rem;">⚠️ PENDENTE DO CLIENTE:</strong>
+              <p style="margin: 4px 0 0 0; white-space: pre-line; color: #744210;">${safeClientAction}</p>
             </div>` : ""}
 
           ${safeNextSteps ? `
             <div style="margin-bottom: 12px;">
-              <strong style="color: var(--text-dim, #4a5568); font-size: 0.85rem;">📋 PRÓXIMOS PASSOS:</strong>
-              <p style="margin: 4px 0 0 0; white-space: pre-line; color: var(--text, #2d3748);">${safeNextSteps}</p>
+              <strong style="color: #4a5568; font-size: 0.85rem;">📋 PRÓXIMOS PASSOS:</strong>
+              <p style="margin: 4px 0 0 0; white-space: pre-line; color: #2d3748;">${safeNextSteps}</p>
             </div>` : ""}
 
           ${photosList.length > 0 ? `
             <div style="margin-top: 12px;">
-              <strong style="color: var(--text-dim, #4a5568); font-size: 0.85rem; display: block; margin-bottom: 6px;">📷 REGISTROS FOTOGRÁFICOS:</strong>
+              <strong style="color: #4a5568; font-size: 0.85rem; display: block; margin-bottom: 6px;">📷 REGISTROS FOTOGRÁFICOS:</strong>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 ${photosList.map(url => `
-                  <a href="${url.trim()}" target="_blank" rel="noopener" style="display: block;">
-                    <img 
-                      src="${url.trim()}" 
-                      alt="Foto da obra"
-                      onerror="this.onerror=null; this.src='https://via.placeholder.com/90?text=Link+Invalido';" 
-                      style="width: 90px; height: 90px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border, #e2e8f0);" 
-                    />
+                  <a href="${url.trim()}" target="_blank" style="display: block;">
+                    <img src="${url.trim()}" style="width: 90px; height: 90px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0;" />
                   </a>
                 `).join("")}
               </div>
@@ -4176,56 +4136,12 @@ function renderSiteLogHTML(project, isDesigner = false) {
   return html;
 }
 
-// Salva e edita relatórios no banco
+// Salva o relatório no banco
 function attachSiteLogEvents(project) {
   const btnSave = $("#btnSaveSiteLog");
-  const btnCancel = $("#btnCancelEditLog");
   if (!btnSave) return;
 
-  // Evento dos botões de Editar nos cards
-  $$(".btn-edit-sitelog").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const logId = btn.dataset.logId;
-      const logs = project.stages?.site_log?.siteLogs || [];
-      const logToEdit = logs.find(l => l.id === logId);
-
-      if (!logToEdit) return;
-
-      $("#editingLogId").value = logToEdit.id;
-      $("#logWeekTitle").value = logToEdit.weekTitle || "";
-      $("#logAdvancements").value = logToEdit.advancements || "";
-      $("#logClientAction").value = logToEdit.clientAction || "";
-      $("#logNextSteps").value = logToEdit.nextSteps || "";
-      $("#logPhotos").value = (logToEdit.photos || []).join(", ");
-
-      $("#siteLogFormTitle").textContent = "✏️ Editando Relatório";
-      btnSave.textContent = "Salvar Alterações";
-      if (btnCancel) btnCancel.style.display = "inline-block";
-
-      const formPanel = $(".site-log-form-panel");
-      if (formPanel) formPanel.scrollIntoView({ behavior: "smooth" });
-    });
-  });
-
-  // Evento de Cancelar Edição
-  if (btnCancel) {
-    btnCancel.addEventListener("click", () => {
-      $("#editingLogId").value = "";
-      $("#logWeekTitle").value = "";
-      $("#logAdvancements").value = "";
-      $("#logClientAction").value = "";
-      $("#logNextSteps").value = "";
-      $("#logPhotos").value = "";
-
-      $("#siteLogFormTitle").textContent = "+ Novo Relatório Semanal";
-      btnSave.textContent = "Publicar Relatório";
-      btnCancel.style.display = "none";
-    });
-  }
-
-  // Evento do botão Publicar / Salvar Alterações
   btnSave.addEventListener("click", async () => {
-    const editingId = $("#editingLogId")?.value;
     const title = $("#logWeekTitle")?.value.trim();
     const advancements = $("#logAdvancements")?.value.trim();
     const clientAction = $("#logClientAction")?.value.trim();
@@ -4243,62 +4159,29 @@ function attachSiteLogEvents(project) {
 
     const photos = photosRaw ? photosRaw.split(",").map(p => p.trim()).filter(Boolean) : [];
 
-    if (editingId) {
-      // Atualiza relatório existente
-      const logIndex = project.stages.site_log.siteLogs.findIndex(l => l.id === editingId);
-      if (logIndex !== -1) {
-        project.stages.site_log.siteLogs[logIndex].weekTitle = title;
-        project.stages.site_log.siteLogs[logIndex].advancements = advancements;
-        project.stages.site_log.siteLogs[logIndex].clientAction = clientAction;
-        project.stages.site_log.siteLogs[logIndex].nextSteps = nextSteps;
-        project.stages.site_log.siteLogs[logIndex].photos = photos;
-      }
-    } else {
-      // Cria novo relatório
-      const newLog = {
-        id: typeof uid === "function" ? uid() : String(Date.now()),
-        date: new Date().toLocaleDateString("pt-BR"),
-        weekTitle: title,
-        advancements,
-        clientAction,
-        nextSteps,
-        photos
-      };
-      project.stages.site_log.siteLogs.push(newLog);
-    }
+    const newLog = {
+      id: typeof uid === "function" ? uid() : String(Date.now()),
+      date: new Date().toLocaleDateString("pt-BR"),
+      weekTitle: title,
+      advancements,
+      clientAction,
+      nextSteps,
+      photos
+    };
+
+    project.stages.site_log.siteLogs.push(newLog);
 
     btnSave.disabled = true;
-    btnSave.textContent = editingId ? "Salvando..." : "Publicando...";
+    btnSave.textContent = "Publicando...";
 
     if (typeof saveProjects === "function" && await saveProjects()) {
-      if (typeof showToast === "function") showToast(editingId ? "Relatório atualizado com sucesso!" : "Relatório publicado com sucesso!");
-      if (typeof renderStage === "function") renderStage();
+      if (typeof showToast === "function") showToast("Relatório publicado com sucesso!");
+      if (typeof renderStageClient === "function") renderStageClient(project, { id: "site_log", special: "site_log" });
     } else {
       btnSave.disabled = false;
-      btnSave.textContent = editingId ? "Salvar Alterações" : "Publicar Relatório";
+      btnSave.textContent = "Publicar Relatório";
     }
   });
 }
 
-/* ---------------- Alternar Tema (Modo Claro / Escuro) ---------------- */
-function toggleTheme() {
-  const isLight = document.body.classList.contains("theme-light");
-  if (isLight) {
-    document.body.classList.remove("theme-light");
-    localStorage.setItem("menche_theme", "dark");
-    if (typeof showToast === "function") showToast("Modo escuro ativado");
-  } else {
-    document.body.classList.add("theme-light");
-    localStorage.setItem("menche_theme", "light");
-    if (typeof showToast === "function") showToast("Modo claro ativado");
-  }
-}
-
-// Aplica o tema salvo assim que a página carrega
-(function initTheme() {
-  const savedTheme = localStorage.getItem("menche_theme");
-  if (savedTheme === "light") {
-    document.body.classList.add("theme-light");
-  }
 })();
-}

@@ -4190,18 +4190,66 @@ function renderSiteLogHTML(project, isDesigner = false) {
                 ${log.photos.map((photoUrl, idx) => {
                   const isUrl = photoUrl.startsWith("http://") || photoUrl.startsWith("https://") || photoUrl.startsWith("data:");
                   const linkId = `photo-link-${log.id}-${idx}`;
-                  if (isUrl) {
-                    return `
-                      <a href="${photoUrl}" target="_blank" rel="noopener noreferrer" id="${linkId}" style="text-decoration: none; display: inline-block;">
-                        <img 
-                          src="${photoUrl}" 
-                          alt="Foto ${idx + 1}" 
-                          style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);" 
-                          onerror="handleImageError(this, '${linkId}', ${idx + 1})"
-                        />
-                      </a>
-                    `;
-                  } else {
+				  if (isUrl) {
+				  const isDirectImage =
+				    /\.(jpg|jpeg|png|gif|webp|avif)(\?.*)?$/i.test(photoUrl);
+				
+				  if (isDirectImage) {
+				    return `
+				      <a
+				        href="${photoUrl}"
+				        target="_blank"
+				        rel="noopener noreferrer"
+				        id="${linkId}"
+				        style="text-decoration: none; display: inline-block;"
+				      >
+				        <img
+				          src="${photoUrl}"
+				          alt="Foto ${idx + 1}"
+				          style="
+				            width: 120px;
+				            height: 90px;
+				            object-fit: cover;
+				            border-radius: 8px;
+				            border: 1px solid rgba(255,255,255,0.15);
+				            display: block;
+				          "
+				          onerror="handleImageError(this, '${linkId}', ${idx + 1})"
+				        />
+				      </a>
+				    `;
+				  }
+				
+				  return `
+				    <a
+				      href="${photoUrl}"
+				      target="_blank"
+				      rel="noopener noreferrer"
+				      style="
+				        width: 120px;
+				        height: 90px;
+				        display: inline-flex;
+				        flex-direction: column;
+				        align-items: center;
+				        justify-content: center;
+				        gap: 6px;
+				        background: #3B4B52;
+				        color: #F1EAE3;
+				        border: 1px solid rgba(241, 234, 227, 0.2);
+				        border-radius: 8px;
+				        text-decoration: none;
+				        font-size: 0.8rem;
+				        text-align: center;
+				      "
+				    >
+				      <span style="font-size: 28px;">🖼️</span>
+				      <strong>Foto ${idx + 1}</strong>
+				      <span style="font-size: 0.7rem; opacity: 0.75;">
+				        Abrir foto ↗
+				      </span>
+				    </a>
+				  `;
+				} else {
                     return `
                       <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(229, 106, 68, 0.12); color: #e56a44; border: 1px solid rgba(229, 106, 68, 0.3); padding: 6px 12px; border-radius: 6px; font-size: 0.85rem;">
                         📷 ${photoUrl}

@@ -1283,7 +1283,16 @@ function stageHasContent(project, stage) {
   }
 
 const s = project.stages?.[stage.id];
-return s && ((s.text?.trim() || "").length > 0 || (s.files || []).length > 0);
+
+return !!(
+  s &&
+  (
+    (s.text?.trim() || "").length > 0 ||
+    (Array.isArray(s.files) && s.files.length > 0) ||
+    (Array.isArray(s.clientMessages) && s.clientMessages.length > 0)
+  )
+);
+}
 
 function renderSidebar() {
   const p = currentProject();

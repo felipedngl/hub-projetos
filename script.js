@@ -1260,6 +1260,15 @@ function stageHasContent(project, stage) {
   if (stage.special === "schedule") {
     return Array.isArray(project.schedule) && project.schedule.length > 0;
   }
+	
+  if (stage.special === "site_log" || stage.id === "site_log") {
+    const logs = project.stages?.site_log?.siteLogs;
+    return Array.isArray(logs) && logs.length > 0;
+  }
+
+  const s = project.stages?.[stage.id];
+  return s && ((s.text?.trim() || "").length > 0 || (s.files || []).length > 0);
+}
 
   if (stage.special === "contracts") return (project.contracts || []).length > 0;
   if (stage.special === "memorial") {

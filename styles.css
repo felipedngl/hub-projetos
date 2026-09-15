@@ -3151,3 +3151,31 @@ body.client-view #searchProjects {
   object-fit: cover;
   border-radius: 12px;
 }
+
+/* ---------- Botão de modo claro/escuro ---------- */
+
+.btn-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-theme:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  color: var(--accent);
+}
+
+.btn-theme span:first-child {
+  font-size: 1rem;
+}

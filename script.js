@@ -1986,12 +1986,23 @@ function openProject(id) {
       ? new Date(`${s.deadline}T00:00:00`).toLocaleDateString("pt-BR")
       : "";
 
-const stageStatusHTML = `
+const isApproved = s.approved || s.status === "concluida";
+    const approvalBadge = isApproved
+      ? `<div style="display:inline-flex; align-items:center; gap:6px; color:#48bb78; font-weight:700; font-size:0.9rem; margin-top:4px;">
+           <span>✓ Etapa Aprovada</span>
+           ${s.approvedAt ? `<small style="color:#a0aec0; font-weight:normal;">(${s.approvedAt})</small>` : ""}
+         </div>`
+      : `<button type="button" id="btnApproveStageClient" class="btn-primary" style="margin-top:8px; padding:6px 14px; font-size:0.85rem; background:#e56a44; border:none; border-radius:6px; cursor:pointer; color:#fff; font-weight:600;">
+           Aprovar Etapa
+         </button>`;
+
+    const stageStatusHTML = `
       <div class="panel stage-status-card ${(typeof STATUS_CLASS !== "undefined" && STATUS_CLASS[s.status]) || "status-nao-iniciado"}">
         <div class="stage-status-top">
           <div>
             <span class="stage-status-label">Status da etapa</span>
             <strong>${stageStatus}</strong>
+            <div>${approvalBadge}</div>
           </div>
 
           ${
@@ -2019,7 +2030,6 @@ const stageStatusHTML = `
         </div>
       </div>
     `;
-
     const iconText = (typeof ICONS !== "undefined" && stage.id && ICONS[stage.id]) ? ICONS[stage.id] : "📁";
 
     container.innerHTML = header + stageStatusHTML + checklistHTML + `

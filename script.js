@@ -1294,7 +1294,9 @@ console.log("DIAGNÓSTICO ETAPA:", stage.id, {
   hasMessages,
   text: s?.text,
   files: s?.files,
-  messages: s?.clientMessages
+  messages: s?.clientMessages,
+  messageIds: s?.clientMessages?.map((m) => m.id),
+  messageAuthors: s?.clientMessages?.map((m) => m.author)
 });
 
 return !!(hasText || hasFiles || hasMessages);

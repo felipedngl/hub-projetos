@@ -4300,6 +4300,4 @@ function toggleTheme() {
   if (savedTheme === "light") {
     document.body.classList.add("theme-light");
   }
-
 })();
-}

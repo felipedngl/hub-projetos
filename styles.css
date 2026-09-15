@@ -44,8 +44,18 @@ body.theme-light {
   --border-strong: rgba(59, 75, 82, 0.25);
 }
 
-/* Força os textos do Diário de Obra a ficarem claros e visíveis */
-.stage-card, .stage-card p, .stage-card span, .stage-card strong {
+/* Textos do Diário de Obra acompanham o tema */
+.stage-card,
+.stage-card p,
+.stage-card span,
+.stage-card strong {
+  color: var(--text) !important;
+}
+
+body.theme-light .stage-card,
+body.theme-light .stage-card p,
+body.theme-light .stage-card span,
+body.theme-light .stage-card strong {
   color: var(--text) !important;
 }
 

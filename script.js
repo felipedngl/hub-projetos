@@ -1348,30 +1348,32 @@ function renderSidebar() {
             : typeof hasUnreadClientMessage === "function" && hasUnreadClientMessage(stageData);
 
           // Checa não lidos em arquivos
-          const unreadFiles =
-            Array.isArray(stageData?.files) &&
-            stageData.files.some((f) => {
-              return clientMode ? f.unreadByClient === true : f.unreadByDesigner === true;
-            });
-
-          const checklistUpdated = stageData?.checklistUpdated === true;
-
+			const unreadFiles =
+			  Array.isArray(stageData?.files) &&
+			  stageData.files.some((f) => {
+			    return clientMode
+			      ? f.unreadByClient === true
+			      : f.unreadByDesigner === true;
+			  });
+			
+			const checklistUpdated = stageData?.checklistUpdated === true;
+			
 			const dotClass = unreadMsg
 			  ? "message"
-			  : checklistUpdated
-			    ? "checklist"
-			    : done
-			      ? "done"
-			      : "";
-
+			  : unreadFiles
+			    ? "file"
+			    : checklistUpdated
+			      ? "checklist"
+			      : done
+			        ? "done"
+			        : "";
+			
           return `
             <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${
 			unreadMsg ? "has-unread-message" : ""
 			}" data-stage="${stage.id}">
               ${(typeof ICONS !== "undefined" && ICONS[stage.id]) || ""}
               <span class="nav-label">${index < 7 ? `${index + 1}. ` : ""}${stage.label}</span>
-              ${unreadMsg ? `<span class="unread-badge message-notification" title="Nova mensagem">●</span>` : ""}
-			  ${unreadFiles ? `<span class="unread-badge file-notification" title="Novo arquivo">●</span>` : ""}
 			  <span
 			  class="nav-dot ${dotClass}"
 			  title="Etapa"

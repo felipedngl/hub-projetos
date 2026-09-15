@@ -76,7 +76,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(18, 24, 27, 0.85);
+  background: color-mix(in srgb, var(--bg-dark) 92%, transparent);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
 }

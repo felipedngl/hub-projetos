@@ -1374,15 +1374,19 @@ function renderSidebar() {
 			
 			const checklistUpdated = stageData?.checklistUpdated === true;
 			
+			const approved = stageData?.approved === true;
+			
 			const dotClass = unreadMsg
 			  ? "message"
 			  : unreadFiles
 			    ? "file"
 			    : checklistUpdated
 			      ? "checklist"
-			      : done
-			        ? "done"
-			        : "";
+			      : approved
+			        ? "approved"
+			        : done
+			          ? "done"
+			          : "";
 			
           return `
             <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${

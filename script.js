@@ -1366,8 +1366,8 @@ function renderSidebar() {
 
           return `
             <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${
-            unread ? "has-unread-message" : ""
-          }" data-stage="${stage.id}">
+			(unreadMsg || checklistUpdated) ? "has-unread-message" : ""
+			}" data-stage="${stage.id}">
               ${(typeof ICONS !== "undefined" && ICONS[stage.id]) || ""}
               <span class="nav-label">${index < 7 ? `${index + 1}. ` : ""}${stage.label}</span>
               ${unreadMsg ? `<span class="unread-badge message-notification" title="Nova mensagem">●</span>` : ""}

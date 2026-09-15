@@ -4180,23 +4180,32 @@ function renderSiteLogHTML(project, isDesigner = false) {
               <p style="margin: 0; white-space: pre-line; color: #e2e8f0; font-size: 0.95rem; line-height: 1.5;">${safeNextSteps}</p>
             </div>` : ""}
 
-          <!-- Registros Fotográficos -->
-          ${photosList.length > 0 ? `
-            <div style="margin-top: 14px;">
-              <strong style="color: #718096; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; display: block; margin-bottom: 8px;">📷 REGISTROS FOTOGRÁFICOS:</strong>
+<!-- Registros Fotográficos -->
+          ${log.photos && log.photos.length > 0 ? `
+            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
+              <span style="font-size: 0.85rem; font-weight: 600; color: #a0aec0; display: block; margin-bottom: 8px;">
+                📸 Registros Fotográficos (${log.photos.length})
+              </span>
               <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                ${photosList.map(url => `
-                  <a href="${url.trim()}" target="_blank" rel="noopener" style="display: block; width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
-                    <img 
-                      src="${url.trim()}" 
-                      alt="Foto da obra"
-                      onerror="this.onerror=null; this.src='https://via.placeholder.com/80?text=Foto';" 
-                      style="width: 100%; height: 100%; object-fit: cover;" 
-                    />
-                  </a>
-                `).join("")}
+                ${log.photos.map(photoUrl => {
+                  const isUrl = photoUrl.startsWith("http://") || photoUrl.startsWith("https://") || photoUrl.startsWith("data:");
+                  if (isUrl) {
+                    return `
+                      <a href="${photoUrl}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+                        <img src="${photoUrl}" alt="Foto da obra" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" />
+                      </a>
+                    `;
+                  } else {
+                    return `
+                      <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(229, 106, 68, 0.12); color: #e56a44; border: 1px solid rgba(229, 106, 68, 0.3); padding: 6px 12px; border-radius: 6px; font-size: 0.85rem;">
+                        📷 ${photoUrl}
+                      </span>
+                    `;
+                  }
+                }).join("")}
               </div>
-            </div>` : ""}
+            </div>
+          ` : ""}
 
         </div>`;
     });

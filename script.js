@@ -1927,6 +1927,42 @@ function openProject(id) {
       });
     });
 
+	$$("#stageConversation .btn-message-delete").forEach((button) => {
+  button.addEventListener("click", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const messageId = button.dataset.messageId;
+
+    if (!Array.isArray(s.clientMessages)) return;
+
+    const index = s.clientMessages.findIndex(
+      (message) => message.id === messageId
+    );
+
+    if (index === -1) return;
+
+    const message = s.clientMessages[index];
+
+    // No Hub do proprietário, só permite apagar mensagens da Menchë
+    if (message.author !== "designer") return;
+
+    if (!confirm("Apagar esta mensagem?")) return;
+
+    s.clientMessages.splice(index, 1);
+
+    const saved = await saveProjects();
+
+    if (!saved) return;
+
+    renderStage();
+
+    if (typeof showToast === "function") {
+      showToast("Mensagem apagada.");
+    }
+  });
+});
+
     if (designerButton) {
       designerButton.addEventListener("click", async () => {
         const text = designerInput ? designerInput.value.trim() : "";

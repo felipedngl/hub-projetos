@@ -58,6 +58,7 @@ function rememberClientAccess(projectId) {
     { id: "memorial", label: "Memorial Descritivo", hint: "Lista de compras com especificações de produtos, fornecedores e links diretos.", special: "memorial" },
     { id: "cronograma", label: "Cronograma de Obra", hint: "Planejamento das fases de execução, prazos de fornecedores e datas de entrega.", special: "schedule" },
 	{ id: "contratos", label: "Contratos & Documentos", hint: "Registre e visualize contratos, aditivos, documentos e links.", special: "contracts" },
+    { id: "site_log", label: "Diário de Obra", hint: "Acompanhe relatórios semanais, fotos do canteiro e pendências do cliente.", special: "site_log" },
   ];
 
   const MEMORIAL_TABLES = {

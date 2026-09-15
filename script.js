@@ -1324,16 +1324,17 @@ const navStages = STAGES;
 
         const unread = unreadMsg || unreadFiles;
 
-        return `
-          <button class="stage-link ${
-            stage.id === currentStage ? "active" : ""
-          } ${unread ? "has-unread-message" : ""}" data-stage="${stage.id}">
-            ${ICONS[stage.id] || ""}
-            <span class="nav-label">${
-              index < 7 ? `${index + 1}. ` : ""
-            }${stage.label}</span>
-            <span class="nav-dot ${done ? "done" : ""}" title="${done ? "Etapa com conteúdo" : "Etapa vazia"}"></span>
-          </button>`;
+return `
+  <button class="stage-link ${
+    stage.id === currentStage ? "active" : ""
+  } ${unread ? "has-unread-message" : ""}" data-stage="${stage.id}">
+    ${ICONS[stage.id] || ""}
+    <span class="nav-label">${
+      index < 7 ? `${index + 1}. ` : ""
+    }${stage.label}</span>
+    ${unread ? `<span class="unread-badge" title="Novas mensagens ou arquivos">●</span>` : ""}
+    <span class="nav-dot ${done ? "done" : ""}" title="${done ? "Etapa com conteúdo" : "Etapa vazia"}"></span>
+  </button>`;
       }).join("");
 
     $$("#stageNav .stage-link").forEach((btn) => {
@@ -1913,7 +1914,25 @@ function openProject(id) {
 
  /* ---------------- Render: etapa (cliente, leitura) ---------------- */
 function renderStageClient(project, stage) {
-  if (!project) return;
+  const s = project.stages[stage.id];
+
+  // --- ITEM 1: MARCAR MENSAGENS DO DESIGNER COMO LIDAS ---
+  if (Array.isArray(s.clientMessages)) {
+    let unreadFound = false;
+    s.clientMessages.forEach((msg) => {
+      // Se a mensagem veio do designer e ainda não foi lida pelo cliente
+      if (msg.author === "designer" && !msg.readByClient) {
+        msg.readByClient = true;
+        unreadFound = true;
+      }
+    });
+
+    // Se alterou alguma mensagem para lida, salva em segundo plano
+    if (unreadFound && typeof saveProjects === "function") {
+      saveProjects();
+    }
+  }
+	if (!project) return;
   const container = $("#stageContainer");
   if (!container) return;
 
@@ -1986,8 +2005,19 @@ function renderStageClient(project, stage) {
     ? new Date(`${s.deadline}T00:00:00`).toLocaleDateString("pt-BR")
     : "";
 
-  const isApproved = s.approved || s.status === "concluida";
-  const approvalBadge = isApproved
+// O cliente só vê como aprovado SE o status for "concluida" E a flag de aprovação estiver ativa.
+// Se você mudar o status no Admin para "em_andamento" ou "aguardando_aprovacao", o botão reaparece para ele!
+const isApproved = s.status === "concluida" && s.approved;
+
+const approvalBadge = isApproved
+  ? `<div style="display:inline-flex; align-items:center; gap:6px; color:#48bb78; font-weight:700; font-size:0.9rem; margin-top:4px;">
+       <span>✓ Etapa Aprovada pelo Cliente</span>
+       ${s.approvedAt ? `<small style="color:#a0aec0; font-weight:normal;">(${s.approvedAt})</small>` : ""}
+     </div>`
+  : `<button type="button" id="btnApproveStageClient" class="btn-primary" style="margin-top:8px; padding:6px 14px; font-size:0.85rem; background:#e56a44; border:none; border-radius:6px; cursor:pointer; color:#fff; font-weight:600;">
+       Aprovar Etapa
+     </button>`;
+const approvalBadge = isApproved
     ? `<div style="display:inline-flex; align-items:center; gap:6px; color:#48bb78; font-weight:700; font-size:0.9rem; margin-top:4px;">
          <span>✓ Etapa Aprovada</span>
          ${s.approvedAt ? `<small style="color:#a0aec0; font-weight:normal;">(${s.approvedAt})</small>` : ""}

@@ -1533,6 +1533,18 @@ function openProject(id) {
     if (stage.special === "contracts") return renderContracts(project);
     if (stage.special === "memorial") return renderMemorial(project);
     if (stage.special === "schedule") return renderSchedule(project);
+	if (stage.special === "site_log") {
+      const container = $("#stageContainer");
+      if (container) {
+        container.innerHTML = `
+          <div class="stage-header">
+            <h2>${stage.label}</h2>
+            <p class="stage-hint">${stage.hint}</p>
+          </div>` + renderSiteLogHTML(project, true);
+        attachSiteLogEvents(project);
+      }
+      return;
+    }
 
     const s = project.stages[stage.id];
     const container = $("#stageContainer");

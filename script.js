@@ -1372,9 +1372,18 @@ function renderSidebar() {
               <span class="nav-label">${index < 7 ? `${index + 1}. ` : ""}${stage.label}</span>
               ${unreadMsg ? `<span class="unread-badge message-notification" title="Nova mensagem">●</span>` : ""}
 			  ${unreadFiles ? `<span class="unread-badge file-notification" title="Novo arquivo">●</span>` : ""}
-              <span class="nav-dot ${done ? "done" : ""}" title="${
-            done ? "Etapa com conteúdo" : "Etapa vazia"
-          }"></span>
+			  <span
+			  class="nav-dot ${dotClass}"
+			  title="${
+			    unreadMsg
+			      ? "Nova mensagem"
+			      : checklistUpdated
+			        ? "Etapa atualizada"
+			        : done
+			          ? "Etapa com conteúdo"
+			          : "Etapa vazia"
+			  }"
+			></span>
             </button>`;
         })
         .join("");

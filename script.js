@@ -1912,27 +1912,31 @@ function openProject(id) {
     });
   }
 
- /* ---------------- Render: etapa (cliente, leitura) ---------------- */
+/* ---------------- Render: etapa (cliente, leitura) ---------------- */
 function renderStageClient(project, stage) {
-  const s = project.stages[stage.id];
+  if (!project) return;
 
-  // --- ITEM 1: MARCAR MENSAGENS DO DESIGNER COMO LIDAS ---
+  const stagesData = project.stages || {};
+  const stageKey = (stage && stage.id) ? stage.id : "projeto_executivo";
+  
+  // Declaração ÚNICA da variável 's'
+  const s = stagesData[stageKey] || { checklist: [], files: [], clientMessages: [], status: "nao_iniciado" };
+
+  // --- MARCAR MENSAGENS DO DESIGNER COMO LIDAS ---
   if (Array.isArray(s.clientMessages)) {
     let unreadFound = false;
     s.clientMessages.forEach((msg) => {
-      // Se a mensagem veio do designer e ainda não foi lida pelo cliente
       if (msg.author === "designer" && !msg.readByClient) {
         msg.readByClient = true;
         unreadFound = true;
       }
     });
 
-    // Se alterou alguma mensagem para lida, salva em segundo plano
     if (unreadFound && typeof saveProjects === "function") {
       saveProjects();
     }
   }
-	if (!project) return;
+
   const container = $("#stageContainer");
   if (!container) return;
 
@@ -1969,14 +1973,12 @@ function renderStageClient(project, stage) {
     container.innerHTML = header + memorialClientHTML(project);
     return;
   }
+
   if (stage.special === "schedule") {
     container.innerHTML = header + renderScheduleClientHTML(project);
     return;
   }
 
-  const stagesData = project.stages || {};
-  const stageKey = stage.id || "projeto_executivo";
-  const s = stagesData[stageKey] || { checklist: [], files: [], clientMessages: [], status: "nao_iniciado" };
   const checklist = Array.isArray(s.checklist) ? s.checklist : [];
 
   const checklistHTML = checklist.length
@@ -1999,27 +2001,20 @@ function renderStageClient(project, stage) {
       </div>
     `
     : "";
+
   const stageStatus = (typeof STATUS_LABELS !== "undefined" && STATUS_LABELS[s.status]) ? STATUS_LABELS[s.status] : "Não iniciado";
   const stageProgress = typeof getStageProgress === "function" ? getStageProgress(s) : 0;
   const deadlineText = s.deadline
     ? new Date(`${s.deadline}T00:00:00`).toLocaleDateString("pt-BR")
     : "";
 
-// O cliente só vê como aprovado SE o status for "concluida" E a flag de aprovação estiver ativa.
-// Se você mudar o status no Admin para "em_andamento" ou "aguardando_aprovacao", o botão reaparece para ele!
-const isApproved = s.status === "concluida" && s.approved;
+  // O cliente só vê como aprovado SE o status for "concluida" E a flag de aprovação estiver ativa.
+  const isApproved = s.status === "concluida" && s.approved;
 
-const approvalBadge = isApproved
-  ? `<div style="display:inline-flex; align-items:center; gap:6px; color:#48bb78; font-weight:700; font-size:0.9rem; margin-top:4px;">
-       <span>✓ Etapa Aprovada pelo Cliente</span>
-       ${s.approvedAt ? `<small style="color:#a0aec0; font-weight:normal;">(${s.approvedAt})</small>` : ""}
-     </div>`
-  : `<button type="button" id="btnApproveStageClient" class="btn-primary" style="margin-top:8px; padding:6px 14px; font-size:0.85rem; background:#e56a44; border:none; border-radius:6px; cursor:pointer; color:#fff; font-weight:600;">
-       Aprovar Etapa
-     </button>`;
-const approvalBadge = isApproved
+  // Declaração ÚNICA da variável approvalBadge
+  const approvalBadge = isApproved
     ? `<div style="display:inline-flex; align-items:center; gap:6px; color:#48bb78; font-weight:700; font-size:0.9rem; margin-top:4px;">
-         <span>✓ Etapa Aprovada</span>
+         <span>✓ Etapa Aprovada pelo Cliente</span>
          ${s.approvedAt ? `<small style="color:#a0aec0; font-weight:normal;">(${s.approvedAt})</small>` : ""}
        </div>`
     : `<button type="button" id="btnApproveStageClient" class="btn-primary" style="margin-top:8px; padding:6px 14px; font-size:0.85rem; background:#e56a44; border:none; border-radius:6px; cursor:pointer; color:#fff; font-weight:600;">
@@ -2060,6 +2055,7 @@ const approvalBadge = isApproved
       </div>
     </div>
   `;
+
   const iconText = (typeof ICONS !== "undefined" && stage.id && ICONS[stage.id]) ? ICONS[stage.id] : "📁";
 
   container.innerHTML = header + stageStatusHTML + checklistHTML + `

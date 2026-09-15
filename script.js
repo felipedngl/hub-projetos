@@ -1963,7 +1963,7 @@ function renderStageClient(project, stage) {
       <p class="stage-hint">${stage.hint || ""}</p>
     </div>`;
 
-  if (stage.special === "contracts") {
+if (stage.special === "contracts") {
     container.innerHTML = header + clientContractsHTML(project);
     attachClientContractViewers(project);
     return;
@@ -1979,8 +1979,14 @@ function renderStageClient(project, stage) {
     return;
   }
 
-  const checklist = Array.isArray(s.checklist) ? s.checklist : [];
+  if (stage.special === "site_log" || stage.id === "site_log") {
+    container.innerHTML = header + renderSiteLogHTML(project, false);
+    attachSiteLogEvents(project);
+    return;
+  }
 
+  const checklist = Array.isArray(s.checklist) ? s.checklist : [];
+	
   const checklistHTML = checklist.length
     ? `
       <div class="panel stage-checklist-client">
@@ -4029,4 +4035,153 @@ function closeShareModal() {
 window.openShareModal = openShareModal;
 window.closeShareModal = closeShareModal;
 
+
+/* ---------------- DIÁRIO DE OBRA (SITE LOG) ---------------- */
+
+// Gera a tela do Diário de Obra
+function renderSiteLogHTML(project, isDesigner = false) {
+  const stageData = project.stages?.site_log || {};
+  const logs = Array.isArray(stageData.siteLogs) ? stageData.siteLogs : [];
+
+  let html = `
+    <div class="site-log-container">
+      <div class="panel">
+        <h3>🏗️ Diário & Relatórios de Obra</h3>
+        <p class="conversation-hint">Acompanhe as atualizações semanais, evoluções do canteiro e pendências.</p>
+      </div>`;
+
+  if (isDesigner) {
+    html += `
+      <div class="panel site-log-form-panel">
+        <h4 style="margin-bottom: 12px; color: #e56a44;">+ Novo Relatório Semanal</h4>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <input type="text" id="logWeekTitle" class="stage-textarea" style="height: 40px;" placeholder="Título (ex: Semana 10 - Pintura e Iluminação)" />
+          
+          <label><strong>Evoluções da Semana:</strong></label>
+          <textarea id="logAdvancements" class="stage-textarea" placeholder="O que avançou na obra nesta semana..."></textarea>
+          
+          <label><strong>O que precisa do Cliente (Ações/Aprovações):</strong></label>
+          <textarea id="logClientAction" class="stage-textarea" placeholder="Definições, compras ou visitas pendentes do cliente..."></textarea>
+          
+          <label><strong>Próximos Passos (Fornecedores/Equipe):</strong></label>
+          <textarea id="logNextSteps" class="stage-textarea" placeholder="Próximas etapas para a semana que vem..."></textarea>
+          
+          <label><strong>Fotos da Semana (URLs das imagens separadas por vírgula):</strong></label>
+          <input type="text" id="logPhotos" class="stage-textarea" style="height: 40px;" placeholder="https://link-foto1.com, https://link-foto2.com" />
+
+          <button type="button" id="btnSaveSiteLog" class="btn-primary" style="margin-top: 10px;">
+            Publicar Relatório
+          </button>
+        </div>
+      </div>`;
+  }
+
+  html += `<div class="site-log-feed">`;
+
+  if (logs.length === 0) {
+    html += `
+      <div class="panel" style="text-align: center; color: #718096; padding: 30px;">
+        Nenhum relatório de obra publicado ainda.
+      </div>`;
+  } else {
+    logs.slice().reverse().forEach((log) => {
+      const photosList = Array.isArray(log.photos) ? log.photos : [];
+      const safeTitle = typeof escapeHTML === "function" ? escapeHTML(log.weekTitle || "Relatório de Obra") : (log.weekTitle || "Relatório de Obra");
+      const safeAdvancements = typeof escapeHTML === "function" ? escapeHTML(log.advancements || "") : (log.advancements || "");
+      const safeClientAction = typeof escapeHTML === "function" ? escapeHTML(log.clientAction || "") : (log.clientAction || "");
+      const safeNextSteps = typeof escapeHTML === "function" ? escapeHTML(log.nextSteps || "") : (log.nextSteps || "");
+
+      html += `
+        <div class="panel site-log-card" style="border-left: 4px solid #e56a44; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h4 style="margin: 0; font-size: 1.1rem; color: #2d3748;">${safeTitle}</h4>
+            <span style="font-size: 0.8rem; color: #a0aec0;">📅 ${log.date || ""}</span>
+          </div>
+
+          ${safeAdvancements ? `
+            <div style="margin-bottom: 12px;">
+              <strong style="color: #4a5568; font-size: 0.85rem;">🔨 EVOLUÇÕES DA SEMANA:</strong>
+              <p style="margin: 4px 0 0 0; white-space: pre-line; color: #2d3748;">${safeAdvancements}</p>
+            </div>` : ""}
+
+          ${safeClientAction ? `
+            <div style="margin-bottom: 12px; background: #fffaf0; border: 1px solid #feebc8; padding: 10px; border-radius: 6px;">
+              <strong style="color: #dd6b20; font-size: 0.85rem;">⚠️ PENDENTE DO CLIENTE:</strong>
+              <p style="margin: 4px 0 0 0; white-space: pre-line; color: #744210;">${safeClientAction}</p>
+            </div>` : ""}
+
+          ${safeNextSteps ? `
+            <div style="margin-bottom: 12px;">
+              <strong style="color: #4a5568; font-size: 0.85rem;">📋 PRÓXIMOS PASSOS:</strong>
+              <p style="margin: 4px 0 0 0; white-space: pre-line; color: #2d3748;">${safeNextSteps}</p>
+            </div>` : ""}
+
+          ${photosList.length > 0 ? `
+            <div style="margin-top: 12px;">
+              <strong style="color: #4a5568; font-size: 0.85rem; display: block; margin-bottom: 6px;">📷 REGISTROS FOTOGRÁFICOS:</strong>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${photosList.map(url => `
+                  <a href="${url.trim()}" target="_blank" style="display: block;">
+                    <img src="${url.trim()}" style="width: 90px; height: 90px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0;" />
+                  </a>
+                `).join("")}
+              </div>
+            </div>` : ""}
+        </div>`;
+    });
+  }
+
+  html += `</div></div>`;
+  return html;
+}
+
+// Salva o relatório no banco
+function attachSiteLogEvents(project) {
+  const btnSave = $("#btnSaveSiteLog");
+  if (!btnSave) return;
+
+  btnSave.addEventListener("click", async () => {
+    const title = $("#logWeekTitle")?.value.trim();
+    const advancements = $("#logAdvancements")?.value.trim();
+    const clientAction = $("#logClientAction")?.value.trim();
+    const nextSteps = $("#logNextSteps")?.value.trim();
+    const photosRaw = $("#logPhotos")?.value.trim();
+
+    if (!title || (!advancements && !clientAction)) {
+      if (typeof showToast === "function") showToast("Preencha ao menos o título e as evoluções.", true);
+      return;
+    }
+
+    if (!project.stages) project.stages = {};
+    if (!project.stages.site_log) project.stages.site_log = { siteLogs: [] };
+    if (!Array.isArray(project.stages.site_log.siteLogs)) project.stages.site_log.siteLogs = [];
+
+    const photos = photosRaw ? photosRaw.split(",").map(p => p.trim()).filter(Boolean) : [];
+
+    const newLog = {
+      id: typeof uid === "function" ? uid() : String(Date.now()),
+      date: new Date().toLocaleDateString("pt-BR"),
+      weekTitle: title,
+      advancements,
+      clientAction,
+      nextSteps,
+      photos
+    };
+
+    project.stages.site_log.siteLogs.push(newLog);
+
+    btnSave.disabled = true;
+    btnSave.textContent = "Publicando...";
+
+    if (typeof saveProjects === "function" && await saveProjects()) {
+      if (typeof showToast === "function") showToast("Relatório publicado com sucesso!");
+      if (typeof renderStageClient === "function") renderStageClient(project, { id: "site_log", special: "site_log" });
+    } else {
+      btnSave.disabled = false;
+      btnSave.textContent = "Publicar Relatório";
+    }
+  });
+}
+
 })();
+

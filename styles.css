@@ -1,3 +1,13 @@
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Títulos elegantes usando a fonte manuscrita da logo */
+.brand-title, .stage-header h2 {
+  font-family: 'Carattere', cursive;
+  font-weight: 400;
+}
+
 :root {
   --primary: #3B4B52;
   --primary-dark: #2a363b;

@@ -70,6 +70,8 @@ const MEMORIAL_TABLES = {
         { key: "fornecedor", label: "Fornecedor" },
         { key: "qty", label: "Quantidade" },
         { key: "preco", label: "Preço" },
+        { key: "status", label: "Status" },
+        { key: "obs", label: "Observações" },
         { key: "link", label: "Link do Produto" },
       ],
     },
@@ -81,6 +83,8 @@ const MEMORIAL_TABLES = {
         { key: "fornecedor", label: "Fornecedor" },
         { key: "qty", label: "Quantidade" },
         { key: "preco", label: "Preço" },
+        { key: "status", label: "Status" },
+        { key: "obs", label: "Observações" },
         { key: "link", label: "Link do Produto" },
       ],
     },
@@ -92,61 +96,60 @@ const MEMORIAL_TABLES = {
         { key: "fornecedor", label: "Fornecedor" },
         { key: "qty", label: "Quantidade" },
         { key: "preco", label: "Preço" },
+        { key: "status", label: "Status" },
+        { key: "obs", label: "Observações" },
         { key: "link", label: "Link do Produto" },
       ],
     },
     eletro: {
-      title: "Eletrodomésticos & Equipamentos",
+      title: "Eletrodomésticos",
       cols: [
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },
         { key: "fornecedor", label: "Fornecedor" },
         { key: "qty", label: "Quantidade" },
         { key: "preco", label: "Preço" },
+        { key: "status", label: "Status" },
+        { key: "obs", label: "Observações" },
         { key: "link", label: "Link do Produto" },
       ],
     },
     moveis: {
-      title: "Móveis Soltos & Estofados",
+      title: "Mobiliário",
       cols: [
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },
         { key: "fornecedor", label: "Fornecedor" },
         { key: "qty", label: "Quantidade" },
         { key: "preco", label: "Preço" },
+        { key: "status", label: "Status" },
+        { key: "obs", label: "Observações" },
         { key: "link", label: "Link do Produto" },
       ],
     },
     marcenaria: {
-      title: "Marcenaria Planejada",
+      title: "Marcenaria",
       cols: [
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },
         { key: "fornecedor", label: "Fornecedor" },
         { key: "qty", label: "Quantidade" },
         { key: "preco", label: "Preço" },
+        { key: "status", label: "Status" },
+        { key: "obs", label: "Observações" },
         { key: "link", label: "Link do Produto" },
       ],
     },
     decoracao: {
-      title: "Decoração & Complementos",
+      title: "Decoração",
       cols: [
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },
         { key: "fornecedor", label: "Fornecedor" },
         { key: "qty", label: "Quantidade" },
         { key: "preco", label: "Preço" },
-        { key: "link", label: "Link do Produto" },
-      ],
-    },
-    fornecedores: {
-      title: "Fornecedores Gerais",
-      cols: [
-        { key: "item", label: "Item" },
-        { key: "ambiente", label: "Ambiente" },
-        { key: "fornecedor", label: "Fornecedor" },
-        { key: "qty", label: "Quantidade" },
-        { key: "preco", label: "Preço" },
+        { key: "status", label: "Status" },
+        { key: "obs", label: "Observações" },
         { key: "link", label: "Link do Produto" },
       ],
     },
@@ -3187,16 +3190,16 @@ function renderMemorial(project) {
       <div class="file-list" id="memorialFiles">${fileListHTML(project.memorialFiles || [])}</div>
     </div>
 
-    <!-- Filtros por Categoria (Abas / Pílulas) -->
+<!-- Filtros por Categoria (Abas / Pílulas) -->
     <div class="memorial-filters" style="display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0;">
-      <button class="filter-btn active" onclick="filterMemorial('all')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #c29b38; color: #fff; cursor: pointer; font-weight: 500;">Todos</button>
-      <button class="filter-btn" onclick="filterMemorial('revestimentos')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Revestimentos</button>
-      <button class="filter-btn" onclick="filterMemorial('metais')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Metais & Louças</button>
-      <button class="filter-btn" onclick="filterMemorial('iluminacao')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Iluminação</button>
-      <button class="filter-btn" onclick="filterMemorial('eletro')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Eletrodomésticos</button>
-      <button class="filter-btn" onclick="filterMemorial('moveis')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Móveis Soltos</button>
-      <button class="filter-btn" onclick="filterMemorial('marcenaria')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Marcenaria</button>
-      <button class="filter-btn" onclick="filterMemorial('decoracao')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Decoração</button>
+      <button class="filter-btn active" data-filter="all" style="padding: 8px 16px; border-radius: 20px; border: none; background: #c29b38; color: #fff; cursor: pointer; font-weight: 500;">Todos</button>
+      <button class="filter-btn" data-filter="revestimentos" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Revestimentos</button>
+      <button class="filter-btn" data-filter="metais" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Metais & Louças</button>
+      <button class="filter-btn" data-filter="iluminacao" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Iluminação</button>
+      <button class="filter-btn" data-filter="eletro" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Eletrodomésticos</button>
+      <button class="filter-btn" data-filter="moveis" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Mobiliário</button>
+      <button class="filter-btn" data-filter="marcenaria" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Marcenaria</button>
+      <button class="filter-btn" data-filter="decoracao" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Decoração</button>
     </div>
 
     <!-- 2. As tabelas geradas dinamicamente -->
@@ -3255,6 +3258,32 @@ function renderMemorial(project) {
     });
   });
 }
+
+// Configura o clique dos botões de filtro do memorial
+  $$(".filter-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const category = btn.dataset.filter;
+
+      // Atualiza visualmente os botões
+      $$(".filter-btn").forEach((b) => {
+        b.style.background = "#2a2a2a";
+        b.style.color = "#aaa";
+        b.style.fontWeight = "normal";
+      });
+      btn.style.background = "#c29b38";
+      btn.style.color = "#fff";
+      btn.style.fontWeight = "500";
+
+      // Mostra/oculta as seções correspondentes
+      $$(".memorial-section").forEach((section) => {
+        if (category === "all" || section.getAttribute("data-category") === category) {
+          section.style.display = "block";
+        } else {
+          section.style.display = "none";
+        }
+      });
+    });
+  });
 
 /* ---------------- Cronograma de Obra ---------------- */
 function renderSchedule(project) {

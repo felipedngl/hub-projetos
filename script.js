@@ -704,9 +704,36 @@ function listenToCurrentProject(projectId) {
 
   projectListenerSnapshot = null;
 
-  unsubscribeProjectListener = db.collection("projects").doc(projectId).onSnapshot(
+	unsubscribeProjectListener = db.collection("projects").doc(projectId).onSnapshot(
     (doc) => {
       if (!doc.exists) return;
+
+      const updatedProject = {
+        id: doc.id,
+        ...doc.data(),
+      };
+
+      const previous = projectListenerSnapshot;
+
+      if (!previous) {
+        projectListenerSnapshot = updatedProject;
+        const index = projects.findIndex((p) => p.id === projectId);
+        if (index !== -1) {
+          projects[index] = { ...projects[index], ...updatedProject };
+        } else {
+          projects.push(updatedProject);
+        }
+        return;
+      }
+
+      const previousMessages = new Map();
+      if (previous?.stages) {
+        Object.values(previous.stages).forEach((stage) => {
+          (stage?.clientMessages || []).forEach((message) => {
+            previousMessages.set(message.id, message);
+          });
+        });
+      }
 
       const updatedProject = {
         id: doc.id,

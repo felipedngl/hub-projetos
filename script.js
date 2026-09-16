@@ -703,7 +703,7 @@ function listenToCurrentProject(projectId) {
   }
 
   projectListenerSnapshot = null;
-  let isFirstSnapshot = true;
+  let isFirstSnapshot = true; // Flag para controlar o som na primeira leitura
 
   unsubscribeProjectListener = db.collection("projects").doc(projectId).onSnapshot(
     (doc) => {
@@ -731,15 +731,7 @@ function listenToCurrentProject(projectId) {
             previousMessages.set(message.id, message);
           });
         });
-      } else if (isFirstSnapshot) {
-        // NA PRIMEIRA ABERTURA: Para evitar que o som toque para o histórico inteiro de mensagens antigas,
-        // mas permitindo tocar se você acabou de receber uma mensagem com o card fechado:
-        // Vamos popular o previousMessages com todas as mensagens atuais, EXCETO a última se ela for do outro lado e recente.
-        // Ou mais prático: na primeira carga, não tocamos som de histórico antigo. Se chegou mensagem nova 
-        // com o card fechado, o ideal é que o banco traga ou o push notification avise.
       }
-
-      isFirstSnapshot = false;
 
       const incomingMessages = [];
       Object.values(updatedProject.stages || {}).forEach((stage) => {
@@ -748,16 +740,39 @@ function listenToCurrentProject(projectId) {
         });
       });
 
-      // Se for o primeiro snapshot (acabou de abrir o card), limpamos o incomingMessages 
-      // para que mensagens antigas não toquem o som, garantindo o que você queria na abertura:
-      if (isFirstSnapshot && previousMessages.size === 0) {
-        // Se quisermos que toque caso tenha mensagem nova pendente ao abrir:
+      // SE NÃO FOR A PRIMEIRA LEITURA, TOCA O SOM PARA MENSAGENS NOVAS REAIS
+      if (!isFirstSnapshot) {
+        incomingMessages.forEach((message) => {
+          const fromOtherSide =
+            (clientMode && message.author === "designer") ||
+            (!clientMode && !localPreview && message.author === "client");
+
+          if (fromOtherSide) {
+            playMessageSound();
+            showToast(
+              message.author === "client"
+                ? "Nova mensagem do cliente."
+                : "Nova mensagem da Menchë Interiores."
+            );
+          }
+        });
       }
 
-      // Vamos direto ao ponto que funciona perfeitamente:
-      // Se você quer que toque ao abrir o card caso haja uma mensagem não lida do cliente:
+      // IMPORTANTE: A primeira leitura já aconteceu, desliga a trava para as próximas
+      isFirstSnapshot = false;
+
+      if (currentProject()?.id === projectId) {
+        renderStage(true);
+      }
+
+      renderSidebar();
+    },
+    (error) => {
+      console.error("Erro no listener do projeto:", error);
     }
   );
+
+  return unsubscribeProjectListener;
 }
 
 let saveQueue = Promise.resolve();

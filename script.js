@@ -713,7 +713,7 @@ function listenToCurrentProject(projectId) {
         ...doc.data(),
       };
 
-      const previous = projectListenerSnapshot;
+		const previous = projectListenerSnapshot;
 
       // TRAVA DE SEGURANÇA: Se for a primeira leitura ao entrar no card, 
       // apenas salva o estado atual silenciosamente sem tocar o som.
@@ -725,8 +725,10 @@ function listenToCurrentProject(projectId) {
         } else {
           projects.push(updatedProject);
         }
-		const previousMessages = new Map();
-	      if (previous?.stages) {
+      }
+
+      const previousMessages = new Map();
+      if (previous?.stages) {
         Object.values(previous.stages).forEach((stage) => {
           (stage?.clientMessages || []).forEach((message) => {
             previousMessages.set(message.id, message);

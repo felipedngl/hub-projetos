@@ -725,7 +725,13 @@ function listenToCurrentProject(projectId) {
         } else {
           projects.push(updatedProject);
         }
-        return;
+		const previousMessages = new Map();
+	      if (previous?.stages) {
+        Object.values(previous.stages).forEach((stage) => {
+          (stage?.clientMessages || []).forEach((message) => {
+            previousMessages.set(message.id, message);
+          });
+        });
       }
 
       const previousMessages = new Map();

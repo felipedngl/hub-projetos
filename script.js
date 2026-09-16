@@ -61,9 +61,53 @@ function rememberClientAccess(projectId) {
     { id: "site_log", label: "Diário de Obra", hint: "Acompanhe relatórios semanais, fotos do canteiro e pendências do cliente.", special: "site_log" },
   ];
 
-  const MEMORIAL_TABLES = {
+const MEMORIAL_TABLES = {
+    revestimentos: {
+      title: "Revestimentos & Acabamentos",
+      cols: [
+        { key: "item", label: "Item" },
+        { key: "ambiente", label: "Ambiente" },
+        { key: "fornecedor", label: "Fornecedor" },
+        { key: "qty", label: "Quantidade" },
+        { key: "preco", label: "Preço" },
+        { key: "link", label: "Link do Produto" },
+      ],
+    },
+    metais: {
+      title: "Metais & Louças",
+      cols: [
+        { key: "item", label: "Item" },
+        { key: "ambiente", label: "Ambiente" },
+        { key: "fornecedor", label: "Fornecedor" },
+        { key: "qty", label: "Quantidade" },
+        { key: "preco", label: "Preço" },
+        { key: "link", label: "Link do Produto" },
+      ],
+    },
+    iluminacao: {
+      title: "Iluminação",
+      cols: [
+        { key: "item", label: "Item" },
+        { key: "ambiente", label: "Ambiente" },
+        { key: "fornecedor", label: "Fornecedor" },
+        { key: "qty", label: "Quantidade" },
+        { key: "preco", label: "Preço" },
+        { key: "link", label: "Link do Produto" },
+      ],
+    },
+    eletro: {
+      title: "Eletrodomésticos & Equipamentos",
+      cols: [
+        { key: "item", label: "Item" },
+        { key: "ambiente", label: "Ambiente" },
+        { key: "fornecedor", label: "Fornecedor" },
+        { key: "qty", label: "Quantidade" },
+        { key: "preco", label: "Preço" },
+        { key: "link", label: "Link do Produto" },
+      ],
+    },
     moveis: {
-      title: "Móveis Soltos",
+      title: "Móveis Soltos & Estofados",
       cols: [
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },
@@ -74,7 +118,18 @@ function rememberClientAccess(projectId) {
       ],
     },
     marcenaria: {
-      title: "Marcenaria",
+      title: "Marcenaria Planejada",
+      cols: [
+        { key: "item", label: "Item" },
+        { key: "ambiente", label: "Ambiente" },
+        { key: "fornecedor", label: "Fornecedor" },
+        { key: "qty", label: "Quantidade" },
+        { key: "preco", label: "Preço" },
+        { key: "link", label: "Link do Produto" },
+      ],
+    },
+    decoracao: {
+      title: "Decoração & Complementos",
       cols: [
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },
@@ -85,7 +140,7 @@ function rememberClientAccess(projectId) {
       ],
     },
     fornecedores: {
-      title: "Fornecedores",
+      title: "Fornecedores Gerais",
       cols: [
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },

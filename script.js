@@ -3379,7 +3379,9 @@ $$(".memorial-input").forEach((input) => {
         await saveProjects([project]);
       }
     }
-  });
+  }); 
+
+});
 
     // Mantém o foco travado caso ocorra algum re-render externo indevido
 	 newInput.addEventListener("blur", () => {

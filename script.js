@@ -703,6 +703,7 @@ function listenToCurrentProject(projectId) {
   }
 
   projectListenerSnapshot = null;
+  let isFirstSnapshot = true; // Trava isolada para ignorar a carga inicial
 
   unsubscribeProjectListener = db.collection("projects").doc(projectId).onSnapshot(
     (doc) => {
@@ -713,18 +714,24 @@ function listenToCurrentProject(projectId) {
         ...doc.data(),
       };
 
-		const previous = projectListenerSnapshot;
+      const previous = projectListenerSnapshot;
+      projectListenerSnapshot = updatedProject;
 
-      // TRAVA DE SEGURANÇA: Se for a primeira leitura ao entrar no card, 
-      // apenas salva o estado atual silenciosamente sem tocar o som.
-      if (!previous) {
-        projectListenerSnapshot = updatedProject;
-        const index = projects.findIndex((p) => p.id === projectId);
-        if (index !== -1) {
-          projects[index] = { ...projects[index], ...updatedProject };
-        } else {
-          projects.push(updatedProject);
+      const index = projects.findIndex((p) => p.id === projectId);
+      if (index !== -1) {
+        projects[index] = { ...projects[index], ...updatedProject };
+      } else {
+        projects.push(updatedProject);
+      }
+
+      // SE FOR A PRIMEIRA VEZ QUE ABRE O CARD, APENAS ATUALIZA E PARA POR AQUI (SEM SOM)
+      if (isFirstSnapshot) {
+        isFirstSnapshot = false;
+        if (currentProject()?.id === projectId) {
+          renderStage(true);
         }
+        renderSidebar();
+        return; 
       }
 
       const previousMessages = new Map();
@@ -743,18 +750,6 @@ function listenToCurrentProject(projectId) {
         });
       });
 
-      projectListenerSnapshot = updatedProject;
-
-      const index = projects.findIndex((p) => p.id === projectId);
-      if (index !== -1) {
-        projects[index] = {
-          ...projects[index],
-          ...updatedProject,
-        };
-      } else {
-        projects.push(updatedProject);
-      }
-
       incomingMessages.forEach((message) => {
         const fromOtherSide =
           (clientMode && message.author === "designer") ||
@@ -771,8 +766,6 @@ function listenToCurrentProject(projectId) {
       });
 
       if (currentProject()?.id === projectId) {
-        // Atualização automática não marca mensagens como lidas.
-        // Elas só são marcadas quando a etapa é aberta pelo usuário.
         renderStage(true);
       }
 

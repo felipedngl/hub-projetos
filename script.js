@@ -3243,17 +3243,23 @@ function renderMemorial(project) {
 
   attachDropzone(container, project.memorialFiles, () => renderMemorial(project));
 
-	$$("#memorialFiles .file-remove").forEach((btn) => {
-	  btn.addEventListener("click", () => {
-	    const id = btn.closest(".file-item").dataset.fileId;
-	    project.memorialFiles = project.memorialFiles.filter((f) => f.id !== id);
-	    if (typeof saveProjects === "function") {
-	      await saveProjects([project]);
-	    }
-	
-	    renderMemorial(project);
-	  });
-	});
+$$("#memorialFiles .file-remove").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const id = btn.closest(".file-item").dataset.fileId;
+
+    project.memorialFiles = project.memorialFiles.filter(
+      (f) => f.id !== id
+    );
+
+    if (typeof saveProjects === "function") {
+      saveProjects([project]).then(() => {
+        renderMemorial(project);
+      });
+    } else {
+      renderMemorial(project);
+    }
+  });
+});
 
 $$(".btn-add-row").forEach((btn) => {
   btn.addEventListener("click", async () => {

@@ -3636,318 +3636,731 @@ function renderMemorial(project) {
 
   memorialEnsureStructure(project);
 
-const container = $("#stageContainer");
+  const container = $("#stageContainer");
 
-if (!container) return;
+  if (!container) return;
 
-  const categoriesHTML =
-    Object.keys(MEMORIAL_TABLES)
-      .map((key) =>
-        memorialSectionHTML(project, key)
-      )
-      .join("");
+  const categoriesHTML = Object.keys(MEMORIAL_TABLES)
+    .map((key) => memorialSectionHTML(project, key))
+    .join("");
 
-  const filterHTML = `
-    <div class="memorial-filters">
+  // ==========================================================
+  // FILTROS DINÂMICOS
+  // ==========================================================
 
+  const environments = new Set();
+  const suppliers = new Set();
+
+  Object.keys(MEMORIAL_TABLES).forEach((key) => {
+    const rows = Array.isArray(project.memorial[key])
+      ? project.memorial[key]
+      : [];
+
+    rows.forEach((row) => {
+      const ambiente = String(row.ambiente || "").trim();
+      const fornecedor = String(row.fornecedor || "").trim();
+
+      if (ambiente) environments.add(ambiente);
+      if (fornecedor) suppliers.add(fornecedor);
+    });
+  });
+
+  const sortedEnvironments = [...environments].sort((a, b) =>
+    a.localeCompare(b, "pt-BR")
+  );
+
+  const sortedSuppliers = [...suppliers].sort((a, b) =>
+    a.localeCompare(b, "pt-BR")
+  );
+
+  const categoryFilters = Object.keys(MEMORIAL_TABLES)
+    .map((key) => `
       <button
         type="button"
-        class="filter-btn selected"
-        data-filter="all"
+        class="memorial-filter-btn"
+        data-filter-group="category"
+        data-filter-value="${escapeHTML(key)}"
       >
-        Todas
+        ${escapeHTML(MEMORIAL_TABLES[key].title)}
       </button>
+    `)
+    .join("");
 
-      ${Object.keys(MEMORIAL_TABLES)
-        .map((key) => `
-          <button
-            type="button"
-            class="filter-btn"
-            data-filter="${escapeHTML(key)}"
-          >
-            ${escapeHTML(MEMORIAL_TABLES[key].title)}
-          </button>
-        `)
-        .join("")}
+  const environmentFilters = sortedEnvironments.length
+    ? sortedEnvironments
+        .map(
+          (value) => `
+            <button
+              type="button"
+              class="memorial-filter-btn"
+              data-filter-group="environment"
+              data-filter-value="${escapeHTML(value)}"
+            >
+              ${escapeHTML(value)}
+            </button>
+          `
+        )
+        .join("")
+    : `
+        <span class="memorial-filter-empty">
+          Os ambientes aparecerão aqui conforme forem cadastrados.
+        </span>
+      `;
 
-    </div>
-  `;
+  const supplierFilters = sortedSuppliers.length
+    ? sortedSuppliers
+        .map(
+          (value) => `
+            <button
+              type="button"
+              class="memorial-filter-btn"
+              data-filter-group="supplier"
+              data-filter-value="${escapeHTML(value)}"
+            >
+              ${escapeHTML(value)}
+            </button>
+          `
+        )
+        .join("")
+    : `
+        <span class="memorial-filter-empty">
+          Os fornecedores/lojas aparecerão aqui conforme forem cadastrados.
+        </span>
+      `;
 
-  const filesHTML = `
-    <div class="memorial-files-panel">
+  const total = memorialGrandTotal(project);
 
-      <div class="memorial-files-header">
-        <h3>Arquivos do Memorial</h3>
-      </div>
-
-      <div
-        id="memorialFiles"
-        class="memorial-files-list"
-      >
-        ${
-          project.memorialFiles.length
-            ? fileListHTML(project.memorialFiles)
-            : `<div class="empty-state">Nenhum arquivo anexado.</div>`
-        }
-      </div>
-
-      <div
-        id="memorialDropzone"
-        class="dropzone"
-      >
-        <input
-          id="memorialFileInput"
-          type="file"
-          multiple
-          hidden
-        >
-
-        <div>
-          Arraste arquivos aqui ou clique para selecionar.
-        </div>
-      </div>
-
-    </div>
-  `;
+  // ==========================================================
+  // HTML PRINCIPAL
+  // ==========================================================
 
   container.innerHTML = `
     <div class="memorial-container">
 
-      <div class="stage-header">
-        <div>
+      <div class="memorial-header">
+
+        <div class="memorial-header-text">
           <h2>Memorial Descritivo</h2>
+
           <p>
             Cadastre os itens, quantidades, preços,
             fornecedores e observações do projeto.
           </p>
         </div>
+
+        <div class="memorial-total-card">
+          <span>Total</span>
+
+          <strong class="memorial-grand-total">
+            ${memorialFormatPrice(total)}
+          </strong>
+        </div>
+
       </div>
 
-      ${memorialGrandTotalHTML(project)}
 
-      ${filterHTML}
+      <!-- ====================================================
+           FILTROS
+      ===================================================== -->
+
+      <div class="memorial-filter-panel">
+
+        <div class="memorial-filter-header">
+
+          <div>
+            <h3>Filtros</h3>
+
+            <p>
+              Combine filtros para encontrar rapidamente
+              os itens desejados.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            id="btnClearMemorialFilters"
+            class="memorial-clear-filters"
+          >
+            Limpar seleção
+          </button>
+
+        </div>
+
+
+        <div class="memorial-filter-group">
+
+          <div class="memorial-filter-label">
+            Categorias
+          </div>
+
+          <div class="memorial-filter-options">
+
+            <button
+              type="button"
+              class="memorial-filter-btn memorial-filter-all selected"
+              data-filter-group="category"
+              data-filter-value="all"
+            >
+              Todos
+            </button>
+
+            ${categoryFilters}
+
+          </div>
+
+        </div>
+
+
+        <div class="memorial-filter-group">
+
+          <div class="memorial-filter-label">
+            Ambientes
+          </div>
+
+          <div class="memorial-filter-options">
+
+            ${environmentFilters}
+
+          </div>
+
+        </div>
+
+
+        <div class="memorial-filter-group">
+
+          <div class="memorial-filter-label">
+            Fornecedores / Lojas
+          </div>
+
+          <div class="memorial-filter-options">
+
+            ${supplierFilters}
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ====================================================
+           CATEGORIAS
+      ===================================================== -->
 
       <div class="memorial-sections">
         ${categoriesHTML}
       </div>
 
-      ${memorialGrandTotalHTML(project)}
 
-      ${filesHTML}
+      <!-- ====================================================
+           TOTAL FINAL
+      ===================================================== -->
+
+      <div class="memorial-bottom-total">
+
+        <span>Total</span>
+
+        <strong class="memorial-grand-total">
+          ${memorialFormatPrice(total)}
+        </strong>
+
+      </div>
+
+
+      <!-- ====================================================
+           ARQUIVOS
+      ===================================================== -->
+
+      <div class="memorial-files-panel">
+
+        <div class="memorial-files-header">
+          <div>
+            <h3>Arquivos do Memorial</h3>
+
+            <p>
+              Plantas, especificações, catálogos e documentos
+              relacionados ao Memorial.
+            </p>
+          </div>
+        </div>
+
+        <div
+          id="memorialFiles"
+          class="memorial-files-list"
+        >
+          ${
+            project.memorialFiles.length
+              ? fileListHTML(project.memorialFiles)
+              : `<div class="empty-state">Nenhum arquivo anexado.</div>`
+          }
+        </div>
+
+        <div
+          id="memorialDropzone"
+          class="dropzone"
+        >
+          <input
+            id="memorialFileInput"
+            type="file"
+            multiple
+            hidden
+          >
+
+          <div class="memorial-dropzone-content">
+            <strong>Adicionar arquivos</strong>
+
+            <span>
+              Arraste os arquivos para cá ou clique para selecionar.
+            </span>
+          </div>
+        </div>
+
+      </div>
 
     </div>
   `;
 
-  // ----------------------------------------------------------
-  // FILTROS
-  // ----------------------------------------------------------
 
-  $$(".filter-btn").forEach((button) => {
-    button.addEventListener("click", () => {
-      memorialApplyFilter(
-        button.dataset.filter || "all"
-      );
-    });
-  });
+  // ==========================================================
+  // ESTADO DOS FILTROS
+  // ==========================================================
 
-  // ----------------------------------------------------------
-  // ADICIONAR LINHA
-  // ----------------------------------------------------------
+  const memorialFilters = {
+    category: new Set(),
+    environment: new Set(),
+    supplier: new Set()
+  };
 
-  $$(".btn-add-row").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const key = button.dataset.key;
 
-      if (!MEMORIAL_TABLES[key]) {
-        return;
-      }
+  function applyMemorialFilters() {
 
-      memorialEnsureStructure(project);
+    const sections =
+      document.querySelectorAll(".memorial-section");
 
-      project.memorial[key].push(
-        memorialCreateEmptyRow(key)
-      );
+    sections.forEach((section) => {
 
-      memorialMarkDirty(project);
+      const category =
+        section.dataset.category || "";
 
-      await memorialSave(project);
+      const categoryRows =
+        project.memorial &&
+        Array.isArray(project.memorial[category])
+          ? project.memorial[category]
+          : [];
 
-      renderMemorial(project);
-    });
-  });
+      // --------------------------------------------------------
+      // Categoria
+      // --------------------------------------------------------
 
-  // ----------------------------------------------------------
-  // EXCLUIR LINHA
-  // ----------------------------------------------------------
+      const categoryMatch =
+        memorialFilters.category.size === 0 ||
+        memorialFilters.category.has(category);
 
-  $$(".btn-delete-row").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const key = button.dataset.key;
-      const rowIndex = Number(
-        button.dataset.row
-      );
+      // --------------------------------------------------------
+      // Ambiente / fornecedor
+      // --------------------------------------------------------
 
-      if (
-        !project.memorial ||
-        !Array.isArray(project.memorial[key])
-      ) {
-        return;
-      }
+      let rowMatch = false;
 
-      if (
-        !Number.isInteger(rowIndex) ||
-        rowIndex < 0 ||
-        rowIndex >= project.memorial[key].length
-      ) {
-        return;
-      }
+      if (categoryRows.length === 0) {
+        rowMatch = true;
+      } else {
 
-      project.memorial[key].splice(
-        rowIndex,
-        1
-      );
+        rowMatch = categoryRows.some((row) => {
 
-      memorialMarkDirty(project);
+          const ambiente =
+            String(row.ambiente || "").trim();
 
-      await memorialSave(project);
+          const fornecedor =
+            String(row.fornecedor || "").trim();
 
-      renderMemorial(project);
-    });
-  });
+          const environmentMatch =
+            memorialFilters.environment.size === 0 ||
+            memorialFilters.environment.has(ambiente);
 
-  // ----------------------------------------------------------
-  // CAMPOS
-  // ----------------------------------------------------------
+          const supplierMatch =
+            memorialFilters.supplier.size === 0 ||
+            memorialFilters.supplier.has(fornecedor);
 
-  $$(".memorial-input").forEach((input) => {
-
-    input.addEventListener("input", () => {
-      const key = input.dataset.key;
-      const rowIndex = Number(
-        input.dataset.row
-      );
-      const field = input.dataset.field;
-
-      if (
-        !project.memorial ||
-        !Array.isArray(project.memorial[key]) ||
-        !project.memorial[key][rowIndex]
-      ) {
-        return;
-      }
-
-      project.memorial[key][rowIndex][field] =
-        input.value;
-
-      memorialMarkDirty(project);
-
-      updateCategorySummary(
-        key,
-        project
-      );
-
-      const total = memorialGrandTotal(project);
-
-      document
-        .querySelectorAll(".memorial-grand-total")
-        .forEach((element) => {
-          element.textContent =
-            memorialFormatPrice(total);
+          return (
+            environmentMatch &&
+            supplierMatch
+          );
         });
+      }
+
+      section.style.display =
+        categoryMatch && rowMatch
+          ? ""
+          : "none";
     });
+  }
 
 
-    input.addEventListener("change", async () => {
-      const key = input.dataset.key;
-      const rowIndex = Number(
-        input.dataset.row
-      );
-      const field = input.dataset.field;
+  // ==========================================================
+  // BOTÕES DE FILTRO
+  // ==========================================================
 
-      if (
-        !project.memorial ||
-        !Array.isArray(project.memorial[key]) ||
-        !project.memorial[key][rowIndex]
-      ) {
+  $$(".memorial-filter-btn").forEach((button) => {
+
+    button.addEventListener("click", () => {
+
+      const group =
+        button.dataset.filterGroup;
+
+      const value =
+        button.dataset.filterValue;
+
+      if (!group) return;
+
+
+      // --------------------------------------------------------
+      // TODOS
+      // --------------------------------------------------------
+
+      if (value === "all") {
+
+        memorialFilters[group].clear();
+
+        document
+          .querySelectorAll(
+            `.memorial-filter-btn[data-filter-group="${group}"]`
+          )
+          .forEach((btn) => {
+            btn.classList.remove("selected");
+          });
+
+        button.classList.add("selected");
+
+        applyMemorialFilters();
+
         return;
       }
 
-      project.memorial[key][rowIndex][field] =
-        input.value;
 
-      memorialMarkDirty(project);
+      // --------------------------------------------------------
+      // BOTÃO NORMAL
+      // --------------------------------------------------------
 
-      await memorialSave(project);
-    });
+      const allButton =
+        document.querySelector(
+          `.memorial-filter-all[data-filter-group="${group}"]`
+        );
 
+      if (memorialFilters[group].has(value)) {
 
-    input.addEventListener("blur", async () => {
-      const key = input.dataset.key;
-      const rowIndex = Number(
-        input.dataset.row
-      );
-      const field = input.dataset.field;
+        memorialFilters[group].delete(value);
 
-      if (
-        !project.memorial ||
-        !Array.isArray(project.memorial[key]) ||
-        !project.memorial[key][rowIndex]
-      ) {
-        return;
+        button.classList.remove("selected");
+
+      } else {
+
+        memorialFilters[group].add(value);
+
+        button.classList.add("selected");
       }
 
-      let value = input.value;
 
-      // ------------------------------------------------------
-      // PREÇO
-      // ------------------------------------------------------
+      // Se houver qualquer filtro ativo,
+      // "Todos" deixa de estar selecionado.
 
-      if (field === "preco") {
-        const numericValue =
-          memorialPrice(value);
+      if (memorialFilters[group].size > 0) {
 
-        if (numericValue > 0) {
-          value =
-            memorialFormatPrice(
-              numericValue
-            );
+        if (allButton) {
+          allButton.classList.remove("selected");
+        }
 
-          input.value = value;
+      } else {
+
+        if (allButton) {
+          allButton.classList.add("selected");
         }
       }
 
-      project.memorial[key][rowIndex][field] =
-        value;
-
-      memorialMarkDirty(project);
-
-      updateCategorySummary(
-        key,
-        project
-      );
-
-      const total =
-        memorialGrandTotal(project);
-
-      document
-        .querySelectorAll(".memorial-grand-total")
-        .forEach((element) => {
-          element.textContent =
-            memorialFormatPrice(total);
-        });
-
-      await memorialSave(project);
+      applyMemorialFilters();
     });
   });
 
-  // ----------------------------------------------------------
+
+  // ==========================================================
+  // LIMPAR TODOS OS FILTROS
+  // ==========================================================
+
+  const clearFilters =
+    document.getElementById(
+      "btnClearMemorialFilters"
+    );
+
+  if (clearFilters) {
+
+    clearFilters.addEventListener(
+      "click",
+      () => {
+
+        Object.keys(memorialFilters)
+          .forEach((group) => {
+            memorialFilters[group].clear();
+          });
+
+        $$(".memorial-filter-btn")
+          .forEach((button) => {
+            button.classList.remove("selected");
+          });
+
+        $$(".memorial-filter-all")
+          .forEach((button) => {
+            button.classList.add("selected");
+          });
+
+        applyMemorialFilters();
+      }
+    );
+  }
+
+
+  // ==========================================================
+  // ADICIONAR LINHA
+  // ==========================================================
+
+  $$(".btn-add-row").forEach((button) => {
+
+    button.addEventListener(
+      "click",
+      async () => {
+
+        const key =
+          button.dataset.key;
+
+        if (!MEMORIAL_TABLES[key]) {
+          return;
+        }
+
+        memorialEnsureStructure(project);
+
+        project.memorial[key].push(
+          memorialCreateEmptyRow(key)
+        );
+
+        memorialMarkDirty(project);
+
+        await memorialSave(project);
+
+        renderMemorial(project);
+      }
+    );
+  });
+
+
+  // ==========================================================
+  // EXCLUIR LINHA
+  // ==========================================================
+
+  $$(".btn-delete-row").forEach((button) => {
+
+    button.addEventListener(
+      "click",
+      async () => {
+
+        const key =
+          button.dataset.key;
+
+        const rowIndex =
+          Number(button.dataset.row);
+
+        if (
+          !project.memorial ||
+          !Array.isArray(project.memorial[key])
+        ) {
+          return;
+        }
+
+        if (
+          !Number.isInteger(rowIndex) ||
+          rowIndex < 0 ||
+          rowIndex >= project.memorial[key].length
+        ) {
+          return;
+        }
+
+        project.memorial[key].splice(
+          rowIndex,
+          1
+        );
+
+        memorialMarkDirty(project);
+
+        await memorialSave(project);
+
+        renderMemorial(project);
+      }
+    );
+  });
+
+
+  // ==========================================================
+  // CAMPOS
+  // ==========================================================
+
+  $$(".memorial-input").forEach((input) => {
+
+    input.addEventListener(
+      "input",
+      () => {
+
+        const key =
+          input.dataset.key;
+
+        const rowIndex =
+          Number(input.dataset.row);
+
+        const field =
+          input.dataset.field;
+
+        if (
+          !project.memorial ||
+          !Array.isArray(project.memorial[key]) ||
+          !project.memorial[key][rowIndex]
+        ) {
+          return;
+        }
+
+        project.memorial[key][rowIndex][field] =
+          input.value;
+
+        memorialMarkDirty(project);
+
+        updateCategorySummary(
+          key,
+          project
+        );
+
+        const total =
+          memorialGrandTotal(project);
+
+        document
+          .querySelectorAll(
+            ".memorial-grand-total"
+          )
+          .forEach((element) => {
+            element.textContent =
+              memorialFormatPrice(total);
+          });
+      }
+    );
+
+
+    input.addEventListener(
+      "change",
+      async () => {
+
+        const key =
+          input.dataset.key;
+
+        const rowIndex =
+          Number(input.dataset.row);
+
+        const field =
+          input.dataset.field;
+
+        if (
+          !project.memorial ||
+          !Array.isArray(project.memorial[key]) ||
+          !project.memorial[key][rowIndex]
+        ) {
+          return;
+        }
+
+        project.memorial[key][rowIndex][field] =
+          input.value;
+
+        memorialMarkDirty(project);
+
+        await memorialSave(project);
+      }
+    );
+
+
+    input.addEventListener(
+      "blur",
+      async () => {
+
+        const key =
+          input.dataset.key;
+
+        const rowIndex =
+          Number(input.dataset.row);
+
+        const field =
+          input.dataset.field;
+
+        if (
+          !project.memorial ||
+          !Array.isArray(project.memorial[key]) ||
+          !project.memorial[key][rowIndex]
+        ) {
+          return;
+        }
+
+        let value =
+          input.value;
+
+        // ------------------------------------------------------
+        // PREÇO
+        // ------------------------------------------------------
+
+        if (field === "preco") {
+
+          const numericValue =
+            memorialPrice(value);
+
+          if (numericValue > 0) {
+
+            value =
+              memorialFormatPrice(
+                numericValue
+              );
+
+            input.value = value;
+          }
+        }
+
+        project.memorial[key][rowIndex][field] =
+          value;
+
+        memorialMarkDirty(project);
+
+        updateCategorySummary(
+          key,
+          project
+        );
+
+        const total =
+          memorialGrandTotal(project);
+
+        document
+          .querySelectorAll(
+            ".memorial-grand-total"
+          )
+          .forEach((element) => {
+            element.textContent =
+              memorialFormatPrice(total);
+          });
+
+        await memorialSave(project);
+      }
+    );
+  });
+
+
+  // ==========================================================
   // ARQUIVOS
-  // ----------------------------------------------------------
+  // ==========================================================
 
   attachDropzone(
     "#memorialDropzone",
     "#memorialFileInput",
     async (files) => {
+
       if (!files || !files.length) {
         return;
       }
@@ -3976,15 +4389,18 @@ if (!container) return;
     }
   );
 
-  // ----------------------------------------------------------
+
+  // ==========================================================
   // EXCLUIR ARQUIVO
-  // ----------------------------------------------------------
+  // ==========================================================
 
   $$("#memorialFiles .file-remove")
     .forEach((button) => {
+
       button.addEventListener(
         "click",
         async () => {
+
           const item =
             button.closest(".file-item");
 

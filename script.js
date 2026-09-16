@@ -3223,10 +3223,10 @@ function renderMemorial(project) {
       </div>
     </div>
 
-	<!-- Total Geral no Topo (Opcional, para ver logo de cara) -->
+    <!-- Total Geral no Topo -->
     ${memorialGrandTotalHTML(project)}
 
-	<!-- As tabelas geradas dinamicamente -->
+    <!-- As tabelas geradas dinamicamente -->
     <div id="memorialSectionsWrapper">
       ${Object.keys(MEMORIAL_TABLES).map((key) => memorialSectionHTML(project, key)).join("")}
     </div>
@@ -3283,7 +3283,7 @@ function renderMemorial(project) {
       }
     });
 
-// Formatação de preço automática ao sair do campo (blur)
+    // Formatação de preço automática ao sair do campo (blur)
     if (input.dataset.field === "preco") {
       input.addEventListener("blur", () => {
         let cleanVal = String(input.value || "").replace(/[^\d,.]/g, "").replace(",", ".");
@@ -3301,6 +3301,7 @@ function renderMemorial(project) {
         }
       });
     }
+  }); // <--- Faltava fechar este forEach aqui!
 
   // Lógica inteligente de múltiplos filtros e botão Limpar
   const filterBtns = $$(".filter-btn");
@@ -3359,7 +3360,7 @@ function renderMemorial(project) {
         if (!anySelected) {
           allBtn.classList.add("active", "selected");
           allBtn.style.background = "#c29b38";
-          allBtn.style.color = "#fff";
+          allBtn.style.color="#fff";
           allBtn.style.fontWeight = "500";
         }
       }

@@ -3251,17 +3251,35 @@ function renderMemorial(project) {
     });
   });
 
-  $$(".btn-add-row").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const key = btn.dataset.key;
-      const row = {};
-      MEMORIAL_TABLES[key].cols.forEach((col) => (row[col.key] = ""));
-      if (!project.memorial) project.memorial = {};
-      if (!Array.isArray(project.memorial[key])) project.memorial[key] = [];
-      project.memorial[key].push(row);
-      if (typeof saveProjects === "function") saveProjects().then(() => renderMemorial(project));
+$$(".btn-add-row").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const key = btn.dataset.key;
+
+    const row = {};
+
+    MEMORIAL_TABLES[key].cols.forEach((col) => {
+      row[col.key] = "";
     });
+
+    if (!project.memorial) {
+      project.memorial = {};
+    }
+
+    if (!Array.isArray(project.memorial[key])) {
+      project.memorial[key] = [];
+    }
+
+    project.memorial[key].push(row);
+
+    // Salva exatamente o projeto que está sendo exibido
+    if (typeof saveProjects === "function") {
+      await saveProjects([project]);
+    }
+
+    // Só depois de salvar, reconstrói a tela
+    renderMemorial(project);
   });
+});
 
   $$(".btn-delete-row").forEach((btn) => {
     btn.addEventListener("click", () => {

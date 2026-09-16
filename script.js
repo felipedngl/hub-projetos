@@ -3247,8 +3247,12 @@ function renderMemorial(project) {
     btn.addEventListener("click", () => {
       const id = btn.closest(".file-item").dataset.fileId;
       project.memorialFiles = project.memorialFiles.filter((f) => f.id !== id);
-      if (typeof saveProjects === "function") saveProjects().then(() => renderMemorial(project));
-    });
+	if (typeof saveProjects === "function") {
+	  await saveProjects([project]);
+	}
+	
+	renderMemorial(project);
+	});
   });
 
 $$(".btn-add-row").forEach((btn) => {

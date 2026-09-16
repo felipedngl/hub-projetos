@@ -3279,19 +3279,24 @@ $$(".memorial-input").forEach((input) => {
     const newInput = input.cloneNode(true);
     input.parentNode.replaceChild(newInput, input);
 
-    newInput.addEventListener("input", (e) => {
-      e.stopImmediatePropagation();
-      e.stopPropagation();
-
-      const key = newInput.dataset.key;
-      const rowIndex = Number(newInput.dataset.row);
-      const field = newInput.dataset.field;
-
-      if (project.memorial && project.memorial[key] && project.memorial[key][rowIndex]) {
-        project.memorial[key][rowIndex][field] = newInput.value;
-        if (typeof saveProjects === "function") saveProjects();
-      }
-    });
+	newInput.addEventListener("input", (e) => {
+	  e.stopImmediatePropagation();
+	  e.stopPropagation();
+	
+	  const key = newInput.dataset.key;
+	  const rowIndex = Number(newInput.dataset.row);
+	  const field = newInput.dataset.field;
+	
+	  if (project.memorial && project.memorial[key] && project.memorial[key][rowIndex]) {
+		project.memorial[key][rowIndex][field] = newInput.value;
+	  }
+	});
+	
+	newInput.addEventListener("change", async () => {
+	  if (typeof saveProjects === "function") {
+		await saveProjects();
+	  }
+	});
 
     // Mantém o foco travado caso ocorra algum re-render externo indevido
     newInput.addEventListener("blur", (e) => {

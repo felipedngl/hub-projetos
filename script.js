@@ -3176,7 +3176,6 @@ function renderMemorial(project) {
   const stage = STAGES.find((s) => s.id === "memorial");
   const container = $("#stageContainer");
   
-  // 1. Adicionamos os botões de filtro logo abaixo do cabeçalho
   container.innerHTML = `
     <div class="stage-header">
       <h2>${stage.label}</h2>
@@ -3190,7 +3189,7 @@ function renderMemorial(project) {
       <div class="file-list" id="memorialFiles">${fileListHTML(project.memorialFiles || [])}</div>
     </div>
 
-<!-- Filtros por Categoria (Abas / Pílulas) -->
+    <!-- Filtros por Categoria (Abas / Pílulas) -->
     <div class="memorial-filters" style="display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0;">
       <button class="filter-btn active" data-filter="all" style="padding: 8px 16px; border-radius: 20px; border: none; background: #c29b38; color: #fff; cursor: pointer; font-weight: 500;">Todos</button>
       <button class="filter-btn" data-filter="revestimentos" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Revestimentos</button>
@@ -3202,7 +3201,7 @@ function renderMemorial(project) {
       <button class="filter-btn" data-filter="decoracao" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Decoração</button>
     </div>
 
-    <!-- 2. As tabelas geradas dinamicamente -->
+    <!-- As tabelas geradas dinamicamente -->
     <div id="memorialSectionsWrapper">
       ${Object.keys(MEMORIAL_TABLES).map((key) => `<div class="memorial-section" data-category="${key}">${memorialSectionHTML(project, key)}</div>`).join("")}
     </div>
@@ -3257,14 +3256,12 @@ function renderMemorial(project) {
       }
     });
   });
-}
 
-// Configura o clique dos botões de filtro do memorial
+  // Configura o clique dos botões de filtro do memorial (DENTRO da função para garantir que funcionem)
   $$(".filter-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const category = btn.dataset.filter;
 
-      // Atualiza visualmente os botões
       $$(".filter-btn").forEach((b) => {
         b.style.background = "#2a2a2a";
         b.style.color = "#aaa";
@@ -3274,7 +3271,6 @@ function renderMemorial(project) {
       btn.style.color = "#fff";
       btn.style.fontWeight = "500";
 
-      // Mostra/oculta as seções correspondentes
       $$(".memorial-section").forEach((section) => {
         if (category === "all" || section.getAttribute("data-category") === category) {
           section.style.display = "block";
@@ -3284,6 +3280,7 @@ function renderMemorial(project) {
       });
     });
   });
+}
 
 /* ---------------- Cronograma de Obra ---------------- */
 function renderSchedule(project) {

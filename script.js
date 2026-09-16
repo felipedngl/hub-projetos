@@ -3286,7 +3286,11 @@ $$(".memorial-input").forEach((input) => {
       project.memorial[key] &&
       project.memorial[key][rowIndex]
     ) {
+      // Atualiza imediatamente o objeto do projeto
       project.memorial[key][rowIndex][field] = input.value;
+
+      // Atualiza o total da categoria imediatamente
+      updateCategorySummary(key, project);
     }
   });
 
@@ -3303,10 +3307,13 @@ $$(".memorial-input").forEach((input) => {
       project.memorial[key][rowIndex][field] = input.value;
     }
 
+    // Salva no Firebase sem renderizar a tela
     if (typeof saveProjects === "function") {
-      await saveProjects();
+      await saveProjects([project]);
     }
   });
+
+});
 
     // Mantém o foco travado caso ocorra algum re-render externo indevido
 	 newInput.addEventListener("blur", () => {

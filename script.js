@@ -3274,47 +3274,43 @@ function renderMemorial(project) {
     });
   });
 
-  // Eventos seguros e blindados contra perda de foco
-  $$(".memorial-input").forEach((input) => {
-    input.addEventListener("input", (e) => {
-      // Impede propagação para evitar que ouvintes globais da aplicação capturem e desmontem o DOM
+$$(".memorial-input").forEach((input) => {
+    // Remove qualquer ouvinte anterior duplicado clonando o nó
+    const newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+
+    newInput.addEventListener("input", (e) => {
+      e.stopImmediatePropagation();
       e.stopPropagation();
 
-      const key = input.dataset.key;
-      const rowIndex = Number(input.dataset.row);
-      const field = input.dataset.field;
+      const key = newInput.dataset.key;
+      const rowIndex = Number(newInput.dataset.row);
+      const field = newInput.dataset.field;
 
       if (project.memorial && project.memorial[key] && project.memorial[key][rowIndex]) {
-        project.memorial[key][rowIndex][field] = input.value;
+        project.memorial[key][rowIndex][field] = newInput.value;
         if (typeof saveProjects === "function") saveProjects();
-      }
-
-      // Garante de forma imperativa que o foco permaneça exatamente neste elemento
-      if (document.activeElement !== input) {
-        input.focus();
       }
     });
 
-    // Formatação de preço ao sair do campo (blur)
-    if (input.dataset.field === "preco") {
-      input.addEventListener("blur", () => {
-        let cleanVal = String(input.value || "").replace(/[^\d,.]/g, "").replace(",", ".");
+    // Mantém o foco travado caso ocorra algum re-render externo indevido
+    newInput.addEventListener("blur", (e) => {
+      if (newInput.dataset.field === "preco") {
+        let cleanVal = String(newInput.value || "").replace(/[^\d,.]/g, "").replace(",", ".");
         let num = parseFloat(cleanVal);
         if (!isNaN(num)) {
-          input.value = num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+          newInput.value = num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
         } else {
-          input.value = "R$ 0,00";
+          newInput.value = "R$ 0,00";
         }
-        const key = input.dataset.key;
-        const rowIndex = Number(input.dataset.row);
+        const key = newInput.dataset.key;
+        const rowIndex = Number(newInput.dataset.row);
         if (project.memorial && project.memorial[key] && project.memorial[key][rowIndex]) {
-          project.memorial[key][rowIndex]["preco"] = input.value;
-          if (typeof saveProjects === "function") saveProjects().then(() => {
-            updateCategorySummary(key, project);
-          });
+          project.memorial[key][rowIndex]["preco"] = newInput.value;
+          if (typeof saveProjects === "function") saveProjects();
         }
-      });
-    }
+      }
+    });
   });
 
   function updateCategorySummary(key, proj) {

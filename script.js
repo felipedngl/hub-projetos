@@ -3172,18 +3172,38 @@ function memorialGrandTotalHTML(project) {
 function renderMemorial(project) {
   const stage = STAGES.find((s) => s.id === "memorial");
   const container = $("#stageContainer");
+  
+  // 1. Adicionamos os botões de filtro logo abaixo do cabeçalho
   container.innerHTML = `
     <div class="stage-header">
       <h2>${stage.label}</h2>
       <p class="stage-hint">${stage.hint}</p>
     </div>
+    
     <div class="panel">
       <h3>${ICONS.upload} Arquivos do memorial</h3>
       <label>Upload de PDFs, tabelas e orçamentos externos</label>
       ${makeDropzoneHTML("image/*,application/pdf,.dwg,.dxf,.xlsx,.csv")}
       <div class="file-list" id="memorialFiles">${fileListHTML(project.memorialFiles || [])}</div>
     </div>
-    ${Object.keys(MEMORIAL_TABLES).map((key) => memorialSectionHTML(project, key)).join("")}
+
+    <!-- Filtros por Categoria (Abas / Pílulas) -->
+    <div class="memorial-filters" style="display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0;">
+      <button class="filter-btn active" onclick="filterMemorial('all')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #c29b38; color: #fff; cursor: pointer; font-weight: 500;">Todos</button>
+      <button class="filter-btn" onclick="filterMemorial('revestimentos')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Revestimentos</button>
+      <button class="filter-btn" onclick="filterMemorial('metais')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Metais & Louças</button>
+      <button class="filter-btn" onclick="filterMemorial('iluminacao')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Iluminação</button>
+      <button class="filter-btn" onclick="filterMemorial('eletro')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Eletrodomésticos</button>
+      <button class="filter-btn" onclick="filterMemorial('moveis')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Móveis Soltos</button>
+      <button class="filter-btn" onclick="filterMemorial('marcenaria')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Marcenaria</button>
+      <button class="filter-btn" onclick="filterMemorial('decoracao')" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Decoração</button>
+    </div>
+
+    <!-- 2. As tabelas geradas dinamicamente -->
+    <div id="memorialSectionsWrapper">
+      ${Object.keys(MEMORIAL_TABLES).map((key) => `<div class="memorial-section" data-category="${key}">${memorialSectionHTML(project, key)}</div>`).join("")}
+    </div>
+
     ${memorialGrandTotalHTML(project)}`;
 
   if (!Array.isArray(project.memorialFiles)) {
@@ -4589,6 +4609,29 @@ function handleImageError(imgElement, linkId, photoIndex) {
       </span>
     </div>
   `;
+}
+
+function filterMemorial(category) {
+  // Atualiza visualmente o estilo dos botões (deixa o clicado dourado e o resto cinza)
+  const buttons = document.querySelectorAll('.filter-btn');
+  buttons.forEach(btn => {
+    btn.style.background = '#2a2a2a';
+    btn.style.color = '#aaa';
+    btn.style.fontWeight = 'normal';
+  });
+  event.target.style.background = '#c29b38';
+  event.target.style.color = '#fff';
+  event.target.style.fontWeight = '500';
+
+  // Mostra apenas a seção correspondente ou todas se for 'all'
+  const sections = document.querySelectorAll('.memorial-section');
+  sections.forEach(section => {
+    if (category === 'all' || section.getAttribute('data-category') === category) {
+      section.style.display = 'block';
+    } else {
+      section.style.display = 'none';
+    }
+  });
 }
 	
 })();

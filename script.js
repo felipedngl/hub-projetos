@@ -1372,23 +1372,29 @@ function renderSidebar() {
 			      : f.unreadByDesigner === true;
 			  });
 			
-			const checklistUpdated = stageData?.checklistUpdated === true;
-			
-			const approved =
-  			stageData?.approved === true &&
-  			!!stageData?.approvedAt;
-			
-			const dotClass = unreadMsg
-			  ? "message"
-			  : unreadFiles
-			    ? "file"
-			    : checklistUpdated
-			      ? "checklist"
-			      : approved
-			        ? "approved"
-			        : done
-			          ? "done"
-			          : "";
+				const checklist = Array.isArray(stageData?.checklist)
+				  ? stageData.checklist
+				  : [];
+				
+				const hasCheckedItems = checklist.some(
+				  (item) => item.done === true
+				);
+				
+				const approved =
+				  stageData?.approved === true &&
+				  !!stageData?.approvedAt;
+				
+				const dotClass = unreadMsg
+				  ? "message"
+				  : unreadFiles
+				    ? "file"
+				    : approved
+				      ? "approved"
+				      : hasCheckedItems
+				        ? "checklist"
+				        : done
+				          ? "done"
+				          : "";
 			
           return `
             <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${

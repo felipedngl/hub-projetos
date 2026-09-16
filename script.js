@@ -3189,16 +3189,22 @@ function renderMemorial(project) {
       <div class="file-list" id="memorialFiles">${fileListHTML(project.memorialFiles || [])}</div>
     </div>
 
-    <!-- Filtros por Categoria (Abas / Pílulas) -->
-    <div class="memorial-filters" style="display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0;">
-      <button class="filter-btn active" data-filter="all" style="padding: 8px 16px; border-radius: 20px; border: none; background: #c29b38; color: #fff; cursor: pointer; font-weight: 500;">Todos</button>
-      <button class="filter-btn" data-filter="revestimentos" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Revestimentos</button>
-      <button class="filter-btn" data-filter="metais" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Metais & Louças</button>
-      <button class="filter-btn" data-filter="iluminacao" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Iluminação</button>
-      <button class="filter-btn" data-filter="eletro" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Eletrodomésticos</button>
-      <button class="filter-btn" data-filter="moveis" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Mobiliário</button>
-      <button class="filter-btn" data-filter="marcenaria" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Marcenaria</button>
-      <button class="filter-btn" data-filter="decoracao" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Decoração</button>
+    <!-- Filtros por Categoria com Múltipla Seleção -->
+    <div class="memorial-controls" style="margin: 20px 0;">
+      <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+        <button id="btnClearFilters" style="padding: 6px 14px; border-radius: 16px; border: 1px solid #444; background: #1f1f1f; color: #ccc; cursor: pointer; font-size: 13px;">Limpar Seleção</button>
+        <span style="font-size: 12px; color: #888;">Clique nos botões abaixo para combinar filtros ou clique em "Todos".</span>
+      </div>
+      <div class="memorial-filters" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="filter-btn active" data-filter="all" style="padding: 8px 16px; border-radius: 20px; border: none; background: #c29b38; color: #fff; cursor: pointer; font-weight: 500;">Todos</button>
+        <button class="filter-btn" data-filter="revestimentos" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Revestimentos</button>
+        <button class="filter-btn" data-filter="metais" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Metais & Louças</button>
+        <button class="filter-btn" data-filter="iluminacao" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Iluminação</button>
+        <button class="filter-btn" data-filter="eletro" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Eletrodomésticos</button>
+        <button class="filter-btn" data-filter="moveis" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Mobiliário</button>
+        <button class="filter-btn" data-filter="marcenaria" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Marcenaria</button>
+        <button class="filter-btn" data-filter="decoracao" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Decoração</button>
+      </div>
     </div>
 
     <!-- As tabelas geradas dinamicamente -->
@@ -3245,8 +3251,9 @@ function renderMemorial(project) {
     });
   });
 
+  // Correção do TAB e salvamento sem perder o foco/re-renderizar a tela
   $$(".memorial-input").forEach((input) => {
-    input.addEventListener("change", () => {
+    input.addEventListener("input", () => {
       const key = input.dataset.key;
       const rowIndex = Number(input.dataset.row);
       const field = input.dataset.field;
@@ -3255,31 +3262,103 @@ function renderMemorial(project) {
         if (typeof saveProjects === "function") saveProjects();
       }
     });
+
+    // Formatação de preço automática ao sair do campo (blur)
+    if (input.dataset.field === "preco") {
+      input.addEventListener("blur", () => {
+        let val = input.value.replace(/[^\d,.]/g, "").replace(",", ".");
+        let num = parseFloat(val);
+        if (!isNaN(num)) {
+          input.value = num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+          const key = input.dataset.key;
+          const rowIndex = Number(input.dataset.row);
+          project.memorial[key][rowIndex]["preco"] = input.value;
+          if (typeof saveProjects === "function") saveProjects();
+        }
+      });
+    }
   });
 
-  // Configura o clique dos botões de filtro do memorial (DENTRO da função para garantir que funcionem)
-  $$(".filter-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const category = btn.dataset.filter;
+  // Lógica inteligente de múltiplos filtros e botão Limpar
+  const filterBtns = $$(".filter-btn");
+  const allBtn = document.querySelector('.filter-btn[data-filter="all"]');
+  const clearBtn = document.getElementById("btnClearFilters");
 
-      $$(".filter-btn").forEach((b) => {
+  function applyFilters() {
+    const activeFilters = Array.from(filterBtns)
+      .filter(b => b.dataset.filter !== "all" && b.classList.contains("selected"))
+      .map(b => b.dataset.filter);
+
+    $$(".memorial-section").forEach((section) => {
+      const cat = section.getAttribute("data-category");
+      if (activeFilters.length === 0 || activeFilters.includes(cat)) {
+        section.style.display = "block";
+      } else {
+        section.style.display = "none";
+      }
+    });
+  }
+
+  filterBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const filter = btn.dataset.filter;
+
+      if (filter === "all") {
+        filterBtns.forEach(b => {
+          b.classList.remove("selected");
+          b.style.background = "#2a2a2a";
+          b.style.color = "#aaa";
+          b.style.fontWeight = "normal";
+        });
+        allBtn.classList.add("active", "selected");
+        allBtn.style.background = "#c29b38";
+        allBtn.style.color = "#fff";
+        allBtn.style.fontWeight = "500";
+      } else {
+        allBtn.classList.remove("active", "selected");
+        allBtn.style.background = "#2a2a2a";
+        allBtn.style.color = "#aaa";
+        allBtn.style.fontWeight = "normal";
+
+        btn.classList.toggle("selected");
+        if (btn.classList.contains("selected")) {
+          btn.style.background = "#c29b38";
+          btn.style.color = "#fff";
+          btn.style.fontWeight = "500";
+        } else {
+          btn.style.background = "#2a2a2a";
+          btn.style.color = "#aaa";
+          btn.style.fontWeight = "normal";
+        }
+
+        // Se nenhum ficar selecionado, marca o "Todos" de volta
+        const anySelected = Array.from(filterBtns).some(b => b.dataset.filter !== "all" && b.classList.contains("selected"));
+        if (!anySelected) {
+          allBtn.classList.add("active", "selected");
+          allBtn.style.background = "#c29b38";
+          allBtn.style.color = "#fff";
+          allBtn.style.fontWeight = "500";
+        }
+      }
+      applyFilters();
+    });
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      filterBtns.forEach(b => {
+        b.classList.remove("selected", "active");
         b.style.background = "#2a2a2a";
         b.style.color = "#aaa";
         b.style.fontWeight = "normal";
       });
-      btn.style.background = "#c29b38";
-      btn.style.color = "#fff";
-      btn.style.fontWeight = "500";
-
-      $$(".memorial-section").forEach((section) => {
-        if (category === "all" || section.getAttribute("data-category") === category) {
-          section.style.display = "block";
-        } else {
-          section.style.display = "none";
-        }
-      });
+      allBtn.classList.add("active", "selected");
+      allBtn.style.background = "#c29b38";
+      allBtn.style.color = "#fff";
+      allBtn.style.fontWeight = "500";
+      applyFilters();
     });
-  });
+  }
 }
 
 /* ---------------- Cronograma de Obra ---------------- */

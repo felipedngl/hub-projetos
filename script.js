@@ -568,8 +568,8 @@ function getStageProgress(stage) {
         link: r.link || "",
       }));
     }
-    delete p.memorial.acabamentos;
-    Object.keys(MEMORIAL_TABLES).forEach((k) => {
+
+	  Object.keys(MEMORIAL_TABLES).forEach((k) => {
       if (!Array.isArray(p.memorial[k])) p.memorial[k] = [];
       p.memorial[k] = p.memorial[k].map((r) => {
         const row = {};
@@ -699,6 +699,35 @@ let unsubscribeProjectListener = null;
 let projectListenerSnapshot = null;
 let messageAudioContext = null;
 
+// ============================================================
+// CONTROLE DE SINCRONIZAÇÃO DE EDIÇÕES LOCAIS
+// ============================================================
+
+const pendingLocalProjectWrites = new Map();
+
+function markLocalProjectWrite(projectId) {
+  if (!projectId) return;
+
+  const current = pendingLocalProjectWrites.get(projectId) || 0;
+  pendingLocalProjectWrites.set(projectId, current + 1);
+}
+
+function finishLocalProjectWrite(projectId) {
+  if (!projectId) return;
+
+  const current = pendingLocalProjectWrites.get(projectId) || 0;
+
+  if (current <= 1) {
+    pendingLocalProjectWrites.delete(projectId);
+  } else {
+    pendingLocalProjectWrites.set(projectId, current - 1);
+  }
+}
+
+function hasPendingLocalProjectWrite(projectId) {
+  return !!projectId && pendingLocalProjectWrites.has(projectId);
+}
+
 function armMessageAudio() {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -767,63 +796,54 @@ function listenToCurrentProject(projectId) {
     (doc) => {
       if (!doc.exists) return;
 
-      const updatedProject = {
-        id: doc.id,
-        ...doc.data(),
-      };
+	if (doc.metadata && doc.metadata.hasPendingWrites) {
+	  console.log(
+	    "[SYNC] Snapshot com pendingWrites ignorado:",
+	    projectId
+	  );
+	  return;
+	}
+		
+const updatedProject = {
+  id: doc.id,
+  ...doc.data()
+};
 
-      const previous = projectListenerSnapshot;
-      projectListenerSnapshot = updatedProject;
+// ------------------------------------------------------------
+// Ignora snapshots locais pendentes enquanto uma gravação
+// ainda está acontecendo.
+// ------------------------------------------------------------
+if (hasPendingLocalProjectWrite(projectId)) {
+  console.log(
+    "[SYNC] Snapshot ignorado durante gravação local:",
+    projectId
+  );
 
-      const index = projects.findIndex((p) => p.id === projectId);
-      if (index !== -1) {
-        projects[index] = { ...projects[index], ...updatedProject };
-      } else {
-        projects.push(updatedProject);
-      }
+  projectListenerSnapshot = updatedProject;
+  return;
+}
 
-      const previousMessages = new Map();
-      if (previous?.stages) {
-        Object.values(previous.stages).forEach((stage) => {
-          (stage?.clientMessages || []).forEach((message) => {
-            previousMessages.set(message.id, message);
-          });
-        });
-      }
+const previous = projectListenerSnapshot;
+projectListenerSnapshot = updatedProject;
 
-      const incomingMessages = [];
-      Object.values(updatedProject.stages || {}).forEach((stage) => {
-        (stage?.clientMessages || []).forEach((message) => {
-          if (!previousMessages.has(message.id)) incomingMessages.push(message);
-        });
-      });
+const index = projects.findIndex(
+  (p) => p.id === projectId
+);
 
-      // SE NÃO FOR A PRIMEIRA LEITURA, TOCA O SOM PARA MENSAGENS NOVAS REAIS
-      if (!isFirstSnapshot) {
-        incomingMessages.forEach((message) => {
-          const fromOtherSide =
-            (clientMode && message.author === "designer") ||
-            (!clientMode && !localPreview && message.author === "client");
+if (index !== -1) {
+  projects[index] = {
+    ...projects[index],
+    ...updatedProject
+  };
+} else {
+  projects.push(updatedProject);
+}
 
-          if (fromOtherSide) {
-            playMessageSound();
-            showToast(
-              message.author === "client"
-                ? "Nova mensagem do cliente."
-                : "Nova mensagem da Menchë Interiores."
-            );
-          }
-        });
-      }
+if (currentProject()?.id === projectId) {
+  renderStage(true);
+}
 
-      // IMPORTANTE: A primeira leitura já aconteceu, desliga a trava para as próximas
-      isFirstSnapshot = false;
-
-      if (currentProject()?.id === projectId) {
-        renderStage(true);
-      }
-
-      renderSidebar();
+renderSidebar();
     },
     (error) => {
       console.error("Erro no listener do projeto:", error);
@@ -836,27 +856,46 @@ function listenToCurrentProject(projectId) {
 let saveQueue = Promise.resolve();
 
 async function saveProjects(customProjects = null) {
+  let listToSave = customProjects;
+
+  if (!listToSave) {
+    const current = currentProject();
+
+    if (current) {
+      listToSave = [current];
+    } else {
+      listToSave = projects;
+    }
+  }
+
+  if (!Array.isArray(listToSave)) {
+    listToSave = [listToSave];
+  }
+
+  listToSave = listToSave.filter(
+    (proj) => proj && proj.id
+  );
+
+  if (!listToSave.length) {
+    return false;
+  }
+
+  const projectIds = listToSave.map((proj) => String(proj.id));
+
+  projectIds.forEach(markLocalProjectWrite);
+
   saveQueue = saveQueue.then(async () => {
     try {
-      let listToSave = customProjects;
-
-      if (!listToSave) {
-        const current = currentProject();
-
-        if (current) {
-          listToSave = [current];
-        } else {
-          listToSave = projects;
-        }
-      }
-
       for (const proj of listToSave) {
-        await db.collection("projects").doc(proj.id).set(proj, {
-          merge: true
-        });
+        await db.collection("projects")
+          .doc(String(proj.id))
+          .set(proj, {
+            merge: true
+          });
       }
 
       return true;
+
     } catch (error) {
       console.error("Erro ao salvar no Firebase:", error);
 
@@ -865,6 +904,9 @@ async function saveProjects(customProjects = null) {
       }
 
       return false;
+
+    } finally {
+      projectIds.forEach(finishLocalProjectWrite);
     }
   });
 
@@ -3109,414 +3151,868 @@ function contractListHTML(contracts) {
     .join("");
 }
 
-/* ---------------- Memorial Descritivo (proprietário) ---------------- */
-function memorialSectionHTML(project, key) {
-  const table = MEMORIAL_TABLES[key];
-  const rows = project.memorial ? project.memorial[key] || [] : [];
+// ============================================================
+// MEMORIAL DESCRITIVO — NOVO NÚCLEO
+// ============================================================
 
-  const qtyTotal = rows.reduce((total, r) => total + (parseFloat(String(r.qty || "").replace(",", ".")) || 0), 0);
-  
-  const priceTotal = rows.reduce((total, r) => {
-    const q = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
-    let rawPrice = String(r.preco || "").replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
-    const p = parseFloat(rawPrice) || 0;
-    return total + (q * p);
-  }, 0);
-
-  const head = `<tr>${table.cols.map((c) => `<th>${escapeHTML(c.label)}</th>`).join("")}<th>Ações</th></tr>`;
-
-  let body = "";
-  if (!rows.length) {
-    body = `<tr class="row-empty"><td colspan="${table.cols.length + 1}">Nenhum item cadastrado.</td></tr>`;
-  } else {
-    body = rows.map((r, rowIndex) => {
-      const cells = table.cols.map((col) => {
-        if (col.key === "status") {
-          const currentVal = r[col.key] || "A Comprar";
-          return `<td>
-            <select class="memorial-input" data-key="${key}" data-row="${rowIndex}" data-field="${col.key}" style="background: #1f1f1f; color: #fff; border: 1px solid #444; padding: 4px 8px; border-radius: 4px;">
-              <option value="A Comprar" ${currentVal === "A Comprar" ? "selected" : ""}>A Comprar</option>
-              <option value="Comprado" ${currentVal === "Comprado" ? "selected" : ""}>Comprado</option>
-              <option value="Em Produção" ${currentVal === "Em Produção" ? "selected" : ""}>Em Produção</option>
-              <option value="Entregue" ${currentVal === "Entregue" ? "selected" : ""}>Entregue</option>
-            </select>
-          </td>`;
-        }
-        return `<td><input type="text" class="memorial-input" data-key="${key}" data-row="${rowIndex}" data-field="${col.key}" value="${escapeHTML(r[col.key] || "")}" /></td>`;
-      });
-      return `<tr>${cells.join("")}<td><button type="button" class="file-remove btn-delete-row" data-key="${key}" data-row="${rowIndex}">✕</button></td></tr>`;
-    }).join("");
+function memorialNumber(value) {
+  if (value === null || value === undefined || value === "") {
+    return 0;
   }
 
-  const formattedPriceTotal = typeof formatCurrency === "function" ? formatCurrency(priceTotal) : `R$ ${priceTotal.toFixed(2).replace(".", ",")}`;
+  let text = String(value).trim();
 
-  return `
-    <div class="panel memorial-section" data-category="${key}" data-memorial-key="${key}">
-      <div class="memorial-head">
-        <h3>${ICONS.table} ${table.title}</h3>
-        <button type="button" class="btn-secondary btn-add-row" data-key="${key}">+ Adicionar Item</button>
-      </div>
-      <div class="table-wrap">
-        <table class="memorial-table">
-          <thead>${head}</thead>
-          <tbody>${body}</tbody>
-        </table>
-      </div>
-      <div class="memorial-summary" style="margin-top: 10px; font-size: 13px; color: #aaa;">
-        <strong>${table.title}:</strong> ${rows.length} item(ns)
-        ${qtyTotal > 0 ? " · Qtd. total: " + qtyTotal : ""}
-        ${priceTotal > 0 ? " · Total da Categoria: " + formattedPriceTotal : ""}
-      </div>
-    </div>`;
+  // Remove espaços e símbolos.
+  text = text.replace(/[^\d,.-]/g, "");
+
+  // Formato brasileiro:
+  // 1.250,50 -> 1250.50
+  if (text.includes(",")) {
+    text = text
+      .replace(/\./g, "")
+      .replace(",", ".");
+  }
+
+  const number = parseFloat(text);
+
+  return Number.isFinite(number) ? number : 0;
 }
 
-function memorialGrandTotalHTML(project) {
-  let grandTotal = 0;
-  if (project.memorial) {
-    Object.keys(MEMORIAL_TABLES).forEach((key) => {
-      const rows = project.memorial[key] || [];
-      rows.forEach((r) => {
-        const qty = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
-        let rawPrice = String(r.preco || "").replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
-        const price = parseFloat(rawPrice) || 0;
-        grandTotal += qty * price;
+
+function memorialPrice(value) {
+  return memorialNumber(value);
+}
+
+
+function memorialQuantity(value) {
+  return memorialNumber(value);
+}
+
+
+function memorialFormatPrice(value) {
+  const number = memorialPrice(value);
+
+  return number.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
+
+
+function memorialRowTotal(row) {
+  if (!row) return 0;
+
+  const quantity = memorialQuantity(row.qty);
+  const price = memorialPrice(row.preco);
+
+  return quantity * price;
+}
+
+
+function memorialCategoryTotals(rows) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+
+  const quantity = safeRows.reduce(
+    (total, row) =>
+      total + memorialQuantity(row.qty),
+    0
+  );
+
+  const price = safeRows.reduce(
+    (total, row) =>
+      total + memorialRowTotal(row),
+    0
+  );
+
+  return {
+    quantity,
+    price
+  };
+}
+
+
+function memorialGrandTotal(project) {
+  if (!project || !project.memorial) {
+    return 0;
+  }
+
+  return Object.keys(MEMORIAL_TABLES).reduce(
+    (total, key) => {
+      const rows = Array.isArray(project.memorial[key])
+        ? project.memorial[key]
+        : [];
+
+      return (
+        total +
+        rows.reduce(
+          (subtotal, row) =>
+            subtotal + memorialRowTotal(row),
+          0
+        )
+      );
+    },
+    0
+  );
+}
+
+
+function memorialEnsureStructure(project) {
+  if (!project.memorial || typeof project.memorial !== "object") {
+    project.memorial = {};
+  }
+
+  Object.keys(MEMORIAL_TABLES).forEach((key) => {
+    if (!Array.isArray(project.memorial[key])) {
+      project.memorial[key] = [];
+    }
+
+    project.memorial[key] = project.memorial[key].map((row) => {
+      const normalizedRow = {};
+
+      MEMORIAL_TABLES[key].cols.forEach((col) => {
+        normalizedRow[col.key] =
+          row && row[col.key] != null
+            ? row[col.key]
+            : "";
       });
+
+      return normalizedRow;
     });
-  }
-
-  if (grandTotal <= 0) return "";
-  return `
-    <div class="panel grand-total-panel">
-      <h3>💰 Total Geral Estimado: <span>${typeof formatCurrency === "function" ? formatCurrency(grandTotal) : `R$ ${grandTotal.toFixed(2).replace(".", ",")}`}</span></h3>
-    </div>`;
-}
-
-function renderMemorial(project) {
-  const stage = STAGES.find((s) => s.id === "memorial");
-  const container = $("#stageContainer");
-  
-  container.innerHTML = `
-    <div class="stage-header">
-      <h2>${stage.label}</h2>
-      <p class="stage-hint">${stage.hint}</p>
-    </div>
-    
-    <div class="panel">
-      <h3>${ICONS.upload} Arquivos do memorial</h3>
-      <label>Upload de PDFs, tabelas e orçamentos externos</label>
-      ${makeDropzoneHTML("image/*,application/pdf,.dwg,.dxf,.xlsx,.csv")}
-      <div class="file-list" id="memorialFiles">${fileListHTML(project.memorialFiles || [])}</div>
-    </div>
-
-    <!-- Filtros por Categoria com Múltipla Seleção -->
-    <div class="memorial-controls" style="margin: 20px 0;">
-      <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
-        <button id="btnClearFilters" style="padding: 6px 14px; border-radius: 16px; border: 1px solid #444; background: #1f1f1f; color: #ccc; cursor: pointer; font-size: 13px;">Limpar Seleção</button>
-        <span style="font-size: 12px; color: #888;">Clique nos botões abaixo para combinar filtros ou clique em "Todos".</span>
-      </div>
-      <div class="memorial-filters" style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <button class="filter-btn active" data-filter="all" style="padding: 8px 16px; border-radius: 20px; border: none; background: #c29b38; color: #fff; cursor: pointer; font-weight: 500;">Todos</button>
-        <button class="filter-btn" data-filter="revestimentos" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Revestimentos</button>
-        <button class="filter-btn" data-filter="metais" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Metais & Louças</button>
-        <button class="filter-btn" data-filter="iluminacao" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Iluminação</button>
-        <button class="filter-btn" data-filter="eletro" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Eletrodomésticos</button>
-        <button class="filter-btn" data-filter="moveis" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Mobiliário</button>
-        <button class="filter-btn" data-filter="marcenaria" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Marcenaria</button>
-        <button class="filter-btn" data-filter="decoracao" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2a2a2a; color: #aaa; cursor: pointer;">Decoração</button>
-      </div>
-    </div>
-
-    <!-- Total Geral no Topo -->
-    ${memorialGrandTotalHTML(project)}
-
-    <!-- As tabelas geradas dinamicamente -->
-    <div id="memorialSectionsWrapper">
-      ${Object.keys(MEMORIAL_TABLES).map((key) => memorialSectionHTML(project, key)).join("")}
-    </div>
-
-    <!-- Total Geral embaixo -->
-    ${memorialGrandTotalHTML(project)}`;
+  });
 
   if (!Array.isArray(project.memorialFiles)) {
     project.memorialFiles = [];
   }
 
-  attachDropzone(container, project.memorialFiles, () => renderMemorial(project));
+  return project;
+}
 
-$$("#memorialFiles .file-remove").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const id = btn.closest(".file-item").dataset.fileId;
 
-    project.memorialFiles = project.memorialFiles.filter(
-      (f) => f.id !== id
+function memorialCreateEmptyRow(key) {
+  const row = {};
+
+  MEMORIAL_TABLES[key].cols.forEach((col) => {
+    row[col.key] = "";
+  });
+
+  return row;
+}
+
+
+function memorialMarkDirty(project) {
+  if (!project || !project.id) return;
+
+  project.__memorialDirty = true;
+}
+
+
+async function memorialSave(project) {
+  if (!project || !project.id) {
+    return false;
+  }
+
+  project.__memorialDirty = true;
+
+  const result = await saveProjects([project]);
+
+  if (result) {
+    project.__memorialDirty = false;
+  }
+
+  return result;
+}
+
+
+function memorialUpdateAllTotals(project) {
+  Object.keys(MEMORIAL_TABLES).forEach((key) => {
+    updateCategorySummary(key, project);
+  });
+
+  const total = memorialGrandTotal(project);
+
+  document
+    .querySelectorAll(".memorial-grand-total")
+    .forEach((element) => {
+      element.textContent = memorialFormatPrice(total);
+    });
+}
+
+
+function updateCategorySummary(key, project) {
+  if (!project || !project.memorial) return;
+
+  const section = document.querySelector(
+    `.memorial-section[data-category="${key}"]`
+  );
+
+  if (!section) return;
+
+  const table = MEMORIAL_TABLES[key];
+
+  if (!table) return;
+
+  const rows = Array.isArray(project.memorial[key])
+    ? project.memorial[key]
+    : [];
+
+  const totals = memorialCategoryTotals(rows);
+
+  const summary = section.querySelector(
+    ".memorial-summary"
+  );
+
+  if (!summary) return;
+
+  let text =
+    `<strong>${escapeHTML(table.title)}:</strong> ` +
+    `${rows.length} item(ns)`;
+
+  if (totals.quantity > 0) {
+    text +=
+      ` · Qtd. total: ` +
+      `${totals.quantity}`;
+  }
+
+  if (totals.price > 0) {
+    text +=
+      ` · Total da Categoria: ` +
+      `${memorialFormatPrice(totals.price)}`;
+  }
+
+  summary.innerHTML = text;
+}
+
+
+function memorialSectionHTML(project, key) {
+  const table = MEMORIAL_TABLES[key];
+
+  if (!table) {
+    return "";
+  }
+
+  const rows = Array.isArray(project.memorial[key])
+    ? project.memorial[key]
+    : [];
+
+  const totals = memorialCategoryTotals(rows);
+
+  const rowsHTML = rows.length
+    ? rows.map((row, rowIndex) => {
+        const cells = table.cols.map((col) => {
+          const value =
+            row[col.key] != null
+              ? row[col.key]
+              : "";
+
+          if (col.key === "status") {
+            return `
+              <td>
+                <select
+                  class="memorial-input"
+                  data-key="${escapeHTML(key)}"
+                  data-row="${rowIndex}"
+                  data-field="${escapeHTML(col.key)}"
+                >
+                  <option value="">Selecionar</option>
+                  <option value="A definir" ${value === "A definir" ? "selected" : ""}>A definir</option>
+                  <option value="Orçamento" ${value === "Orçamento" ? "selected" : ""}>Orçamento</option>
+                  <option value="Aprovado" ${value === "Aprovado" ? "selected" : ""}>Aprovado</option>
+                  <option value="Comprado" ${value === "Comprado" ? "selected" : ""}>Comprado</option>
+                  <option value="Entregue" ${value === "Entregue" ? "selected" : ""}>Entregue</option>
+                  <option value="Instalado" ${value === "Instalado" ? "selected" : ""}>Instalado</option>
+                </select>
+              </td>
+            `;
+          }
+
+          if (col.key === "link") {
+            return `
+              <td>
+                <input
+                  type="url"
+                  class="memorial-input"
+                  data-key="${escapeHTML(key)}"
+                  data-row="${rowIndex}"
+                  data-field="${escapeHTML(col.key)}"
+                  value="${escapeHTML(value)}"
+                  placeholder="https://..."
+                >
+              </td>
+            `;
+          }
+
+          if (col.key === "qty") {
+            return `
+              <td>
+                <input
+                  type="text"
+                  inputmode="decimal"
+                  class="memorial-input"
+                  data-key="${escapeHTML(key)}"
+                  data-row="${rowIndex}"
+                  data-field="${escapeHTML(col.key)}"
+                  value="${escapeHTML(value)}"
+                  placeholder="0"
+                >
+              </td>
+            `;
+          }
+
+          if (col.key === "preco") {
+            return `
+              <td>
+                <input
+                  type="text"
+                  inputmode="decimal"
+                  class="memorial-input memorial-price-input"
+                  data-key="${escapeHTML(key)}"
+                  data-row="${rowIndex}"
+                  data-field="${escapeHTML(col.key)}"
+                  value="${escapeHTML(value)}"
+                  placeholder="R$ 0,00"
+                >
+              </td>
+            `;
+          }
+
+          return `
+            <td>
+              <input
+                type="text"
+                class="memorial-input"
+                data-key="${escapeHTML(key)}"
+                data-row="${rowIndex}"
+                data-field="${escapeHTML(col.key)}"
+                value="${escapeHTML(value)}"
+              >
+            </td>
+          `;
+        }).join("");
+
+        return `
+          <tr data-row-index="${rowIndex}">
+            ${cells}
+
+            <td class="memorial-actions">
+              <button
+                type="button"
+                class="btn-delete-row"
+                data-key="${escapeHTML(key)}"
+                data-row="${rowIndex}"
+                title="Excluir item"
+              >
+                ×
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join("")
+    : `
+      <tr class="memorial-empty-row">
+        <td colspan="${table.cols.length + 1}">
+          Nenhum item cadastrado.
+        </td>
+      </tr>
+    `;
+
+  const headers = table.cols
+    .map((col) => `<th>${escapeHTML(col.label)}</th>`)
+    .join("");
+
+  return `
+    <section
+      class="memorial-section"
+      data-category="${escapeHTML(key)}"
+    >
+
+      <div class="memorial-section-header">
+
+        <div>
+          <h3>
+            ${escapeHTML(table.title)}
+          </h3>
+
+          <div class="memorial-summary">
+            <strong>${escapeHTML(table.title)}:</strong>
+            ${rows.length} item(ns)
+            ${
+              totals.quantity > 0
+                ? ` · Qtd. total: ${totals.quantity}`
+                : ""
+            }
+            ${
+              totals.price > 0
+                ? ` · Total da Categoria: ${memorialFormatPrice(totals.price)}`
+                : ""
+            }
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn-add-row"
+          data-key="${escapeHTML(key)}"
+        >
+          + Adicionar item
+        </button>
+
+      </div>
+
+      <div class="memorial-table-wrapper">
+
+        <table class="memorial-table">
+
+          <thead>
+            <tr>
+              ${headers}
+              <th>Ações</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${rowsHTML}
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+  `;
+}
+
+
+function memorialGrandTotalHTML(project) {
+  const total = memorialGrandTotal(project);
+
+  return `
+    <div class="memorial-total-box">
+
+      <span>
+        Total geral do Memorial
+      </span>
+
+      <strong class="memorial-grand-total">
+        ${memorialFormatPrice(total)}
+      </strong>
+
+    </div>
+  `;
+}
+
+
+function memorialApplyFilter(category) {
+  const sections = document.querySelectorAll(
+    ".memorial-section"
+  );
+
+  sections.forEach((section) => {
+    const sectionCategory =
+      section.getAttribute("data-category");
+
+    section.style.display =
+      category === "all" ||
+      sectionCategory === category
+        ? ""
+        : "none";
+  });
+
+  document
+    .querySelectorAll(".filter-btn")
+    .forEach((button) => {
+      const active =
+        button.dataset.filter === category;
+
+      button.classList.toggle(
+        "selected",
+        active
+      );
+    });
+}
+
+
+function renderMemorial(project) {
+  if (!project) return;
+
+  memorialEnsureStructure(project);
+
+  const container = document.getElementById(
+    "stage-content"
+  );
+
+  if (!container) {
+    console.error(
+      "Container #stage-content não encontrado para o Memorial."
     );
+    return;
+  }
 
-    if (typeof saveProjects === "function") {
-      saveProjects([project]).then(() => {
-        renderMemorial(project);
-      });
-    } else {
+  const categoriesHTML =
+    Object.keys(MEMORIAL_TABLES)
+      .map((key) =>
+        memorialSectionHTML(project, key)
+      )
+      .join("");
+
+  const filterHTML = `
+    <div class="memorial-filters">
+
+      <button
+        type="button"
+        class="filter-btn selected"
+        data-filter="all"
+      >
+        Todas
+      </button>
+
+      ${Object.keys(MEMORIAL_TABLES)
+        .map((key) => `
+          <button
+            type="button"
+            class="filter-btn"
+            data-filter="${escapeHTML(key)}"
+          >
+            ${escapeHTML(MEMORIAL_TABLES[key].title)}
+          </button>
+        `)
+        .join("")}
+
+    </div>
+  `;
+
+  const filesHTML = `
+    <div class="memorial-files-panel">
+
+      <div class="memorial-files-header">
+        <h3>Arquivos do Memorial</h3>
+      </div>
+
+      <div
+        id="memorialFiles"
+        class="memorial-files-list"
+      >
+        ${
+          project.memorialFiles.length
+            ? fileListHTML(project.memorialFiles)
+            : `<div class="empty-state">Nenhum arquivo anexado.</div>`
+        }
+      </div>
+
+      <div
+        id="memorialDropzone"
+        class="dropzone"
+      >
+        <input
+          id="memorialFileInput"
+          type="file"
+          multiple
+          hidden
+        >
+
+        <div>
+          Arraste arquivos aqui ou clique para selecionar.
+        </div>
+      </div>
+
+    </div>
+  `;
+
+  container.innerHTML = `
+    <div class="memorial-container">
+
+      <div class="stage-header">
+        <div>
+          <h2>Memorial Descritivo</h2>
+          <p>
+            Cadastre os itens, quantidades, preços,
+            fornecedores e observações do projeto.
+          </p>
+        </div>
+      </div>
+
+      ${memorialGrandTotalHTML(project)}
+
+      ${filterHTML}
+
+      <div class="memorial-sections">
+        ${categoriesHTML}
+      </div>
+
+      ${memorialGrandTotalHTML(project)}
+
+      ${filesHTML}
+
+    </div>
+  `;
+
+  // ----------------------------------------------------------
+  // FILTROS
+  // ----------------------------------------------------------
+
+  $$(".filter-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      memorialApplyFilter(
+        button.dataset.filter || "all"
+      );
+    });
+  });
+
+  // ----------------------------------------------------------
+  // ADICIONAR LINHA
+  // ----------------------------------------------------------
+
+  $$(".btn-add-row").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const key = button.dataset.key;
+
+      if (!MEMORIAL_TABLES[key]) {
+        return;
+      }
+
+      memorialEnsureStructure(project);
+
+      project.memorial[key].push(
+        memorialCreateEmptyRow(key)
+      );
+
+      memorialMarkDirty(project);
+
+      await memorialSave(project);
+
+      renderMemorial(project);
+    });
+  });
+
+  // ----------------------------------------------------------
+  // EXCLUIR LINHA
+  // ----------------------------------------------------------
+
+  $$(".btn-delete-row").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const key = button.dataset.key;
+      const rowIndex = Number(
+        button.dataset.row
+      );
+
+      if (
+        !project.memorial ||
+        !Array.isArray(project.memorial[key])
+      ) {
+        return;
+      }
+
+      if (
+        !Number.isInteger(rowIndex) ||
+        rowIndex < 0 ||
+        rowIndex >= project.memorial[key].length
+      ) {
+        return;
+      }
+
+      project.memorial[key].splice(
+        rowIndex,
+        1
+      );
+
+      memorialMarkDirty(project);
+
+      await memorialSave(project);
+
+      renderMemorial(project);
+    });
+  });
+
+  // ----------------------------------------------------------
+  // CAMPOS
+  // ----------------------------------------------------------
+
+  $$(".memorial-input").forEach((input) => {
+
+    input.addEventListener("input", () => {
+      const key = input.dataset.key;
+      const rowIndex = Number(
+        input.dataset.row
+      );
+      const field = input.dataset.field;
+
+      if (
+        !project.memorial ||
+        !Array.isArray(project.memorial[key]) ||
+        !project.memorial[key][rowIndex]
+      ) {
+        return;
+      }
+
+      project.memorial[key][rowIndex][field] =
+        input.value;
+
+      memorialMarkDirty(project);
+
+      updateCategorySummary(
+        key,
+        project
+      );
+
+      const total = memorialGrandTotal(project);
+
+      document
+        .querySelectorAll(".memorial-grand-total")
+        .forEach((element) => {
+          element.textContent =
+            memorialFormatPrice(total);
+        });
+    });
+
+
+    input.addEventListener("change", async () => {
+      const key = input.dataset.key;
+      const rowIndex = Number(
+        input.dataset.row
+      );
+      const field = input.dataset.field;
+
+      if (
+        !project.memorial ||
+        !Array.isArray(project.memorial[key]) ||
+        !project.memorial[key][rowIndex]
+      ) {
+        return;
+      }
+
+      project.memorial[key][rowIndex][field] =
+        input.value;
+
+      memorialMarkDirty(project);
+
+      await memorialSave(project);
+    });
+
+
+    input.addEventListener("blur", async () => {
+      const key = input.dataset.key;
+      const rowIndex = Number(
+        input.dataset.row
+      );
+      const field = input.dataset.field;
+
+      if (
+        !project.memorial ||
+        !Array.isArray(project.memorial[key]) ||
+        !project.memorial[key][rowIndex]
+      ) {
+        return;
+      }
+
+      let value = input.value;
+
+      // ------------------------------------------------------
+      // PREÇO
+      // ------------------------------------------------------
+
+      if (field === "preco") {
+        const numericValue =
+          memorialPrice(value);
+
+        if (numericValue > 0) {
+          value =
+            memorialFormatPrice(
+              numericValue
+            );
+
+          input.value = value;
+        }
+      }
+
+      project.memorial[key][rowIndex][field] =
+        value;
+
+      memorialMarkDirty(project);
+
+      updateCategorySummary(
+        key,
+        project
+      );
+
+      const total =
+        memorialGrandTotal(project);
+
+      document
+        .querySelectorAll(".memorial-grand-total")
+        .forEach((element) => {
+          element.textContent =
+            memorialFormatPrice(total);
+        });
+
+      await memorialSave(project);
+    });
+  });
+
+  // ----------------------------------------------------------
+  // ARQUIVOS
+  // ----------------------------------------------------------
+
+  attachDropzone(
+    "#memorialDropzone",
+    "#memorialFileInput",
+    async (files) => {
+      if (!files || !files.length) {
+        return;
+      }
+
+      const imported =
+        await importFiles(files);
+
+      if (!Array.isArray(imported)) {
+        return;
+      }
+
+      project.memorialFiles =
+        Array.isArray(project.memorialFiles)
+          ? project.memorialFiles
+          : [];
+
+      project.memorialFiles.push(
+        ...imported
+      );
+
+      memorialMarkDirty(project);
+
+      await memorialSave(project);
+
       renderMemorial(project);
     }
-  });
-});
+  );
 
-$$(".btn-add-row").forEach((btn) => {
-  btn.addEventListener("click", async () => {
-    const key = btn.dataset.key;
+  // ----------------------------------------------------------
+  // EXCLUIR ARQUIVO
+  // ----------------------------------------------------------
 
-    const row = {};
+  $$("#memorialFiles .file-remove")
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        async () => {
+          const item =
+            button.closest(".file-item");
 
-    MEMORIAL_TABLES[key].cols.forEach((col) => {
-      row[col.key] = "";
-    });
+          if (!item) return;
 
-    if (!project.memorial) {
-      project.memorial = {};
-    }
+          const id =
+            item.dataset.fileId;
 
-    if (!Array.isArray(project.memorial[key])) {
-      project.memorial[key] = [];
-    }
+          project.memorialFiles =
+            project.memorialFiles.filter(
+              (file) => file.id !== id
+            );
 
-    project.memorial[key].push(row);
+          memorialMarkDirty(project);
 
-    // Salva exatamente o projeto que está sendo exibido
-    if (typeof saveProjects === "function") {
-      await saveProjects([project]);
-    }
+          await memorialSave(project);
 
-    // Só depois de salvar, reconstrói a tela
-    renderMemorial(project);
-  });
-});
-
-  $$(".btn-delete-row").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const key = btn.dataset.key;
-      const rowIndex = Number(btn.dataset.row);
-      if (project.memorial && project.memorial[key]) {
-        project.memorial[key].splice(rowIndex, 1);
-        if (typeof saveProjects === "function") saveProjects().then(() => renderMemorial(project));
-      }
-    });
-  });
-
-$$(".memorial-input").forEach((input) => {
-
-  input.addEventListener("input", () => {
-    const key = input.dataset.key;
-    const rowIndex = Number(input.dataset.row);
-    const field = input.dataset.field;
-
-    if (
-      project.memorial &&
-      project.memorial[key] &&
-      project.memorial[key][rowIndex]
-    ) {
-      // Atualiza imediatamente o objeto do projeto
-      project.memorial[key][rowIndex][field] = input.value;
-
-      // Atualiza o resumo sem recriar a tabela
-      if (typeof updateCategorySummary === "function") {
-        updateCategorySummary(key, project);
-      }
-    }
-  });
-
-  input.addEventListener("change", () => {
-    const key = input.dataset.key;
-    const rowIndex = Number(input.dataset.row);
-    const field = input.dataset.field;
-
-    if (
-      project.memorial &&
-      project.memorial[key] &&
-      project.memorial[key][rowIndex]
-    ) {
-      project.memorial[key][rowIndex][field] = input.value;
-    }
-
-    // Salva no Firebase sem renderizar novamente
-    if (typeof saveProjects === "function") {
-      saveProjects([project]);
-    }
-  });
-
-  input.addEventListener("blur", () => {
-    const key = input.dataset.key;
-    const rowIndex = Number(input.dataset.row);
-    const field = input.dataset.field;
-
-    if (
-      project.memorial &&
-      project.memorial[key] &&
-      project.memorial[key][rowIndex]
-    ) {
-
-      // Formata o preço ao sair do campo
-      if (field === "preco") {
-
-        const rawValue = String(input.value || "")
-          .replace(/[^\d,.-]/g, "")
-          .replace(/\./g, "")
-          .replace(",", ".");
-
-        const numericValue = parseFloat(rawValue);
-
-        if (!isNaN(numericValue)) {
-          input.value = numericValue.toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL"
-          });
+          renderMemorial(project);
         }
-      }
-
-      // Salva o valor no objeto do projeto
-      project.memorial[key][rowIndex][field] = input.value;
-
-      // Atualiza o resumo
-      if (typeof updateCategorySummary === "function") {
-        updateCategorySummary(key, project);
-      }
-
-      // Persiste no Firebase sem reconstruir a tela
-      if (typeof saveProjects === "function") {
-        saveProjects([project]);
-      }
-    }
-  });
-
-    // Mantém o foco travado caso ocorra algum re-render externo indevido
-	 newInput.addEventListener("blur", () => {
-	  if (newInput.dataset.field === "preco") {
-	    let cleanVal = String(newInput.value || "")
-	      .replace(/[^\d,.]/g, "")
-	      .replace(",", ".");
-	
-	    let num = parseFloat(cleanVal);
-	
-	    if (!isNaN(num)) {
-	      newInput.value = num.toLocaleString("pt-BR", {
-	        style: "currency",
-	        currency: "BRL"
-	      });
-	    }
-	
-	    const key = newInput.dataset.key;
-	    const rowIndex = Number(newInput.dataset.row);
-	
-	    if (
-	      project.memorial &&
-	      project.memorial[key] &&
-	      project.memorial[key][rowIndex]
-	    ) {
-	      project.memorial[key][rowIndex]["preco"] = newInput.value;
-	    }
-	  }
-	});
-  });
-
-  function updateCategorySummary(key, proj) {
-    const section = document.querySelector(`.memorial-section[data-category="${key}"]`);
-    if (!section) return;
-    const rows = proj.memorial[key] || [];
-    const table = MEMORIAL_TABLES[key];
-    
-    let qtyTotal = rows.reduce((total, r) => total + (parseFloat(String(r.qty || "").replace(",", ".")) || 0), 0);
-    let priceTotal = rows.reduce((total, r) => {
-      const q = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
-      let rawPrice = String(r.preco || "").replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
-      const p = parseFloat(rawPrice) || 0;
-      return total + (q * p);
-    }, 0);
-
-    const formattedPriceTotal = typeof formatCurrency === "function" ? formatCurrency(priceTotal) : `R$ ${priceTotal.toFixed(2).replace(".", ",")}`;
-    const summaryDiv = section.querySelector(".memorial-summary");
-    if (summaryDiv) {
-      summaryDiv.innerHTML = `<strong>${table.title}:</strong> ${rows.length} item(ns)${qtyTotal > 0 ? " · Qtd. total: " + qtyTotal : ""}${priceTotal > 0 ? " · Total da Categoria: " + formattedPriceTotal : ""}`;
-    }
-  }
-
-  // Lógica de múltiplos filtros e botão Limpar
-  const filterBtns = $$(".filter-btn");
-  const allBtn = document.querySelector('.filter-btn[data-filter="all"]');
-  const clearBtn = document.getElementById("btnClearFilters");
-
-  function applyFilters() {
-    const activeFilters = Array.from(filterBtns)
-      .filter(b => b.dataset.filter !== "all" && b.classList.contains("selected"))
-      .map(b => b.dataset.filter);
-
-    $$(".memorial-section").forEach((section) => {
-      const cat = section.getAttribute("data-category");
-      if (activeFilters.length === 0 || activeFilters.includes(cat)) {
-        section.style.display = "block";
-      } else {
-        section.style.display = "none";
-      }
+      );
     });
-  }
-
-  filterBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const filter = btn.dataset.filter;
-
-      if (filter === "all") {
-        filterBtns.forEach(b => {
-          b.classList.remove("selected");
-          b.style.background = "#2a2a2a";
-          b.style.color = "#aaa";
-          b.style.fontWeight = "normal";
-        });
-        allBtn.classList.add("active", "selected");
-        allBtn.style.background = "#c29b38";
-        allBtn.style.color = "#fff";
-        allBtn.style.fontWeight = "500";
-      } else {
-        allBtn.classList.remove("active", "selected");
-        allBtn.style.background = "#2a2a2a";
-        allBtn.style.color = "#aaa";
-        allBtn.style.fontWeight = "normal";
-
-        btn.classList.toggle("selected");
-        if (btn.classList.contains("selected")) {
-          btn.style.background = "#c29b38";
-          btn.style.color = "#fff";
-          btn.style.fontWeight = "500";
-        } else {
-          btn.style.background = "#2a2a2a";
-          btn.style.color = "#aaa";
-          btn.style.fontWeight = "normal";
-        }
-
-        const anySelected = Array.from(filterBtns).some(b => b.dataset.filter !== "all" && b.classList.contains("selected"));
-        if (!anySelected) {
-          allBtn.classList.add("active", "selected");
-          allBtn.style.background = "#c29b38";
-          allBtn.style.color = "#fff";
-          allBtn.style.fontWeight = "500";
-        }
-      }
-      applyFilters();
-    });
-  });
-
-  if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-      filterBtns.forEach(b => {
-        b.classList.remove("selected", "active");
-        b.style.background = "#2a2a2a";
-        b.style.color = "#aaa";
-        b.style.fontWeight = "normal";
-      });
-      allBtn.classList.add("active", "selected");
-      allBtn.style.background = "#c29b38";
-      allBtn.style.color = "#fff";
-      allBtn.style.fontWeight = "500";
-      applyFilters();
-    });
-  }
 }
 
 /* ---------------- Cronograma de Obra ---------------- */
@@ -4872,29 +5368,6 @@ function handleImageError(imgElement, linkId, photoIndex) {
       </span>
     </div>
   `;
-}
-
-function filterMemorial(category) {
-  // Atualiza visualmente o estilo dos botões (deixa o clicado dourado e o resto cinza)
-  const buttons = document.querySelectorAll('.filter-btn');
-  buttons.forEach(btn => {
-    btn.style.background = '#2a2a2a';
-    btn.style.color = '#aaa';
-    btn.style.fontWeight = 'normal';
-  });
-  event.target.style.background = '#c29b38';
-  event.target.style.color = '#fff';
-  event.target.style.fontWeight = '500';
-
-  // Mostra apenas a seção correspondente ou todas se for 'all'
-  const sections = document.querySelectorAll('.memorial-section');
-  sections.forEach(section => {
-    if (category === 'all' || section.getAttribute('data-category') === category) {
-      section.style.display = 'block';
-    } else {
-      section.style.display = 'none';
-    }
-  });
 }
 	
 })();

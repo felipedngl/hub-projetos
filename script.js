@@ -3115,7 +3115,11 @@ function memorialSectionHTML(project, key) {
   const rows = project.memorial ? project.memorial[key] || [] : [];
 
   const qtyTotal = rows.reduce((total, r) => total + (parseFloat(String(r.qty || "").replace(",", ".")) || 0), 0);
-  const priceTotal = rows.reduce((total, r) => total + (parseFloat(String(r.qty || "").replace(",", ".")) || 0) * (typeof parsePrice === "function" ? parsePrice(r.preco) : 0), 0);
+  const priceTotal = rows.reduce((total, r) => {
+    const q = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
+    const p = typeof parsePrice === "function" ? parsePrice(r.preco) : (parseFloat(String(r.preco).replace(/[^\d,.]/g, "").replace(",", ".")) || 0);
+    return total + (q * p);
+  }, 0);
 
   const head = `<tr>${table.cols.map((c) => `<th>${escapeHTML(c.label)}</th>`).join("")}<th>Ações</th></tr>`;
 
@@ -3125,7 +3129,6 @@ function memorialSectionHTML(project, key) {
   } else {
     body = rows.map((r, rowIndex) => {
       const cells = table.cols.map((col) => {
-        // Se a coluna for o 'status', renderiza um <select> estilizado
         if (col.key === "status") {
           const currentVal = r[col.key] || "A Comprar";
           return `<td>
@@ -3137,12 +3140,13 @@ function memorialSectionHTML(project, key) {
             </select>
           </td>`;
         }
-        // Demais colunas continuam como input de texto normal
         return `<td><input type="text" class="memorial-input" data-key="${key}" data-row="${rowIndex}" data-field="${col.key}" value="${escapeHTML(r[col.key] || "")}" /></td>`;
       });
       return `<tr>${cells.join("")}<td><button type="button" class="file-remove btn-delete-row" data-key="${key}" data-row="${rowIndex}">✕</button></td></tr>`;
     }).join("");
   }
+
+  const formattedPriceTotal = typeof formatCurrency === "function" ? formatCurrency(priceTotal) : `R$ ${priceTotal.toFixed(2).replace(".", ",")}`;
 
   return `
     <div class="panel memorial-section" data-category="${key}" data-memorial-key="${key}">
@@ -3156,12 +3160,11 @@ function memorialSectionHTML(project, key) {
           <tbody>${body}</tbody>
         </table>
       </div>
-      ${qtyTotal > 0 || priceTotal > 0 ? `
-        <div class="memorial-summary">
-          <strong>${table.title}:</strong> ${rows.length} item(ns)
-          ${qtyTotal > 0 ? " · Qtd. total " + (typeof formatArea === "function" ? formatArea(qtyTotal) : qtyTotal) : ""}
-          ${priceTotal > 0 ? " · Total: " + (typeof formatCurrency === "function" ? formatCurrency(priceTotal) : priceTotal) : ""}
-        </div>` : ""}
+      <div class="memorial-summary" style="margin-top: 10px; font-size: 13px; color: #aaa;">
+        <strong>${table.title}:</strong> ${rows.length} item(ns)
+        ${qtyTotal > 0 ? " · Qtd. total: " + qtyTotal : ""}
+        ${priceTotal > 0 ? " · Total da Categoria: " + formattedPriceTotal : ""}
+      </div>
     </div>`;
 }
 

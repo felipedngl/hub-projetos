@@ -3115,9 +3115,12 @@ function memorialSectionHTML(project, key) {
   const rows = project.memorial ? project.memorial[key] || [] : [];
 
   const qtyTotal = rows.reduce((total, r) => total + (parseFloat(String(r.qty || "").replace(",", ".")) || 0), 0);
+  
   const priceTotal = rows.reduce((total, r) => {
     const q = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
-    const p = typeof parsePrice === "function" ? parsePrice(r.preco) : (parseFloat(String(r.preco).replace(/[^\d,.]/g, "").replace(",", ".")) || 0);
+    // Limpa qualquer vestígio de R$, espaços ou formatação para somar perfeitamente
+    let rawPrice = String(r.preco || "").replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
+    const p = parseFloat(rawPrice) || 0;
     return total + (q * p);
   }, 0);
 
@@ -3175,7 +3178,8 @@ function memorialGrandTotalHTML(project) {
       const rows = project.memorial[key] || [];
       rows.forEach((r) => {
         const qty = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
-        const price = typeof parsePrice === "function" ? parsePrice(r.preco) : 0;
+        let rawPrice = String(r.preco || "").replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
+        const price = parseFloat(rawPrice) || 0;
         grandTotal += qty * price;
       });
     });
@@ -3184,7 +3188,7 @@ function memorialGrandTotalHTML(project) {
   if (grandTotal <= 0) return "";
   return `
     <div class="panel grand-total-panel">
-      <h3>💰 Total Geral Estimado: <span>${typeof formatCurrency === "function" ? formatCurrency(grandTotal) : grandTotal}</span></h3>
+      <h3>💰 Total Geral Estimado: <span>${typeof formatCurrency === "function" ? formatCurrency(grandTotal) : `R$ ${grandTotal.toFixed(2).replace(".", ",")}`}</span></h3>
     </div>`;
 }
 
@@ -3271,7 +3275,7 @@ function renderMemorial(project) {
     });
   });
 
-  // Correção do TAB e salvamento sem perder o foco/re-renderizar a tela
+  // Eventos fluidos para salvar dados sem re-renderizar a tela e perder o foco
   $$(".memorial-input").forEach((input) => {
     input.addEventListener("input", () => {
       const key = input.dataset.key;
@@ -3283,7 +3287,7 @@ function renderMemorial(project) {
       }
     });
 
-    // Formatação de preço automática ao sair do campo (blur)
+    // Formatação de preço apenas ao sair do campo (blur), permitindo digitação livre
     if (input.dataset.field === "preco") {
       input.addEventListener("blur", () => {
         let cleanVal = String(input.value || "").replace(/[^\d,.]/g, "").replace(",", ".");
@@ -3297,13 +3301,38 @@ function renderMemorial(project) {
         const rowIndex = Number(input.dataset.row);
         if (project.memorial && project.memorial[key] && project.memorial[key][rowIndex]) {
           project.memorial[key][rowIndex]["preco"] = input.value;
-          if (typeof saveProjects === "function") saveProjects();
+          if (typeof saveProjects === "function") saveProjects().then(() => {
+            // Atualiza sutilmente os totais das categorias sem re-renderizar a tabela inteira e perder o foco
+            updateCategorySummary(key, project);
+          });
         }
       });
     }
-  }); // <--- Faltava fechar este forEach aqui!
+  });
 
-  // Lógica inteligente de múltiplos filtros e botão Limpar
+  // Função auxiliar interna para recalcular totais dinamicamente sem resetar inputs
+  function updateCategorySummary(key, proj) {
+    const section = document.querySelector(`.memorial-section[data-category="${key}"]`);
+    if (!section) return;
+    const rows = proj.memorial[key] || [];
+    const table = MEMORIAL_TABLES[key];
+    
+    let qtyTotal = rows.reduce((total, r) => total + (parseFloat(String(r.qty || "").replace(",", ".")) || 0), 0);
+    let priceTotal = rows.reduce((total, r) => {
+      const q = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
+      let rawPrice = String(r.preco || "").replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
+      const p = parseFloat(rawPrice) || 0;
+      return total + (q * p);
+    }, 0);
+
+    const formattedPriceTotal = typeof formatCurrency === "function" ? formatCurrency(priceTotal) : `R$ ${priceTotal.toFixed(2).replace(".", ",")}`;
+    const summaryDiv = section.querySelector(".memorial-summary");
+    if (summaryDiv) {
+      summaryDiv.innerHTML = `<strong>${table.title}:</strong> ${rows.length} item(ns)${qtyTotal > 0 ? " · Qtd. total: " + qtyTotal : ""}${priceTotal > 0 ? " · Total da Categoria: " + formattedPriceTotal : ""}`;
+    }
+  }
+
+  // Lógica de múltiplos filtros e botão Limpar
   const filterBtns = $$(".filter-btn");
   const allBtn = document.querySelector('.filter-btn[data-filter="all"]');
   const clearBtn = document.getElementById("btnClearFilters");
@@ -3355,12 +3384,11 @@ function renderMemorial(project) {
           btn.style.fontWeight = "normal";
         }
 
-        // Se nenhum ficar selecionado, marca o "Todos" de volta
         const anySelected = Array.from(filterBtns).some(b => b.dataset.filter !== "all" && b.classList.contains("selected"));
         if (!anySelected) {
           allBtn.classList.add("active", "selected");
           allBtn.style.background = "#c29b38";
-          allBtn.style.color="#fff";
+          allBtn.style.color = "#fff";
           allBtn.style.fontWeight = "500";
         }
       }

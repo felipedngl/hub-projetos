@@ -3313,8 +3313,6 @@ $$(".memorial-input").forEach((input) => {
     }
   });
 
-});
-
     // Mantém o foco travado caso ocorra algum re-render externo indevido
 	 newInput.addEventListener("blur", () => {
 	  if (newInput.dataset.field === "preco") {

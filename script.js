@@ -3304,18 +3304,18 @@ $$(".memorial-input").forEach((input) => {
     const field = input.dataset.field;
 
     if (
-      !project.memorial ||
-      !project.memorial[key] ||
-      !project.memorial[key][rowIndex]
+      project.memorial &&
+      project.memorial[key] &&
+      project.memorial[key][rowIndex]
     ) {
-      return;
+      // Atualiza imediatamente o objeto do projeto
+      project.memorial[key][rowIndex][field] = input.value;
+
+      // Atualiza o resumo da categoria sem recriar a tabela
+      if (typeof updateCategorySummary === "function") {
+        updateCategorySummary(key, project);
+      }
     }
-
-    // Atualiza imediatamente o objeto em memória
-    project.memorial[key][rowIndex][field] = input.value;
-
-    // Atualiza os totais sem reconstruir a tabela
-    updateCategorySummary(key, project);
   });
 
   input.addEventListener("change", async () => {
@@ -3324,16 +3324,14 @@ $$(".memorial-input").forEach((input) => {
     const field = input.dataset.field;
 
     if (
-      !project.memorial ||
-      !project.memorial[key] ||
-      !project.memorial[key][rowIndex]
+      project.memorial &&
+      project.memorial[key] &&
+      project.memorial[key][rowIndex]
     ) {
-      return;
+      project.memorial[key][rowIndex][field] = input.value;
     }
 
-    project.memorial[key][rowIndex][field] = input.value;
-
-    // Salva sem renderizar novamente
+    // Salva no Firebase sem renderizar novamente
     if (typeof saveProjects === "function") {
       await saveProjects([project]);
     }
@@ -3345,45 +3343,41 @@ $$(".memorial-input").forEach((input) => {
     const field = input.dataset.field;
 
     if (
-      !project.memorial ||
-      !project.memorial[key] ||
-      !project.memorial[key][rowIndex]
+      project.memorial &&
+      project.memorial[key] &&
+      project.memorial[key][rowIndex]
     ) {
-      return;
-    }
 
-    // Tratamento especial para preço
-    if (field === "preco") {
-      const rawValue = String(input.value || "")
-        .replace(/[^\d,.-]/g, "")
-        .replace(/\./g, "")
-        .replace(",", ".");
+      // Formata o preço ao sair do campo
+      if (field === "preco") {
 
-      const numericValue = parseFloat(rawValue);
+        const rawValue = String(input.value || "")
+          .replace(/[^\d,.-]/g, "")
+          .replace(/\./g, "")
+          .replace(",", ".");
 
-      if (!isNaN(numericValue)) {
-        input.value = numericValue.toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL"
-        });
+        const numericValue = parseFloat(rawValue);
+
+        if (!isNaN(numericValue)) {
+          input.value = numericValue.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL"
+          });
+        }
       }
 
-      // IMPORTANTE:
-      // salva exatamente o valor que ficou no campo
+      // Garante que o valor formatado seja salvo no projeto
       project.memorial[key][rowIndex][field] = input.value;
-    }
 
-    // Garante que quantidade também seja salva
-    if (field === "qty") {
-      project.memorial[key][rowIndex][field] = input.value;
-    }
+      // Atualiza o resumo
+      if (typeof updateCategorySummary === "function") {
+        updateCategorySummary(key, project);
+      }
 
-    // Atualiza os totais
-    updateCategorySummary(key, project);
-
-    // Persiste no Firebase sem recriar os inputs
-    if (typeof saveProjects === "function") {
-      await saveProjects([project]);
+      // Persiste no Firebase sem reconstruir a tela
+      if (typeof saveProjects === "function") {
+        await saveProjects([project]);
+      }
     }
   });
 

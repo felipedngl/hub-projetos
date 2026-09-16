@@ -3118,7 +3118,6 @@ function memorialSectionHTML(project, key) {
   
   const priceTotal = rows.reduce((total, r) => {
     const q = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
-    // Limpa qualquer vestígio de R$, espaços ou formatação para somar perfeitamente
     let rawPrice = String(r.preco || "").replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
     const p = parseFloat(rawPrice) || 0;
     return total + (q * p);
@@ -3275,19 +3274,28 @@ function renderMemorial(project) {
     });
   });
 
-  // Eventos fluidos para salvar dados sem re-renderizar a tela e perder o foco
+  // Eventos seguros e blindados contra perda de foco
   $$(".memorial-input").forEach((input) => {
-    input.addEventListener("input", () => {
+    input.addEventListener("input", (e) => {
+      // Impede propagação para evitar que ouvintes globais da aplicação capturem e desmontem o DOM
+      e.stopPropagation();
+
       const key = input.dataset.key;
       const rowIndex = Number(input.dataset.row);
       const field = input.dataset.field;
+
       if (project.memorial && project.memorial[key] && project.memorial[key][rowIndex]) {
         project.memorial[key][rowIndex][field] = input.value;
         if (typeof saveProjects === "function") saveProjects();
       }
+
+      // Garante de forma imperativa que o foco permaneça exatamente neste elemento
+      if (document.activeElement !== input) {
+        input.focus();
+      }
     });
 
-    // Formatação de preço apenas ao sair do campo (blur), permitindo digitação livre
+    // Formatação de preço ao sair do campo (blur)
     if (input.dataset.field === "preco") {
       input.addEventListener("blur", () => {
         let cleanVal = String(input.value || "").replace(/[^\d,.]/g, "").replace(",", ".");
@@ -3302,7 +3310,6 @@ function renderMemorial(project) {
         if (project.memorial && project.memorial[key] && project.memorial[key][rowIndex]) {
           project.memorial[key][rowIndex]["preco"] = input.value;
           if (typeof saveProjects === "function") saveProjects().then(() => {
-            // Atualiza sutilmente os totais das categorias sem re-renderizar a tabela inteira e perder o foco
             updateCategorySummary(key, project);
           });
         }
@@ -3310,7 +3317,6 @@ function renderMemorial(project) {
     }
   });
 
-  // Função auxiliar interna para recalcular totais dinamicamente sem resetar inputs
   function updateCategorySummary(key, proj) {
     const section = document.querySelector(`.memorial-section[data-category="${key}"]`);
     if (!section) return;

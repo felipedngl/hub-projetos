@@ -736,15 +736,6 @@ function listenToCurrentProject(projectId) {
         });
       }
 
-      const previousMessages = new Map();
-      if (previous?.stages) {
-        Object.values(previous.stages).forEach((stage) => {
-          (stage?.clientMessages || []).forEach((message) => {
-            previousMessages.set(message.id, message);
-          });
-        });
-      }
-
       const incomingMessages = [];
       Object.values(updatedProject.stages || {}).forEach((stage) => {
         (stage?.clientMessages || []).forEach((message) => {

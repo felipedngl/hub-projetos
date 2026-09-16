@@ -1873,6 +1873,9 @@ function openProject(id) {
 
         s.checklist[index].done = input.checked;
 
+		s.approved = false;
+		s.approvedAt = "";
+		
 		// Marca a etapa como tendo uma atualização nova
 		s.checklistUpdated = true;
 		

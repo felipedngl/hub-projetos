@@ -1841,6 +1841,10 @@ function openProject(id) {
     if (btnSaveStageProgress) {
       btnSaveStageProgress.addEventListener("click", async () => {
         s.status = stageStatus.value;
+		  if (s.status !== "concluida") {
+          s.approved = false;
+          s.approvedAt = "";
+        }
         s.deadline = stageDeadline.value;
         s.progress = getStageProgress(s);
           

@@ -3125,6 +3125,19 @@ function memorialSectionHTML(project, key) {
   } else {
     body = rows.map((r, rowIndex) => {
       const cells = table.cols.map((col) => {
+        // Se a coluna for o 'status', renderiza um <select> estilizado
+        if (col.key === "status") {
+          const currentVal = r[col.key] || "A Comprar";
+          return `<td>
+            <select class="memorial-input" data-key="${key}" data-row="${rowIndex}" data-field="${col.key}" style="background: #1f1f1f; color: #fff; border: 1px solid #444; padding: 4px 8px; border-radius: 4px;">
+              <option value="A Comprar" ${currentVal === "A Comprar" ? "selected" : ""}>A Comprar</option>
+              <option value="Comprado" ${currentVal === "Comprado" ? "selected" : ""}>Comprado</option>
+              <option value="Em Produção" ${currentVal === "Em Produção" ? "selected" : ""}>Em Produção</option>
+              <option value="Entregue" ${currentVal === "Entregue" ? "selected" : ""}>Entregue</option>
+            </select>
+          </td>`;
+        }
+        // Demais colunas continuam como input de texto normal
         return `<td><input type="text" class="memorial-input" data-key="${key}" data-row="${rowIndex}" data-field="${col.key}" value="${escapeHTML(r[col.key] || "")}" /></td>`;
       });
       return `<tr>${cells.join("")}<td><button type="button" class="file-remove btn-delete-row" data-key="${key}" data-row="${rowIndex}">✕</button></td></tr>`;
@@ -3132,7 +3145,7 @@ function memorialSectionHTML(project, key) {
   }
 
   return `
-    <div class="panel memorial-section" data-memorial-key="${key}">
+    <div class="panel memorial-section" data-category="${key}" data-memorial-key="${key}">
       <div class="memorial-head">
         <h3>${ICONS.table} ${table.title}</h3>
         <button type="button" class="btn-secondary btn-add-row" data-key="${key}">+ Adicionar Item</button>
@@ -3149,26 +3162,6 @@ function memorialSectionHTML(project, key) {
           ${qtyTotal > 0 ? " · Qtd. total " + (typeof formatArea === "function" ? formatArea(qtyTotal) : qtyTotal) : ""}
           ${priceTotal > 0 ? " · Total: " + (typeof formatCurrency === "function" ? formatCurrency(priceTotal) : priceTotal) : ""}
         </div>` : ""}
-    </div>`;
-}
-
-function memorialGrandTotalHTML(project) {
-  let grandTotal = 0;
-  if (project.memorial) {
-    Object.keys(MEMORIAL_TABLES).forEach((key) => {
-      const rows = project.memorial[key] || [];
-      rows.forEach((r) => {
-        const qty = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
-        const price = typeof parsePrice === "function" ? parsePrice(r.preco) : 0;
-        grandTotal += qty * price;
-      });
-    });
-  }
-
-  if (grandTotal <= 0) return "";
-  return `
-    <div class="panel grand-total-panel">
-      <h3>💰 Total Geral Estimado: <span>${typeof formatCurrency === "function" ? formatCurrency(grandTotal) : grandTotal}</span></h3>
     </div>`;
 }
 

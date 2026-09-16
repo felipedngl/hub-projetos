@@ -3165,6 +3165,26 @@ function memorialSectionHTML(project, key) {
     </div>`;
 }
 
+function memorialGrandTotalHTML(project) {
+  let grandTotal = 0;
+  if (project.memorial) {
+    Object.keys(MEMORIAL_TABLES).forEach((key) => {
+      const rows = project.memorial[key] || [];
+      rows.forEach((r) => {
+        const qty = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
+        const price = typeof parsePrice === "function" ? parsePrice(r.preco) : 0;
+        grandTotal += qty * price;
+      });
+    });
+  }
+
+  if (grandTotal <= 0) return "";
+  return `
+    <div class="panel grand-total-panel">
+      <h3>💰 Total Geral Estimado: <span>${typeof formatCurrency === "function" ? formatCurrency(grandTotal) : grandTotal}</span></h3>
+    </div>`;
+}
+
 function renderMemorial(project) {
   const stage = STAGES.find((s) => s.id === "memorial");
   const container = $("#stageContainer");

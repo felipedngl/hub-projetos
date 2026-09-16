@@ -704,7 +704,7 @@ function listenToCurrentProject(projectId) {
 
   projectListenerSnapshot = null;
 
-	unsubscribeProjectListener = db.collection("projects").doc(projectId).onSnapshot(
+  unsubscribeProjectListener = db.collection("projects").doc(projectId).onSnapshot(
     (doc) => {
       if (!doc.exists) return;
 
@@ -715,6 +715,8 @@ function listenToCurrentProject(projectId) {
 
       const previous = projectListenerSnapshot;
 
+      // TRAVA DE SEGURANÇA: Se for a primeira leitura ao entrar no card, 
+      // apenas salva o estado atual silenciosamente sem tocar o som.
       if (!previous) {
         projectListenerSnapshot = updatedProject;
         const index = projects.findIndex((p) => p.id === projectId);
@@ -735,22 +737,6 @@ function listenToCurrentProject(projectId) {
         });
       }
 
-      const updatedProject = {
-        id: doc.id,
-        ...doc.data(),
-      };
-
-      const previous = projectListenerSnapshot;
-      const previousMessages = new Map();
-
-      if (previous?.stages) {
-        Object.values(previous.stages).forEach((stage) => {
-          (stage?.clientMessages || []).forEach((message) => {
-            previousMessages.set(message.id, message);
-          });
-        });
-      }
-
       const incomingMessages = [];
       Object.values(updatedProject.stages || {}).forEach((stage) => {
         (stage?.clientMessages || []).forEach((message) => {
@@ -760,16 +746,15 @@ function listenToCurrentProject(projectId) {
 
       projectListenerSnapshot = updatedProject;
 
-		const index = projects.findIndex((p) => p.id === projectId);
-
-		if (index !== -1) {
-		  projects[index] = {
-		    ...projects[index],
-		    ...updatedProject,
-		  };
-		} else {
-		  projects.push(updatedProject);
-		}
+      const index = projects.findIndex((p) => p.id === projectId);
+      if (index !== -1) {
+        projects[index] = {
+          ...projects[index],
+          ...updatedProject,
+        };
+      } else {
+        projects.push(updatedProject);
+      }
 
       incomingMessages.forEach((message) => {
         const fromOtherSide =

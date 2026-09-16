@@ -3311,14 +3311,14 @@ $$(".memorial-input").forEach((input) => {
       // Atualiza imediatamente o objeto do projeto
       project.memorial[key][rowIndex][field] = input.value;
 
-      // Atualiza o resumo da categoria sem recriar a tabela
+      // Atualiza o resumo sem recriar a tabela
       if (typeof updateCategorySummary === "function") {
         updateCategorySummary(key, project);
       }
     }
   });
 
-  input.addEventListener("change", async () => {
+  input.addEventListener("change", () => {
     const key = input.dataset.key;
     const rowIndex = Number(input.dataset.row);
     const field = input.dataset.field;
@@ -3333,11 +3333,11 @@ $$(".memorial-input").forEach((input) => {
 
     // Salva no Firebase sem renderizar novamente
     if (typeof saveProjects === "function") {
-      await saveProjects([project]);
+      saveProjects([project]);
     }
   });
 
-  input.addEventListener("blur", async () => {
+  input.addEventListener("blur", () => {
     const key = input.dataset.key;
     const rowIndex = Number(input.dataset.row);
     const field = input.dataset.field;
@@ -3366,7 +3366,7 @@ $$(".memorial-input").forEach((input) => {
         }
       }
 
-      // Garante que o valor formatado seja salvo no projeto
+      // Salva o valor no objeto do projeto
       project.memorial[key][rowIndex][field] = input.value;
 
       // Atualiza o resumo
@@ -3376,10 +3376,10 @@ $$(".memorial-input").forEach((input) => {
 
       // Persiste no Firebase sem reconstruir a tela
       if (typeof saveProjects === "function") {
-        await saveProjects([project]);
+        saveProjects([project]);
       }
     }
-  }); 
+  });
 
 });
 

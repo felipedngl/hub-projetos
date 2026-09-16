@@ -3282,16 +3282,18 @@ $$(".memorial-input").forEach((input) => {
     const field = input.dataset.field;
 
     if (
-      project.memorial &&
-      project.memorial[key] &&
-      project.memorial[key][rowIndex]
+      !project.memorial ||
+      !project.memorial[key] ||
+      !project.memorial[key][rowIndex]
     ) {
-      // Atualiza imediatamente o objeto do projeto
-      project.memorial[key][rowIndex][field] = input.value;
-
-      // Atualiza o total da categoria imediatamente
-      updateCategorySummary(key, project);
+      return;
     }
+
+    // Atualiza imediatamente o objeto em memória
+    project.memorial[key][rowIndex][field] = input.value;
+
+    // Atualiza os totais sem reconstruir a tabela
+    updateCategorySummary(key, project);
   });
 
   input.addEventListener("change", async () => {
@@ -3300,14 +3302,64 @@ $$(".memorial-input").forEach((input) => {
     const field = input.dataset.field;
 
     if (
-      project.memorial &&
-      project.memorial[key] &&
-      project.memorial[key][rowIndex]
+      !project.memorial ||
+      !project.memorial[key] ||
+      !project.memorial[key][rowIndex]
     ) {
+      return;
+    }
+
+    project.memorial[key][rowIndex][field] = input.value;
+
+    // Salva sem renderizar novamente
+    if (typeof saveProjects === "function") {
+      await saveProjects([project]);
+    }
+  });
+
+  input.addEventListener("blur", async () => {
+    const key = input.dataset.key;
+    const rowIndex = Number(input.dataset.row);
+    const field = input.dataset.field;
+
+    if (
+      !project.memorial ||
+      !project.memorial[key] ||
+      !project.memorial[key][rowIndex]
+    ) {
+      return;
+    }
+
+    // Tratamento especial para preço
+    if (field === "preco") {
+      const rawValue = String(input.value || "")
+        .replace(/[^\d,.-]/g, "")
+        .replace(/\./g, "")
+        .replace(",", ".");
+
+      const numericValue = parseFloat(rawValue);
+
+      if (!isNaN(numericValue)) {
+        input.value = numericValue.toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL"
+        });
+      }
+
+      // IMPORTANTE:
+      // salva exatamente o valor que ficou no campo
       project.memorial[key][rowIndex][field] = input.value;
     }
 
-    // Salva no Firebase sem renderizar a tela
+    // Garante que quantidade também seja salva
+    if (field === "qty") {
+      project.memorial[key][rowIndex][field] = input.value;
+    }
+
+    // Atualiza os totais
+    updateCategorySummary(key, project);
+
+    // Persiste no Firebase sem recriar os inputs
     if (typeof saveProjects === "function") {
       await saveProjects([project]);
     }

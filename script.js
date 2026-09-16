@@ -3299,23 +3299,33 @@ $$(".memorial-input").forEach((input) => {
 	});
 
     // Mantém o foco travado caso ocorra algum re-render externo indevido
-    newInput.addEventListener("blur", (e) => {
-      if (newInput.dataset.field === "preco") {
-        let cleanVal = String(newInput.value || "").replace(/[^\d,.]/g, "").replace(",", ".");
-        let num = parseFloat(cleanVal);
-        if (!isNaN(num)) {
-          newInput.value = num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-        } else {
-          newInput.value = "R$ 0,00";
-        }
-        const key = newInput.dataset.key;
-        const rowIndex = Number(newInput.dataset.row);
-        if (project.memorial && project.memorial[key] && project.memorial[key][rowIndex]) {
-          project.memorial[key][rowIndex]["preco"] = newInput.value;
-          if (typeof saveProjects === "function") saveProjects();
-        }
-      }
-    });
+	 newInput.addEventListener("blur", () => {
+	  if (newInput.dataset.field === "preco") {
+	    let cleanVal = String(newInput.value || "")
+	      .replace(/[^\d,.]/g, "")
+	      .replace(",", ".");
+	
+	    let num = parseFloat(cleanVal);
+	
+	    if (!isNaN(num)) {
+	      newInput.value = num.toLocaleString("pt-BR", {
+	        style: "currency",
+	        currency: "BRL"
+	      });
+	    }
+	
+	    const key = newInput.dataset.key;
+	    const rowIndex = Number(newInput.dataset.row);
+	
+	    if (
+	      project.memorial &&
+	      project.memorial[key] &&
+	      project.memorial[key][rowIndex]
+	    ) {
+	      project.memorial[key][rowIndex]["preco"] = newInput.value;
+	    }
+	  }
+	});
   });
 
   function updateCategorySummary(key, proj) {

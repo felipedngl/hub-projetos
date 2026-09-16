@@ -3223,11 +3223,15 @@ function renderMemorial(project) {
       </div>
     </div>
 
-    <!-- As tabelas geradas dinamicamente -->
+	<!-- Total Geral no Topo (Opcional, para ver logo de cara) -->
+    ${memorialGrandTotalHTML(project)}
+
+	<!-- As tabelas geradas dinamicamente -->
     <div id="memorialSectionsWrapper">
-      ${Object.keys(MEMORIAL_TABLES).map((key) => `<div class="memorial-section" data-category="${key}">${memorialSectionHTML(project, key)}</div>`).join("")}
+      ${Object.keys(MEMORIAL_TABLES).map((key) => memorialSectionHTML(project, key)).join("")}
     </div>
 
+    <!-- Total Geral embaixo -->
     ${memorialGrandTotalHTML(project)}`;
 
   if (!Array.isArray(project.memorialFiles)) {
@@ -3279,21 +3283,22 @@ function renderMemorial(project) {
       }
     });
 
-    // Formatação de preço automática ao sair do campo (blur)
+// Formatação de preço automática ao sair do campo (blur)
     if (input.dataset.field === "preco") {
       input.addEventListener("blur", () => {
-        let val = input.value.replace(/[^\d,.]/g, "").replace(",", ".");
-        let num = parseFloat(val);
+        let cleanVal = String(input.value || "").replace(/[^\d,.]/g, "").replace(",", ".");
+        let num = parseFloat(cleanVal);
         if (!isNaN(num)) {
           input.value = num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-          const key = input.dataset.key;
-          const rowIndex = Number(input.dataset.row);
-          project.memorial[key][rowIndex]["preco"] = input.value;
-          if (typeof saveProjects === "function") saveProjects();
+        } else {
+          input.value = "R$ 0,00";
         }
+        const key = input.dataset.key;
+        const rowIndex = Number(input.dataset.row);
+        project.memorial[key][rowIndex]["preco"] = input.value;
+        if (typeof saveProjects === "function") saveProjects();
       });
     }
-  });
 
   // Lógica inteligente de múltiplos filtros e botão Limpar
   const filterBtns = $$(".filter-btn");

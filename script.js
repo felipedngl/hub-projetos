@@ -3636,16 +3636,9 @@ function renderMemorial(project) {
 
   memorialEnsureStructure(project);
 
-  const container = document.getElementById(
-    "stage-content"
-  );
+const container = $("#stageContainer");
 
-  if (!container) {
-    console.error(
-      "Container #stage-content não encontrado para o Memorial."
-    );
-    return;
-  }
+if (!container) return;
 
   const categoriesHTML =
     Object.keys(MEMORIAL_TABLES)

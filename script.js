@@ -3297,8 +3297,12 @@ function renderMemorial(project) {
         const rowIndex = Number(input.dataset.row);
         project.memorial[key][rowIndex]["preco"] = input.value;
         if (typeof saveProjects === "function") saveProjects();
+		}
       });
     }
+  });
+}
+}
 
   // Lógica inteligente de múltiplos filtros e botão Limpar
   const filterBtns = $$(".filter-btn");

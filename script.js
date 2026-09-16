@@ -3295,13 +3295,12 @@ function renderMemorial(project) {
         }
         const key = input.dataset.key;
         const rowIndex = Number(input.dataset.row);
-        project.memorial[key][rowIndex]["preco"] = input.value;
-        if (typeof saveProjects === "function") saveProjects();
-		}
+        if (project.memorial && project.memorial[key] && project.memorial[key][rowIndex]) {
+          project.memorial[key][rowIndex]["preco"] = input.value;
+          if (typeof saveProjects === "function") saveProjects();
+        }
       });
     }
-  });
-}
 
   // Lógica inteligente de múltiplos filtros e botão Limpar
   const filterBtns = $$(".filter-btn");

@@ -3302,7 +3302,6 @@ function renderMemorial(project) {
     }
   });
 }
-}
 
   // Lógica inteligente de múltiplos filtros e botão Limpar
   const filterBtns = $$(".filter-btn");

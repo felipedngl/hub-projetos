@@ -3275,28 +3275,40 @@ function renderMemorial(project) {
   });
 
 $$(".memorial-input").forEach((input) => {
-    // Remove qualquer ouvinte anterior duplicado clonando o nó
-    const newInput = input.cloneNode(true);
-    input.parentNode.replaceChild(newInput, input);
 
-	newInput.addEventListener("input", (e) => {
-	  e.stopImmediatePropagation();
-	  e.stopPropagation();
-	
-	  const key = newInput.dataset.key;
-	  const rowIndex = Number(newInput.dataset.row);
-	  const field = newInput.dataset.field;
-	
-	  if (project.memorial && project.memorial[key] && project.memorial[key][rowIndex]) {
-		project.memorial[key][rowIndex][field] = newInput.value;
-	  }
-	});
-	
-	newInput.addEventListener("change", async () => {
-	  if (typeof saveProjects === "function") {
-		await saveProjects();
-	  }
-	});
+  input.addEventListener("input", () => {
+    const key = input.dataset.key;
+    const rowIndex = Number(input.dataset.row);
+    const field = input.dataset.field;
+
+    if (
+      project.memorial &&
+      project.memorial[key] &&
+      project.memorial[key][rowIndex]
+    ) {
+      project.memorial[key][rowIndex][field] = input.value;
+    }
+  });
+
+  input.addEventListener("change", async () => {
+    const key = input.dataset.key;
+    const rowIndex = Number(input.dataset.row);
+    const field = input.dataset.field;
+
+    if (
+      project.memorial &&
+      project.memorial[key] &&
+      project.memorial[key][rowIndex]
+    ) {
+      project.memorial[key][rowIndex][field] = input.value;
+    }
+
+    if (typeof saveProjects === "function") {
+      await saveProjects();
+    }
+  });
+
+});
 
     // Mantém o foco travado caso ocorra algum re-render externo indevido
 	 newInput.addEventListener("blur", () => {

@@ -3555,15 +3555,22 @@ function memorialSectionHTML(project, key) {
           }
 
           // 6. FOTO / IMAGEM (Suporta Ctrl+V para colar imagem direto do site)
-          if (col.key === "foto" || col.key === "imagem") {
+if (col.key === "foto" || col.key === "imagem") {
             return `
               <td>
-                <div class="memorial-image-upload-wrapper" data-key="${escapeHTML(key)}" data-row="${rowIndex}" tabindex="0" title="Clique e aperte Ctrl+V para colar a imagem do produto">
+                <div 
+                  class="memorial-image-upload-wrapper" 
+                  data-key="${escapeHTML(key)}" 
+                  data-row="${rowIndex}" 
+                  tabindex="0" 
+                  title="Clique para enviar arquivo, arraste uma imagem ou aperte Ctrl+V"
+                >
                   ${
                     value
                       ? `<img src="${value}" alt="Item" class="memorial-thumb" />`
-                      : `<span class="memorial-img-placeholder">Copiar/Colar Imagem</span>`
+                      : `<span class="memorial-img-placeholder">Clique, Arraste ou Ctrl+V</span>`
                   }
+                  <input type="file" class="memorial-file-input" accept="image/*" style="display:none;" />
                 </div>
               </td>
             `;

@@ -3781,47 +3781,61 @@ body.hub-is-locked .btn-back {
   border: 2px dashed rgba(255, 255, 255, 0.2);
 }
 
-/* --- NOVOS MODOS: LISTA E CARROSSEL --- */
+/* --- MODOS DE VISUALIZAÇÃO (GRADE, LISTA, CARROSSEL) --- */
 
-/* Modo Lista: transforma a grade em linhas empilhadas */
+/* 1. MODO LISTA */
 .projects-grid.view-list {
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
 }
 
-.projects-grid.view-list .project-card,
-.projects-grid.view-list .card {
+.projects-grid.view-list article.project-card {
   display: flex !important;
   flex-direction: row !important;
-  align-items: center;
-  justify-content: space-between;
+  align-items: center !important;
+  justify-content: space-between !important;
   width: 100% !important;
   padding: 12px 20px !important;
+  box-sizing: border-box !important;
 }
 
-/* Modo Carrossel: trilho horizontal com rolagem lateral */
+.projects-grid.view-list article.project-card .card-cover {
+  width: 80px !important;
+  height: 60px !important;
+  flex-shrink: 0;
+  margin-bottom: 0 !important;
+}
+
+.projects-grid.view-list article.project-card .card-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px !important;
+}
+
+/* 2. MODO CARROSSEL */
 .projects-grid.view-carousel {
   display: flex !important;
   flex-direction: row !important;
   overflow-x: auto !important;
   scroll-snap-type: x mandatory;
   gap: 20px !important;
-  padding-bottom: 16px;
+  padding-bottom: 16px !important;
 }
 
-.projects-grid.view-carousel .project-card,
-.projects-grid.view-carousel .card {
+.projects-grid.view-carousel article.project-card {
   flex: 0 0 320px !important;
   scroll-snap-align: start;
 }
 
-/* Estilo básico para os botões de visualização */
+/* Estilo dos botões */
 .view-btn {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.85rem;

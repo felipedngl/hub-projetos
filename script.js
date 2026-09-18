@@ -4168,7 +4168,7 @@ function renderMemorial(project) {
   });
 
 
-  // ==========================================================
+// ==========================================================
   // EXCLUIR LINHA
   // ==========================================================
 
@@ -4177,6 +4177,45 @@ function renderMemorial(project) {
     button.addEventListener(
       "click",
       async () => {
+        // ➔ ADICIONADO: Pergunta se o usuário realmente deseja apagar
+        if (!window.confirm("Tem certeza de que deseja apagar esta linha?")) {
+          return;
+        }
+
+        const key =
+          button.dataset.key;
+
+        const rowIndex =
+          Number(button.dataset.row);
+
+        if (
+          !project.memorial ||
+          !Array.isArray(project.memorial[key])
+        ) {
+          return;
+        }
+
+        if (
+          !Number.isInteger(rowIndex) ||
+          rowIndex < 0 ||
+          rowIndex >= project.memorial[key].length
+        ) {
+          return;
+        }
+
+        project.memorial[key].splice(
+          rowIndex,
+          1
+        );
+
+        memorialMarkDirty(project);
+
+        await memorialSave(project);
+
+        renderMemorial(project);
+      }
+    );
+  });
 
         const key =
           button.dataset.key;

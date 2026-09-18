@@ -1294,7 +1294,17 @@ return `
 function renderDashboard() {
   // Trava de segurança: se 'projects' não for uma lista (array), transforma em lista vazia
   if (!Array.isArray(projects)) projects = [];
-  projects = getOrderedProjects(projects);
+
+  // Proteção: Se a lista de projetos estiver vazia mas já carregamos antes, 
+  // não sobrescrevemos a tela para evitar que os cards sumam na atualização.
+  if (projects.length === 0 && window._hasLoadedProjectsOnce) {
+    return;
+  }
+  if (projects.length > 0) {
+    window._hasLoadedProjectsOnce = true;
+    projects = getOrderedProjects(projects);
+  }
+
   // Esconde barra de busca e filtros se estiver no modo cliente
   const isClient = typeof isClientView !== "undefined" && isClientView;
   const controls = document.querySelector(".search-bar-container") || document.querySelector(".dashboard-controls") || document.querySelector(".filters-container") || $("#searchProjects")?.parentElement;
@@ -1322,8 +1332,11 @@ function renderDashboard() {
   const grid = $("#projectsGrid");
   const emptyState = $("#emptyState");
   if (filtered.length === 0) {
-    grid.innerHTML = "";
-    emptyState.hidden = false;
+    // Só esvazia se realmente não houver projetos carregados no sistema
+    if (projects.length > 0) {
+      grid.innerHTML = "";
+      emptyState.hidden = false;
+    }
   } else {
     emptyState.hidden = true;
     grid.innerHTML = filtered.map(cardHTML).join("");
@@ -1359,7 +1372,7 @@ function renderDashboard() {
   // Ativa a função de arrastar os cards pela tela
   initSortableGrid();
 }
-
+	
 /* ---------------- Render: visão interna ---------------- */
 function stageHasContent(project, stage) {
   if (stage.special === "schedule") {

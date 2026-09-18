@@ -5029,6 +5029,8 @@ async function init() {
 
   bindEvents();
 
+  initViewModeSwitcher();
+
   // Inicializa o controle do botão de lupa expandível
   initSearchToggle();
 
@@ -5850,6 +5852,57 @@ function getOrderedProjects(projectsList) {
 
   // Se houver algum projeto novo que não estava na lista salva, adiciona no final
   return [...ordered, ...remaining];
+}
+
+let currentViewMode = localStorage.getItem("menche_view_mode") || "grid";
+
+function initViewModeSwitcher() {
+  const gridEl = $("#projectsGrid");
+  const buttons = document.querySelectorAll(".view-btn");
+
+  if (!gridEl) return;
+
+  // Aplica o modo salvo anteriormente no navegador
+  applyViewMode(currentViewMode);
+
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.view;
+      if (!mode) return;
+
+      currentViewMode = mode;
+      localStorage.setItem("menche_view_mode", mode);
+
+      buttons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      applyViewMode(mode);
+    });
+  });
+}
+
+function applyViewMode(mode) {
+  const gridEl = $("#projectsGrid");
+  if (!gridEl) return;
+
+  // Remove classes anteriores para limpar o visual
+  gridEl.classList.remove("view-list", "view-carousel");
+
+  // Adiciona a classe correspondente ao botão clicado
+  if (mode === "list") {
+    gridEl.classList.add("view-list");
+  } else if (mode === "carousel") {
+    gridEl.classList.add("view-carousel");
+  }
+
+  // Atualiza o botão ativo visualmente
+  document.querySelectorAll(".view-btn").forEach(b => {
+    if (b.dataset.view === mode) {
+      b.classList.add("active");
+    } else {
+      b.classList.remove("active");
+    }
+  });
 }
 
 // Animação de introdução da logo ao carregar a página

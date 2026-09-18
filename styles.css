@@ -3848,3 +3848,67 @@ body.hub-is-locked .btn-back {
   background: #e56a44;
   border-color: #e56a44;
 }
+
+/* --- MELHORIAS DO MEMORIAL DESCRITIVO --- */
+
+/* 1. Ajuste de largura das colunas e scroll horizontal caso a tela seja menor */
+.memorial-table-wrapper, .table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table.memorial-table {
+  width: 100%;
+  min-width: 950px; /* Garante espaço para todas as colunas sem espremer */
+  border-collapse: collapse;
+}
+
+/* Dá mais destaque e largura livre para a coluna ITEM */
+table.memorial-table th:nth-child(1),
+table.memorial-table td:nth-child(1) {
+  min-width: 220px;
+  text-align: left;
+}
+
+/* 2. Ocultar o texto do cabeçalho "Ações" e alinhar o botão [x] */
+table.memorial-table th.col-actions,
+table.memorial-table th:last-child {
+  font-size: 0; /* Esconde o texto "AÇÕES" */
+}
+table.memorial-table th.col-actions::after,
+table.memorial-table th:last-child::after {
+  content: ""; /* Mantém limpo sem texto */
+}
+
+/* Botão de excluir com o 'x' sempre visível e discreto */
+.btn-delete-row, .memorial-delete-btn {
+  background: transparent;
+  border: none;
+  color: #ff5c5c;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.btn-delete-row:hover, .memorial-delete-btn:hover {
+  background: rgba(255, 92, 92, 0.1);
+}
+
+/* 3. Rodapé do Total Fixo na parte inferior da tela ao rolar o memorial */
+.memorial-total-bar, .project-total-footer {
+  position: sticky;
+  bottom: 0;
+  background: #181f23; /* Cor de fundo escura padrão do painel */
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 15px 25px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  z-index: 100;
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3);
+  margin-top: 20px;
+  border-radius: 8px;
+}

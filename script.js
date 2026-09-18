@@ -6009,13 +6009,10 @@ function applyViewMode(mode) {
 }
 
 // ==========================================================
-// EVENTOS GLOBAIS: IMAGEM (CLIQUE, ARRASTO, COLAR) E OBSERVAÇÃO
+// EVENTOS GLOBAIS: IMAGEM E OBSERVAÇÃO
 // ==========================================================
 
-// 1. ÚNICO OUVINTE DE CLIQUE PARA ABRIR IMAGEM OU OBSERVAÇÃO
 document.addEventListener("click", async (e) => {
-  
-  // A. Se clicou na caixinha de imagem (abre o seletor de arquivos)
   const imgWrapper = e.target.closest(".memorial-image-upload-wrapper");
   if (imgWrapper) {
     const fileInput = imgWrapper.querySelector(".memorial-file-input");
@@ -6023,21 +6020,17 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
-  // B. Se clicou no botão de observação (abre o modal)
   const btnObs = e.target.closest(".btn-open-obs-modal");
   if (btnObs) {
     const key = btnObs.dataset.key;
     const rowIndex = Number(btnObs.dataset.row);
 
-    if (!project.memorial || !project.memorial[key] || !project.memorial[key][rowIndex]) {
-      return;
-    }
+    if (!project.memorial || !project.memorial[key] || !project.memorial[key][rowIndex]) return;
 
     const currentRow = project.memorial[key][rowIndex];
     const fieldName = currentRow.obs !== undefined ? 'obs' : 'observacao';
     const currentText = currentRow[fieldName] || "";
 
-    // Remove modal anterior se houver para evitar duplicidade
     const oldModal = document.getElementById("memorial-obs-modal-bg");
     if (oldModal) oldModal.remove();
 
@@ -6074,53 +6067,39 @@ document.addEventListener("click", async (e) => {
   }
 });
 
-// 2. PROCESSAR O ARQUIVO SELECIONADO PELA PASTA (INPUT FILE)
 document.addEventListener("change", async (e) => {
   if (!e.target.classList.contains("memorial-file-input")) return;
   const fileInput = e.target;
   const wrapper = fileInput.closest(".memorial-image-upload-wrapper");
   if (!wrapper || !fileInput.files || fileInput.files.length === 0) return;
-
-  const file = fileInput.files[0];
-  await processAndSaveImage(wrapper, file);
+  await processAndSaveImage(wrapper, fileInput.files[0]);
 });
 
-// 3. ARRASTAR E SOLTAR IMAGEM (DRAG AND DROP)
 document.addEventListener("dragover", (e) => {
-  if (e.target.closest(".memorial-image-upload-wrapper")) {
-    e.preventDefault();
-  }
+  if (e.target.closest(".memorial-image-upload-wrapper")) e.preventDefault();
 });
 
 document.addEventListener("drop", async (e) => {
   const wrapper = e.target.closest(".memorial-image-upload-wrapper");
   if (!wrapper) return;
   e.preventDefault();
-
   const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith("image/")) {
-    await processAndSaveImage(wrapper, file);
-  }
+  if (file && file.type.startsWith("image/")) await processAndSaveImage(wrapper, file);
 });
 
-// 4. SUPORTE A COLAR IMAGEM (CTRL+V)
 document.addEventListener("paste", async (e) => {
   const wrapper = e.target.closest(".memorial-image-upload-wrapper");
   if (!wrapper) return;
-
   const items = e.clipboardData.items;
   for (let item of items) {
     if (item.type.indexOf("image") !== -1) {
       const file = item.getAsFile();
-      if (file) {
-        await processAndSaveImage(wrapper, file);
-      }
+      if (file) await processAndSaveImage(wrapper, file);
       break;
     }
   }
 });
 
-// 5. FUNÇÃO AUXILIAR PARA PROCESSAR E SALVAR A IMAGEM NO PROJETO
 async function processAndSaveImage(wrapper, file) {
   const reader = new FileReader();
   reader.onload = async function (event) {
@@ -6130,9 +6109,7 @@ async function processAndSaveImage(wrapper, file) {
 
     if (project.memorial && Array.isArray(project.memorial[key])) {
       const row = project.memorial[key][rowIndex];
-      if (row.foto !== undefined) row.foto = base64Image;
-      else if (row.imagem !== undefined) row.imagem = base64Image;
-      else row.foto = base64Image;
+      row.foto = base64Image;
 
       memorialMarkDirty(project);
       await memorialSave(project);

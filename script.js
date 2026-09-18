@@ -3432,11 +3432,8 @@ function memorialSectionHTML(project, key) {
                 >
                   <option value="">Selecionar</option>
                   <option value="A definir" ${value === "A definir" ? "selected" : ""}>A definir</option>
-                  <option value="Orçamento" ${value === "Orçamento" ? "selected" : ""}>Orçamento</option>
-                  <option value="Aprovado" ${value === "Aprovado" ? "selected" : ""}>Aprovado</option>
                   <option value="Comprado" ${value === "Comprado" ? "selected" : ""}>Comprado</option>
                   <option value="Entregue" ${value === "Entregue" ? "selected" : ""}>Entregue</option>
-                  <option value="Instalado" ${value === "Instalado" ? "selected" : ""}>Instalado</option>
                 </select>
               </td>
             `;

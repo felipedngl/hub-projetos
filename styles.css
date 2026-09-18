@@ -3757,6 +3757,7 @@ body.hub-is-locked .toolbar,
 body.hub-is-locked .header-actions button:not(#btnDesignerAccess),
 body.hub-is-locked .header-actions .btn-primary,
 body.hub-is-locked .grid,
-body.hub-is-locked .stats-bar {
+body.hub-is-locked .stats-bar, 
+body.hub-is-locked .btn-back {
   display: none !important;
 }

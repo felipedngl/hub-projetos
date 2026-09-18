@@ -1371,6 +1371,10 @@ function renderDashboard() {
 
   // Ativa a função de arrastar os cards pela tela
   initSortableGrid();
+
+  if (typeof applyViewMode === "function" && typeof currentViewMode !== "undefined") {
+    applyViewMode(currentViewMode);
+  }
 }
 	
 /* ---------------- Render: visão interna ---------------- */
@@ -5885,17 +5889,14 @@ function applyViewMode(mode) {
   const gridEl = $("#projectsGrid");
   if (!gridEl) return;
 
-  // Remove classes anteriores para limpar o visual
   gridEl.classList.remove("view-list", "view-carousel");
 
-  // Adiciona a classe correspondente ao botão clicado
   if (mode === "list") {
     gridEl.classList.add("view-list");
   } else if (mode === "carousel") {
     gridEl.classList.add("view-carousel");
   }
 
-  // Atualiza o botão ativo visualmente
   document.querySelectorAll(".view-btn").forEach(b => {
     if (b.dataset.view === mode) {
       b.classList.add("active");

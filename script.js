@@ -1294,7 +1294,7 @@ return `
 function renderDashboard() {
   // Trava de segurança: se 'projects' não for uma lista (array), transforma em lista vazia
   if (!Array.isArray(projects)) projects = [];
-
+  projects = getOrderedProjects(projects);
   // Esconde barra de busca e filtros se estiver no modo cliente
   const isClient = typeof isClientView !== "undefined" && isClientView;
   const controls = document.querySelector(".search-bar-container") || document.querySelector(".dashboard-controls") || document.querySelector(".filters-container") || $("#searchProjects")?.parentElement;
@@ -1357,7 +1357,7 @@ function renderDashboard() {
   });
 
   // Ativa a função de arrastar os cards pela tela
-  enableCardDragging();
+  initSortableGrid();
 }
 
 /* ---------------- Render: visão interna ---------------- */

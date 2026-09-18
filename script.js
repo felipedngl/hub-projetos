@@ -5066,6 +5066,9 @@ async function init() {
       showDashboard();
     }
   } else {
+    // ➔ GARANTE QUE O DASHBOARD SEMPRE ABRE E REMOVE TRAVAS AO RECARREGAR NA RAIZ:
+    document.body.classList.remove("hub-is-locked");
+    document.body.classList.remove("client-view");
     showDashboard();
   }
 }

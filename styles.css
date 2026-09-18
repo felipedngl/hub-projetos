@@ -3784,13 +3784,14 @@ body.hub-is-locked .btn-back {
 /* --- MODOS DE VISUALIZAÇÃO (GRADE, LISTA, CARROSSEL) --- */
 
 /* 1. MODO LISTA */
-.projects-grid.view-list {
+#projectsGrid.view-list {
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
+  grid-template-columns: none !important;
 }
 
-.projects-grid.view-list article.project-card {
+#projectsGrid.view-list article.project-card {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
@@ -3800,14 +3801,14 @@ body.hub-is-locked .btn-back {
   box-sizing: border-box !important;
 }
 
-.projects-grid.view-list article.project-card .card-cover {
+#projectsGrid.view-list article.project-card .card-cover {
   width: 80px !important;
   height: 60px !important;
   flex-shrink: 0;
   margin-bottom: 0 !important;
 }
 
-.projects-grid.view-list article.project-card .card-body {
+#projectsGrid.view-list article.project-card .card-body {
   flex: 1;
   display: flex;
   align-items: center;
@@ -3816,16 +3817,17 @@ body.hub-is-locked .btn-back {
 }
 
 /* 2. MODO CARROSSEL */
-.projects-grid.view-carousel {
+#projectsGrid.view-carousel {
   display: flex !important;
   flex-direction: row !important;
   overflow-x: auto !important;
   scroll-snap-type: x mandatory;
   gap: 20px !important;
   padding-bottom: 16px !important;
+  grid-template-columns: none !important;
 }
 
-.projects-grid.view-carousel article.project-card {
+#projectsGrid.view-carousel article.project-card {
   flex: 0 0 320px !important;
   scroll-snap-align: start;
 }

@@ -6006,5 +6006,80 @@ window.addEventListener("load", () => {
     }, 1000); // Tempo que a intro fica visível (1 segundo)
   }
 });
-	
+
+// ==========================================================
+  // SUPORTE A COLAR IMAGEM (CTRL+V) E MODAL DE OBSERVAÇÃO
+  // ==========================================================
+
+  // Evento de Colar Imagem
+  document.addEventListener("paste", async (e) => {
+    const wrapper = e.target.closest(".memorial-image-upload-wrapper");
+    if (!wrapper) return;
+
+    const items = e.clipboardData.items;
+    for (let item of items) {
+      if (item.type.indexOf("image") !== -1) {
+        const blob = item.getAsFile();
+        const reader = new FileReader();
+
+        reader.onload = async function (event) {
+          const base64Image = event.target.result;
+          const key = wrapper.dataset.key;
+          const rowIndex = Number(wrapper.dataset.row);
+
+          if (project.memorial && Array.isArray(project.memorial[key])) {
+            project.memorial[key][rowIndex].foto = base64Image;
+            memorialMarkDirty(project);
+            await memorialSave(project);
+            renderMemorial(project);
+          }
+        };
+
+        reader.readAsDataURL(blob);
+        break;
+      }
+    }
+  });
+
+  // Evento para abrir Modal de Observação
+  document.addEventListener("click", async (e) => {
+    const btnObs = e.target.closest(".btn-open-obs-modal");
+    if (!btnObs) return;
+
+    const key = btnObs.dataset.key;
+    const rowIndex = Number(btnObs.dataset.row);
+    const currentRow = project.memorial[key][rowIndex];
+    const fieldName = currentRow.obs !== undefined ? 'obs' : 'observacao';
+    const currentText = currentRow[fieldName] || "";
+
+    // Cria um modal simples na tela para edição da observação
+    const modalBg = document.createElement("div");
+    modalBg.className = "memorial-modal-overlay";
+    modalBg.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;";
+    
+    modalBg.innerHTML = `
+      <div style="background:#181f23;padding:25px;border-radius:10px;width:90%;max-width:500px;border:1px solid rgba(255,255,255,0.15);box-shadow:0 10px 25px rgba(0,0,0,0.5);">
+        <h3 style="color:#fff;margin-bottom:15px;font-size:1.1rem;">Editar Observação do Item</h3>
+        <textarea id="modal-obs-text" rows="5" style="width:100%;background:#111619;color:#fff;border:1px solid rgba(255,255,255,0.2);padding:10px;border-radius:6px;resize:vertical;font-family:inherit;">${currentText}</textarea>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:15px;">
+          <button type="button" id="modal-cancel" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:#ccc;padding:8px 15px;border-radius:6px;cursor:pointer;">Cancelar</button>
+          <button type="button" id="modal-save" style="background:#3b82f6;border:none;color:#fff;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:bold;">Salvar</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modalBg);
+    const textarea = document.getElementById("modal-obs-text");
+    textarea.focus();
+
+    document.getElementById("modal-cancel").onclick = () => modalBg.remove();
+    document.getElementById("modal-save").onclick = async () => {
+      currentRow[fieldName] = textarea.value;
+      memorialMarkDirty(project);
+      await memorialSave(project);
+      modalBg.remove();
+      renderMemorial(project);
+    };
+  });
+
 })();

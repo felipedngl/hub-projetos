@@ -6125,7 +6125,8 @@ async function processAndSaveImage(wrapper, file) {
     splashCheck.style.opacity = "0";
     setTimeout(() => {
       splashCheck.style.display = "none";
-    }, 400);
-  }
+	}, 800); // Tempo da transição de sumir (0.5 segundos)
+  }, 2000); // <--- MUDE ESTE NÚMERO: 1500 = 1.5 segundos (coloque 2000 se quiser 2 segundos, etc.)
+}
 
 })();

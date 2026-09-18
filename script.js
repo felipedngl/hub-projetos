@@ -5781,6 +5781,51 @@ function handleImageError(imgElement, linkId, photoIndex) {
   `;
 }
 
+// 1. Função que ativa a mágica do arrasto fluido e salva a ordem
+function initSortableGrid() {
+  const gridEl = document.getElementById("projectsGrid");
+  if (!gridEl) return;
+
+  if (gridEl.sortableInstance) {
+    gridEl.sortableInstance.destroy();
+  }
+
+  gridEl.sortableInstance = Sortable.create(gridEl, {
+    animation: 200,
+    ghostClass: "sortable-ghost",
+    onEnd: async function () {
+      const cardElements = gridEl.querySelectorAll(".project-card, [data-project-id], .grid > *");
+      const newOrderIds = Array.from(cardElements).map(card => card.dataset.projectId || card.id);
+
+      // Salva no navegador para persistir ao atualizar
+      localStorage.setItem("menche_projects_order", JSON.stringify(newOrderIds));
+
+      // Salva no Firebase (se houver conexão ativa)
+      try {
+        if (typeof db !== "undefined" && db) {
+          await db.collection("settings").doc("projectsOrder").set({ order: newOrderIds });
+        }
+      } catch (error) {
+        console.error("Erro ao salvar ordem no banco:", error);
+      }
+    }
+  });
+}
+
+// 2. Função que lê a ordem salva para os cards não voltarem pro lugar
+function getOrderedProjects(projectsList) {
+  const savedOrder = JSON.parse(localStorage.getItem("menche_projects_order"));
+  if (!savedOrder || !Array.isArray(savedOrder)) return projectsList;
+
+  return [...projectsList].sort((a, b) => {
+    const indexA = savedOrder.indexOf(a.id);
+    const indexB = savedOrder.indexOf(b.id);
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
+}
+
 // Animação de introdução da logo ao carregar a página
 window.addEventListener("load", () => {
   const splash = document.getElementById("introSplash");

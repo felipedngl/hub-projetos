@@ -6125,7 +6125,8 @@ async function processAndSaveImage(wrapper, file) {
     splashCheck.style.opacity = "0";
     setTimeout(() => {
       splashCheck.style.display = "none";
-    }, 1000);
+    }, 400);
+  }, 1500);
   }
 
 })();

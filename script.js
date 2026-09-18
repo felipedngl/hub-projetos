@@ -5814,16 +5814,26 @@ function initSortableGrid() {
 
 // 2. Função que lê a ordem salva para os cards não voltarem pro lugar
 function getOrderedProjects(projectsList) {
+  if (!Array.isArray(projectsList) || projectsList.length === 0) return [];
+  
   const savedOrder = JSON.parse(localStorage.getItem("menche_projects_order"));
   if (!savedOrder || !Array.isArray(savedOrder)) return projectsList;
 
-  return [...projectsList].sort((a, b) => {
-    const indexA = savedOrder.indexOf(a.id);
-    const indexB = savedOrder.indexOf(b.id);
-    if (indexA === -1) return 1;
-    if (indexB === -1) return -1;
-    return indexA - indexB;
+  // Organiza baseado na ordem salva, mas garante que nenhum projeto fique de fora
+  const ordered = [];
+  const remaining = [...projectsList];
+
+  // Adiciona primeiro os que estão na ordem salva
+  savedOrder.forEach(id => {
+    const foundIndex = remaining.findIndex(p => String(p.id) === String(id));
+    if (foundIndex !== -1) {
+      ordered.push(remaining[foundIndex]);
+      remaining.splice(foundIndex, 1); // Remove dos restantes
+    }
   });
+
+  // Se houver algum projeto novo que não estava na lista salva, adiciona no final
+  return [...ordered, ...remaining];
 }
 
 // Animação de introdução da logo ao carregar a página

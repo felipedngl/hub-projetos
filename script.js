@@ -4757,6 +4757,7 @@ function showToast(message, isError = false) {
 }
 
 function showHubLocked() {
+  document.body.classList.add("hub-is-locked");
   let lockedEl = $(".hub-locked");
   if (!lockedEl) {
     lockedEl = document.createElement("div");

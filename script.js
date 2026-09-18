@@ -6128,5 +6128,4 @@ async function processAndSaveImage(wrapper, file) {
     }, 1000);
   }
 
-
 })();

@@ -3897,18 +3897,18 @@ table.memorial-table th:last-child::after {
   background: rgba(255, 92, 92, 0.1);
 }
 
-/* 3. Rodapé do Total Fixo na parte inferior da tela ao rolar o memorial */
-.memorial-total-bar, .project-total-footer {
-  position: sticky;
-  bottom: 0;
-  background: #181f23; /* Cor de fundo escura padrão do painel */
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 15px 25px;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  z-index: 100;
-  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3);
-  margin-top: 20px;
-  border-radius: 8px;
+/* Barra de Total Fixa no Rodapé da Tela */
+.memorial-bottom-total {
+  position: sticky !important;
+  bottom: 0px !important;
+  background: #181f23 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+  padding: 18px 24px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  z-index: 999 !important;
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.5) !important;
+  margin-top: 30px !important;
+  border-radius: 8px !important;
 }

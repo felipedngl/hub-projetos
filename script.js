@@ -5780,5 +5780,18 @@ function handleImageError(imgElement, linkId, photoIndex) {
     </div>
   `;
 }
+
+// Animação de introdução da logo ao carregar a página
+window.addEventListener("load", () => {
+  const splash = document.getElementById("introSplash");
+  if (splash) {
+    setTimeout(() => {
+      splash.style.opacity = "0";
+      setTimeout(() => {
+        splash.style.display = "none";
+      }, 500); // Tempo da transição em milissegundos
+    }, 1000); // Tempo que a intro fica visível (1 segundo)
+  }
+});
 	
 })();

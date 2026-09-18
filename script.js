@@ -4805,6 +4805,7 @@ function showHubLocked() {
               if (typeof unlockDesigner === "function") unlockDesigner();
               modal.style.display = "none";
               lockedEl.remove();
+			  document.body.classList.remove("hub-is-locked");
               showDashboard();
               showToast("Acesso liberado com sucesso!");
               return;

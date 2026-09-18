@@ -65,6 +65,7 @@ const MEMORIAL_TABLES = {
     revestimentos: {
       title: "Revestimentos & Acabamentos",
       cols: [
+		{ key: "foto", label: "Foto" },
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },
         { key: "fornecedor", label: "Fornecedor" },
@@ -78,6 +79,7 @@ const MEMORIAL_TABLES = {
     metais: {
       title: "Metais & Louças",
       cols: [
+		{ key: "foto", label: "Foto" },
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },
         { key: "fornecedor", label: "Fornecedor" },
@@ -91,6 +93,7 @@ const MEMORIAL_TABLES = {
     iluminacao: {
       title: "Iluminação",
       cols: [
+		{ key: "foto", label: "Foto" },
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },
         { key: "fornecedor", label: "Fornecedor" },
@@ -104,6 +107,7 @@ const MEMORIAL_TABLES = {
     eletro: {
       title: "Eletrodomésticos",
       cols: [
+		{ key: "foto", label: "Foto" },
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },
         { key: "fornecedor", label: "Fornecedor" },
@@ -117,6 +121,7 @@ const MEMORIAL_TABLES = {
     moveis: {
       title: "Mobiliário",
       cols: [
+		{ key: "foto", label: "Foto" },
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },
         { key: "fornecedor", label: "Fornecedor" },
@@ -130,6 +135,7 @@ const MEMORIAL_TABLES = {
     marcenaria: {
       title: "Marcenaria",
       cols: [
+		{ key: "foto", label: "Foto" },
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },
         { key: "fornecedor", label: "Fornecedor" },
@@ -143,6 +149,7 @@ const MEMORIAL_TABLES = {
     decoracao: {
       title: "Decoração",
       cols: [
+		{ key: "foto", label: "Foto" },
         { key: "item", label: "Item" },
         { key: "ambiente", label: "Ambiente" },
         { key: "fornecedor", label: "Fornecedor" },

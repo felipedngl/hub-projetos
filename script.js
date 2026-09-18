@@ -3489,6 +3489,60 @@ function memorialSectionHTML(project, key) {
             `;
           }
 
+// --- CAMPO DE AMBIENTE COM A SUA LISTA COMPLETA EM ORDEM ALFABÉTICA ---
+          if (col.key === "ambiente") {
+            return `
+              <td>
+                <input
+                  type="text"
+                  class="memorial-input"
+                  data-key="${escapeHTML(key)}"
+                  data-row="${rowIndex}"
+                  data-field="${escapeHTML(col.key)}"
+                  value="${escapeHTML(value)}"
+                  list="sugestoes-ambientes-${escapeHTML(key)}"
+                  placeholder="Ex: Sala de Estar"
+                >
+                <datalist id="sugestoes-ambientes-${escapeHTML(key)}">
+                  <option value="Adega">
+                  <option value="Área de Serviço">
+                  <option value="Banheiro 1">
+                  <option value="Banheiro 2">
+                  <option value="Banheiro de Serviço">
+                  <option value="Banheiro Master">
+                  <option value="Banheiro Social">
+                  <option value="Berçário">
+                  <option value="Brinquedoteca">
+                  <option value="Closet">
+                  <option value="Cozinha">
+                  <option value="Cozinha Gourmet">
+                  <option value="Depósito">
+                  <option value="Despensa">
+                  <option value="Escritório">
+                  <option value="Garagem">
+                  <option value="Hall de entrada">
+                  <option value="Home Theater">
+                  <option value="Lavabo">
+                  <option value="Lavanderia">
+                  <option value="Quarto 1">
+                  <option value="Quarto 2">
+                  <option value="Quarto 3">
+                  <option value="Quarto de Hóspedes">
+                  <option value="Sala de Estar">
+                  <option value="Sala de Jantar">
+                  <option value="Sala de Música">
+                  <option value="Sala de TV">
+                  <option value="Suíte 1">
+                  <option value="Suíte 2">
+                  <option value="Suíte 3">
+                  <option value="Suíte Master">
+                  <option value="Terraço Gourmet">
+                  <option value="Varanda">
+                </datalist>
+              </td>
+            `;
+          }
+
           return `
             <td>
               <input

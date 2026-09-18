@@ -6048,29 +6048,37 @@ window.addEventListener("load", () => {
     }
   });
 
-  // Evento para abrir Modal de Observação
+// Evento seguro para abrir o Modal de Observação
   document.addEventListener("click", async (e) => {
     const btnObs = e.target.closest(".btn-open-obs-modal");
     if (!btnObs) return;
 
     const key = btnObs.dataset.key;
     const rowIndex = Number(btnObs.dataset.row);
+
+    if (!project.memorial || !project.memorial[key] || !project.memorial[key][rowIndex]) {
+      return;
+    }
+
     const currentRow = project.memorial[key][rowIndex];
     const fieldName = currentRow.obs !== undefined ? 'obs' : 'observacao';
     const currentText = currentRow[fieldName] || "";
 
-    // Cria um modal simples na tela para edição da observação
+    // Remove modal anterior se houver
+    const oldModal = document.getElementById("memorial-obs-modal-bg");
+    if (oldModal) oldModal.remove();
+
     const modalBg = document.createElement("div");
-    modalBg.className = "memorial-modal-overlay";
-    modalBg.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;";
+    modalBg.id = "memorial-obs-modal-bg";
+    modalBg.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:99999;";
     
     modalBg.innerHTML = `
-      <div style="background:#181f23;padding:25px;border-radius:10px;width:90%;max-width:500px;border:1px solid rgba(255,255,255,0.15);box-shadow:0 10px 25px rgba(0,0,0,0.5);">
-        <h3 style="color:#fff;margin-bottom:15px;font-size:1.1rem;">Editar Observação do Item</h3>
-        <textarea id="modal-obs-text" rows="5" style="width:100%;background:#111619;color:#fff;border:1px solid rgba(255,255,255,0.2);padding:10px;border-radius:6px;resize:vertical;font-family:inherit;">${currentText}</textarea>
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:15px;">
-          <button type="button" id="modal-cancel" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:#ccc;padding:8px 15px;border-radius:6px;cursor:pointer;">Cancelar</button>
-          <button type="button" id="modal-save" style="background:#3b82f6;border:none;color:#fff;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:bold;">Salvar</button>
+      <div style="background:#181f23;padding:25px;border-radius:12px;width:90%;max-width:500px;border:1px solid rgba(255,255,255,0.2);box-shadow:0 15px 30px rgba(0,0,0,0.6);">
+        <h3 style="color:#fff;margin-bottom:15px;font-size:1.1rem;font-weight:600;">Editar Observação do Item</h3>
+        <textarea id="modal-obs-text" rows="6" style="width:100%;background:#111619;color:#fff;border:1px solid rgba(255,255,255,0.2);padding:12px;border-radius:8px;resize:vertical;font-family:inherit;font-size:0.95rem;outline:none;">${currentText}</textarea>
+        <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:18px;">
+          <button type="button" id="modal-cancel" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:#ccc;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:0.9rem;">Cancelar</button>
+          <button type="button" id="modal-save" style="background:#3b82f6;border:none;color:#fff;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.9rem;">Salvar</button>
         </div>
       </div>
     `;
@@ -6080,6 +6088,8 @@ window.addEventListener("load", () => {
     textarea.focus();
 
     document.getElementById("modal-cancel").onclick = () => modalBg.remove();
+    modalBg.onclick = (ev) => { if (ev.target === modalBg) modalBg.remove(); };
+
     document.getElementById("modal-save").onclick = async () => {
       currentRow[fieldName] = textarea.value;
       memorialMarkDirty(project);

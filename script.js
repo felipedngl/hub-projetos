@@ -3421,6 +3421,7 @@ function memorialSectionHTML(project, key) {
               ? row[col.key]
               : "";
 
+          // 1. STATUS
           if (col.key === "status") {
             return `
               <td>
@@ -3439,6 +3440,7 @@ function memorialSectionHTML(project, key) {
             `;
           }
 
+          // 2. LINK
           if (col.key === "link") {
             return `
               <td>
@@ -3455,6 +3457,7 @@ function memorialSectionHTML(project, key) {
             `;
           }
 
+          // 3. QUANTIDADE
           if (col.key === "qty") {
             return `
               <td>
@@ -3472,6 +3475,7 @@ function memorialSectionHTML(project, key) {
             `;
           }
 
+          // 4. PREÇO
           if (col.key === "preco") {
             return `
               <td>
@@ -3489,7 +3493,7 @@ function memorialSectionHTML(project, key) {
             `;
           }
 
-// --- CAMPO DE AMBIENTE COM A SUA LISTA COMPLETA EM ORDEM ALFABÉTICA ---
+          // 5. AMBIENTE (Com Autocompletar Alfabético)
           if (col.key === "ambiente") {
             return `
               <td>
@@ -3539,6 +3543,39 @@ function memorialSectionHTML(project, key) {
                   <option value="Terraço Gourmet">
                   <option value="Varanda">
                 </datalist>
+              </td>
+            `;
+          }
+
+          // 6. FOTO / IMAGEM (Suporta Ctrl+V para colar imagem direto do site)
+          if (col.key === "foto" || col.key === "imagem") {
+            return `
+              <td>
+                <div class="memorial-image-upload-wrapper" data-key="${escapeHTML(key)}" data-row="${rowIndex}" tabindex="0" title="Clique e aperte Ctrl+V para colar a imagem do produto">
+                  ${
+                    value
+                      ? `<img src="${value}" alt="Item" class="memorial-thumb" />`
+                      : `<span class="memorial-img-placeholder">Copiar/Colar Imagem</span>`
+                  }
+                </div>
+              </td>
+            `;
+          }
+
+          // 7. OBSERVAÇÃO (Abre Janela / Modal ao clicar)
+          if (col.key === "obs" || col.key === "observacao") {
+            const hasText = value && value.trim().length > 0;
+            return `
+              <td>
+                <button
+                  type="button"
+                  class="btn-open-obs-modal ${hasText ? 'has-obs' : ''}"
+                  data-key="${escapeHTML(key)}"
+                  data-row="${rowIndex}"
+                  title="Clique para ver ou editar a observação"
+                >
+                  ${hasText ? 'Ver / Editar Obs.' : '+ Adicionar Obs.'}
+                </button>
               </td>
             `;
           }

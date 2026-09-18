@@ -3752,17 +3752,11 @@ body.theme-light .brand-mark .logo-light {
   color: #d8b85c;
 }
 
-.hidden-locked {
-  display: none !important;
-}
-
-/* Enquanto o hub estiver bloqueado, esconde a barra de busca, filtros e botões superiores */
-body.hub-is-locked .memorial-filters,
-body.hub-is-locked .filter-btn,
-body.hub-is-locked #searchProjects,
-body.hub-is-locked input[placeholder*="Buscar"],
-body.hub-is-locked .memorial-controls,
-body.hub-is-locked .sun-editor, /* ou qualquer container de filtros da sua home */
-body.hub-is-locked .dashboard-filters {
+/* Esconde a barra de ferramentas (busca e filtros) e os botões do topo enquanto bloqueado */
+body.hub-is-locked .toolbar,
+body.hub-is-locked .header-actions button:not(#btnDesignerAccess),
+body.hub-is-locked .header-actions .btn-primary,
+body.hub-is-locked .grid,
+body.hub-is-locked .stats-bar {
   display: none !important;
 }

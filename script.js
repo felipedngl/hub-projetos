@@ -6120,13 +6120,13 @@ async function processAndSaveImage(wrapper, file) {
 }
 
 // Força o splash (logo pulsando) a sumir assim que o script carregar
-  const splashCheck = document.getElementById("introSplash");
-  if (splashCheck) {
-    splashCheck.style.opacity = "0";
-    setTimeout(() => {
-      splashCheck.style.display = "none";
-    }, 400);
-  }, 1500);
+	  const splashCheck = document.getElementById("introSplash");
+	  if (splashCheck) {
+	    splashCheck.style.opacity = "0";
+	    setTimeout(() => {
+	      splashCheck.style.display = "none";
+	    }, 400);
+	  }, 1500);
   }
 
 })();

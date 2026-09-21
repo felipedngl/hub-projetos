@@ -6455,4 +6455,20 @@ async function saveImageToProject(wrapper, imageValue) {
 // FIM — IMAGENS DO MEMORIAL
 // ==========================================================
 
+// ==========================================================
+// CONTROLE DA TELA DE INTRODUÇÃO (LOGO PULSANTO)
+// ==========================================================
+
+	if (document.getElementById("introSplash")) {
+  setTimeout(() => {
+    const splash = document.getElementById("introSplash");
+    if (splash) {
+      splash.style.opacity = "0";
+      setTimeout(() => {
+        splash.style.display = "none";
+      }, 500);
+    }
+  }, 1200);
+}
+	
 })();

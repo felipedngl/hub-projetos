@@ -3554,23 +3554,39 @@ function memorialSectionHTML(project, key) {
             `;
           }
 
-          // 6. FOTO / IMAGEM (Suporta Ctrl+V para colar imagem direto do site)
+// 6. FOTO / IMAGEM (Suporta Ctrl+V para colar imagem direto do site)
 if (col.key === "foto" || col.key === "imagem") {
             return `
               <td>
-                <div 
-                  class="memorial-image-upload-wrapper" 
-                  data-key="${escapeHTML(key)}" 
-                  data-row="${rowIndex}" 
-                  tabindex="0"
-                  title="Clique para enviar arquivo, arraste uma imagem, ou clique na linha e aperte Ctrl+V"
-                >
-                  ${
-                    value
-                      ? `<img src="${value}" alt="Item" class="memorial-thumb" />`
-                      : `<span class="memorial-img-placeholder">Cole (Ctrl+V) ou Clique</span>`
-                  }
-                  <input type="file" class="memorial-file-input" accept="image/*" style="display:none;" />
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <!-- Área para colar (Ctrl+V) ou Arrastar a imagem -->
+                  <div 
+                    class="memorial-image-upload-wrapper" 
+                    data-key="${escapeHTML(key)}" 
+                    data-row="${rowIndex}" 
+                    tabindex="0"
+                    title="Clique aqui e aperte Ctrl+V para colar uma imagem, ou arraste uma imagem para cá"
+                    style="width: 60px; height: 60px; border: 2px dashed rgba(255,255,255,0.25); border-radius: 6px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); overflow: hidden; cursor: pointer;"
+                  >
+                    ${
+                      value
+                        ? `<img src="${value}" alt="Item" style="width: 100%; height: 100%; object-fit: cover;" />`
+                        : `<span style="font-size: 9px; text-align: center; color: #aaa; padding: 2px; line-height: 1.1;">Cole Ctrl+V</span>`
+                    }
+                  </div>
+
+                  <!-- Botão separado exclusivo para procurar no computador -->
+                  <button 
+                    type="button" 
+                    class="btn-upload-pc" 
+                    data-key="${escapeHTML(key)}" 
+                    data-row="${rowIndex}"
+                    title="Enviar imagem do computador"
+                    style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #ccc; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 11px;"
+                  >
+                    📁
+                  </button>
+                  <input type="file" class="memorial-file-input-pc" accept="image/*" style="display:none;" />
                 </div>
               </td>
             `;

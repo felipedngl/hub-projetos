@@ -3565,8 +3565,9 @@ if (col.key === "foto" || col.key === "imagem") {
                     data-key="${escapeHTML(key)}" 
                     data-row="${rowIndex}" 
                     tabindex="0"
-                    title="Clique aqui e aperte Ctrl+V para colar uma imagem, ou arraste uma imagem para cá"
-                    style="width: 60px; height: 60px; border: 2px dashed rgba(255,255,255,0.25); border-radius: 6px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); overflow: hidden; cursor: pointer;"
+                    onclick="this.focus()"
+                    title="Clique uma vez no quadradinho e aperte Ctrl+V para colar, ou arraste uma imagem"
+                    style="width: 60px; height: 60px; border: 2px dashed rgba(255,255,255,0.25); border-radius: 6px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); overflow: hidden; cursor: pointer; outline: none;"
                   >
                     ${
                       value

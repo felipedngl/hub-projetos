@@ -6050,85 +6050,27 @@ document.addEventListener("change", async (e) => {
   await processAndSaveImage(wrapper, fileInput.files[0]);
 });
 
-// 3. Suporte a Colar (Ctrl+V) focando ou clicando no quadradinho da esquerda
-// ==========================================================
-// SUPORTE DEFINITIVO: COLAR (CTRL+V) E ARRASTAR (DRAG & DROP)
-// ==========================================================
-
-document.addEventListener("paste", async (e) => {
-  const wrapper = e.target.closest(".memorial-image-upload-wrapper");
-  if (!wrapper) return;
-
-  const items = (e.clipboardData || window.clipboardData)?.items;
-  if (!items) return;
-
-  for (let i = 0; i < items.length; i++) {
-    if (items[i].type.indexOf("image") !== -1) {
-      const file = items[i].getAsFile();
-      if (file) {
-        e.preventDefault();
-        await processAndSaveImage(wrapper, file);
-        break;
-      }
-    }
-  }
-});
-
-document.addEventListener("dragover", (e) => {
-  if (e.target.closest(".memorial-image-upload-wrapper")) {
-    e.preventDefault();
-  }
-});
-
-document.addEventListener("drop", async (e) => {
-  const wrapper = e.target.closest(".memorial-image-upload-wrapper");
-  if (!wrapper) return;
-  e.preventDefault();
-
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith("image/")) {
-    await processAndSaveImage(wrapper, file);
-  }
-});
-
-async function processAndSaveImage(wrapper, file) {
-  const reader = new FileReader();
-  reader.onload = async function (event) {
-    const base64Image = event.target.result;
-    const key = wrapper.dataset.key;
-    const rowIndex = Number(wrapper.dataset.row);
-
-    if (project.memorial && Array.isArray(project.memorial[key])) {
-      const row = project.memorial[key][rowIndex];
-      row.foto = base64Image;
-
-      memorialMarkDirty(project);
-      await memorialSave(project);
-      renderMemorial(project);
-    }
-  };
-  reader.readAsDataURL(file);
-}
-
 // ==========================================================
 // 1. CONTROLE DA TELA DE INTRODUÇÃO (LOGO PULSANTO)
 // ==========================================================
-const splashEl = document.getElementById("introSplash");
-if (splashEl) {
+if (document.getElementById("introSplash")) {
   setTimeout(() => {
-    splashEl.style.opacity = "0";
-    setTimeout(() => {
-      splashEl.style.display = "none";
-    }, 500);
+    const splash = document.getElementById("introSplash");
+    if (splash) {
+      splash.style.opacity = "0";
+      setTimeout(() => {
+        splash.style.display = "none";
+      }, 500);
+    }
   }, 1200);
 }
 
 // ==========================================================
-// 2. GERENCIAMENTO DE IMAGENS (CLIQUE, PC, CTRL+V E DRAG)
+// 2. GERENCIAMENTO DE IMAGENS (CLIQUE, PC, CTRL+V E LINK)
 // ==========================================================
 let activeImageWrapper = null;
 
-// Memoriza qual caixinha foi clicada por último e cuida do botão do PC
+// Memoriza qual caixinha foi clicada e gerencia o botão do PC (📁)
 document.addEventListener("click", (e) => {
   const wrapper = e.target.closest(".memorial-image-upload-wrapper");
   if (wrapper) {
@@ -6142,32 +6084,47 @@ document.addEventListener("click", (e) => {
   if (fileInput) fileInput.click();
 });
 
-// Processa o arquivo selecionado pelo computador
+// Processa o arquivo escolhido pelo computador
 document.addEventListener("change", async (e) => {
   if (!e.target.classList.contains("memorial-file-input-pc")) return;
   const fileInput = e.target;
   const td = fileInput.closest("td");
   const wrapper = td ? td.querySelector(".memorial-image-upload-wrapper") : null;
   if (!wrapper || !fileInput.files || fileInput.files.length === 0) return;
-  await processAndSaveImage(wrapper, fileInput.files[0]);
+  await processAndSaveImageFile(wrapper, fileInput.files[0]);
 });
 
-// Suporte a colar (Ctrl+V) baseado na última caixinha que você clicou
+// Suporte a colar (Ctrl+V) - Funciona tanto para arquivos copiados quanto para links (URLs) de imagem
 document.addEventListener("paste", async (e) => {
   const wrapper = e.target.closest(".memorial-image-upload-wrapper") || activeImageWrapper;
   if (!wrapper) return;
 
-  const items = (e.clipboardData || window.clipboardData)?.items;
-  if (!items) return;
+  const clipboardItems = e.clipboardData || window.clipboardData;
+  if (!clipboardItems) return;
 
-  for (let i = 0; i < items.length; i++) {
-    if (items[i].type.indexOf("image") !== -1) {
-      const file = items[i].getAsFile();
-      if (file) {
-        e.preventDefault();
-        await processAndSaveImage(wrapper, file);
-        break;
+  // Tenta colar como arquivo de imagem copiado
+  let handled = false;
+  const items = clipboardItems.items;
+  if (items) {
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          e.preventDefault();
+          handled = true;
+          await processAndSaveImageFile(wrapper, file);
+          break;
+        }
       }
+    }
+  }
+
+  // Se não for arquivo, tenta colar como LINK da imagem ("Copiar endereço da imagem")
+  if (!handled) {
+    const textData = clipboardItems.getData("text");
+    if (textData && (textData.startsWith("http://") || textData.startsWith("https://") || textData.startsWith("data:image"))) {
+      e.preventDefault();
+      await processAndSaveImageURL(wrapper, textData.trim());
     }
   }
 });
@@ -6186,42 +6143,35 @@ document.addEventListener("drop", async (e) => {
 
   const file = e.dataTransfer.files[0];
   if (file && file.type.startsWith("image/")) {
-    await processAndSaveImage(wrapper, file);
+    await processAndSaveImageFile(wrapper, file);
   }
 });
 
-async function processAndSaveImage(wrapper, file) {
+// Funções para salvar no projeto
+async function processAndSaveImageFile(wrapper, file) {
   const reader = new FileReader();
   reader.onload = async function (event) {
-    const base64Image = event.target.result;
-    const key = wrapper.dataset.key;
-    const rowIndex = Number(wrapper.dataset.row);
-
-    if (project.memorial && Array.isArray(project.memorial[key])) {
-      const row = project.memorial[key][rowIndex];
-      row.foto = base64Image;
-
-      memorialMarkDirty(project);
-      await memorialSave(project);
-      renderMemorial(project);
-    }
+    await saveImageToProject(wrapper, event.target.result);
   };
   reader.readAsDataURL(file);
 }
 
-  // ==========================================================
-  // CONTROLE DA TELA DE INTRODUÇÃO (LOGO PULSANTO)
-  // ==========================================================
-  if (document.getElementById("introSplash")) {
-    setTimeout(() => {
-      const splash = document.getElementById("introSplash");
-      if (splash) {
-        splash.style.opacity = "0";
-        setTimeout(() => {
-          splash.style.display = "none";
-        }, 500);
-      }
-    }, 1200);
+async function processAndSaveImageURL(wrapper, url) {
+  await saveImageToProject(wrapper, url);
+}
+
+async function saveImageToProject(wrapper, imageValue) {
+  const key = wrapper.dataset.key;
+  const rowIndex = Number(wrapper.dataset.row);
+
+  if (project.memorial && Array.isArray(project.memorial[key])) {
+    const row = project.memorial[key][rowIndex];
+    row.foto = imageValue;
+
+    memorialMarkDirty(project);
+    await memorialSave(project);
+    renderMemorial(project);
   }
+}
 
 })();

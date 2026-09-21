@@ -4080,25 +4080,27 @@ function renderMemorial(project) {
           }
         </div>
 
-        <div
-          id="memorialDropzone"
-          class="dropzone"
-        >
-          <input
-            id="memorialFileInput"
-            type="file"
-            multiple
-            hidden
-          >
+<div
+  id="memorialDropzone"
+  class="dropzone"
+  data-dropzone
+>
+  <input
+    id="memorialFileInput"
+    type="file"
+    multiple
+    hidden
+    data-file-input
+  >
 
-          <div class="memorial-dropzone-content">
-            <strong>Adicionar arquivos</strong>
+  <div class="memorial-dropzone-content">
+    <strong>Adicionar arquivos</strong>
 
-            <span>
-              Arraste os arquivos para cá ou clique para selecionar.
-            </span>
-          </div>
-        </div>
+    <span>
+      Arraste os arquivos para cá ou clique para selecionar.
+    </span>
+  </div>
+</div>
 
       </div>
 

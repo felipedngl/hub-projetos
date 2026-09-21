@@ -6025,23 +6025,34 @@ function applyViewMode(mode) {
 }
 
 // ==========================================================
-// EVENTOS GLOBAIS: CLIQUE (ABRE PASTA) E COLAR (CTRL+V NA LINHA)
+// EVENTOS GLOBAIS: COLAR (CTRL+V), ARRASTAR E BOTÃO DO PC
 // ==========================================================
 
-// 1. O clique na caixinha continua abrindo a pasta do computador
+// 1. Clicar no botão de pasta abre o explorador de arquivos do computador
 document.addEventListener("click", async (e) => {
-  const imgWrapper = e.target.closest(".memorial-image-upload-wrapper");
-  if (!imgWrapper) return;
+  const btnPc = e.target.closest(".btn-upload-pc");
+  if (!btnPc) return;
   
-  // Se clicou diretamente no input ou na imagem já existente, deixa o comportamento padrão
-  const fileInput = imgWrapper.querySelector(".memorial-file-input");
+  // Acha o input de arquivo escondido logo ao lado do botão
+  const td = btnPc.closest("td");
+  const fileInput = td ? td.querySelector(".memorial-file-input-pc") : null;
   if (fileInput) fileInput.click();
 });
 
-// 2. SUPORTE A COLAR (CTRL+V) EM QUALQUER LUGAR DA LINHA OU DA CAIXINHA
+// 2. Processar arquivo escolhido pelo computador
+document.addEventListener("change", async (e) => {
+  if (!e.target.classList.contains("memorial-file-input-pc")) return;
+  const fileInput = e.target;
+  const td = fileInput.closest("td");
+  const wrapper = td ? td.querySelector(".memorial-image-upload-wrapper") : null;
+  
+  if (!wrapper || !fileInput.files || fileInput.files.length === 0) return;
+  await processAndSaveImage(wrapper, fileInput.files[0]);
+});
+
+// 3. Suporte a Colar (Ctrl+V) focando ou clicando no quadradinho da esquerda
 document.addEventListener("paste", async (e) => {
-  // Procura se o foco está em uma caixinha de imagem ou dentro da linha da tabela
-  const wrapper = e.target.closest(".memorial-image-upload-wrapper") || e.target.closest("tr")?.querySelector(".memorial-image-upload-wrapper");
+  const wrapper = e.target.closest(".memorial-image-upload-wrapper");
   if (!wrapper) return;
 
   const clipboardItems = e.clipboardData || window.clipboardData;
@@ -6060,7 +6071,7 @@ document.addEventListener("paste", async (e) => {
   }
 });
 
-// 3. ARRASTAR E SOLTAR (DRAG AND DROP)
+// 4. Arraste e Solte (Drag and Drop) no quadradinho
 document.addEventListener("dragover", (e) => {
   if (e.target.closest(".memorial-image-upload-wrapper")) {
     e.preventDefault();
@@ -6078,7 +6089,7 @@ document.addEventListener("drop", async (e) => {
   }
 });
 
-// 4. FUNÇÃO AUXILIAR PARA PROCESSAR E SALVAR A IMAGEM
+// 5. Função padrão para salvar a imagem no projeto
 async function processAndSaveImage(wrapper, file) {
   const reader = new FileReader();
   reader.onload = async function (event) {

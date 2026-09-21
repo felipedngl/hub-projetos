@@ -3558,19 +3558,35 @@ function memorialSectionHTML(project, key) {
 if (col.key === "foto" || col.key === "imagem") {
             return `
               <td>
-                <div 
-                  class="memorial-image-upload-wrapper" 
-                  data-key="${escapeHTML(key)}" 
-                  data-row="${rowIndex}" 
-                  contenteditable="true"
-                  title="Clique na caixinha, cole (Ctrl+V) ou arraste uma imagem"
-                  style="width: 65px; height: 65px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 6px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); overflow: hidden; cursor: pointer; outline: none; position: relative;"
-                >
-                  ${
-                    value
-                      ? `<img src="${value}" alt="Item" style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;" />`
-                      : `<span style="font-size: 9px; text-align: center; color: #aaa; padding: 2px; line-height: 1.1; pointer-events: none;">Cole Ctrl+V</span>`
-                  }
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <!-- Área para colar (Ctrl+V) ou Arrastar -->
+                  <div 
+                    class="memorial-image-upload-wrapper" 
+                    data-key="${escapeHTML(key)}" 
+                    data-row="${rowIndex}" 
+                    tabindex="0"
+                    title="Clique no quadradinho e aperte Ctrl+V para colar, ou arraste uma imagem"
+                    style="width: 60px; height: 60px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 6px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); overflow: hidden; cursor: pointer; outline: none;"
+                  >
+                    ${
+                      value
+                        ? `<img src="${value}" alt="Item" style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;" />`
+                        : `<span style="font-size: 9px; text-align: center; color: #aaa; padding: 2px; line-height: 1.1; pointer-events: none;">Cole Ctrl+V</span>`
+                    }
+                  </div>
+
+                  <!-- Botão separado para procurar no computador -->
+                  <button 
+                    type="button" 
+                    class="btn-upload-pc" 
+                    data-key="${escapeHTML(key)}" 
+                    data-row="${rowIndex}"
+                    title="Enviar imagem do computador"
+                    style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #ccc; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 11px;"
+                  >
+                    📁
+                  </button>
+                  <input type="file" class="memorial-file-input-pc" accept="image/*" style="display:none;" />
                 </div>
               </td>
             `;
@@ -6106,5 +6122,104 @@ async function processAndSaveImage(wrapper, file) {
       }, 500); // Tempo da transição suave para sumir
     }, 1200); // Tempo que a logo fica visível antes de abrir o painel
   }
+
+// ==========================================================
+// 1. CONTROLE DA TELA DE INTRODUÇÃO (LOGO PULSANTO)
+// ==========================================================
+const splashEl = document.getElementById("introSplash");
+if (splashEl) {
+  setTimeout(() => {
+    splashEl.style.opacity = "0";
+    setTimeout(() => {
+      splashEl.style.display = "none";
+    }, 500);
+  }, 1200);
+}
+
+// ==========================================================
+// 2. GERENCIAMENTO DE IMAGENS (CLIQUE, PC, CTRL+V E DRAG)
+// ==========================================================
+let activeImageWrapper = null;
+
+// Memoriza qual caixinha foi clicada por último e cuida do botão do PC
+document.addEventListener("click", (e) => {
+  const wrapper = e.target.closest(".memorial-image-upload-wrapper");
+  if (wrapper) {
+    activeImageWrapper = wrapper;
+  }
+
+  const btnPc = e.target.closest(".btn-upload-pc");
+  if (!btnPc) return;
+  const td = btnPc.closest("td");
+  const fileInput = td ? td.querySelector(".memorial-file-input-pc") : null;
+  if (fileInput) fileInput.click();
+});
+
+// Processa o arquivo selecionado pelo computador
+document.addEventListener("change", async (e) => {
+  if (!e.target.classList.contains("memorial-file-input-pc")) return;
+  const fileInput = e.target;
+  const td = fileInput.closest("td");
+  const wrapper = td ? td.querySelector(".memorial-image-upload-wrapper") : null;
+  if (!wrapper || !fileInput.files || fileInput.files.length === 0) return;
+  await processAndSaveImage(wrapper, fileInput.files[0]);
+});
+
+// Suporte a colar (Ctrl+V) baseado na última caixinha que você clicou
+document.addEventListener("paste", async (e) => {
+  const wrapper = e.target.closest(".memorial-image-upload-wrapper") || activeImageWrapper;
+  if (!wrapper) return;
+
+  const items = (e.clipboardData || window.clipboardData)?.items;
+  if (!items) return;
+
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf("image") !== -1) {
+      const file = items[i].getAsFile();
+      if (file) {
+        e.preventDefault();
+        await processAndSaveImage(wrapper, file);
+        break;
+      }
+    }
+  }
+});
+
+// Arrastar e soltar (Drag & Drop)
+document.addEventListener("dragover", (e) => {
+  if (e.target.closest(".memorial-image-upload-wrapper")) {
+    e.preventDefault();
+  }
+});
+
+document.addEventListener("drop", async (e) => {
+  const wrapper = e.target.closest(".memorial-image-upload-wrapper");
+  if (!wrapper) return;
+  e.preventDefault();
+
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith("image/")) {
+    await processAndSaveImage(wrapper, file);
+  }
+});
+
+async function processAndSaveImage(wrapper, file) {
+  const reader = new FileReader();
+  reader.onload = async function (event) {
+    const base64Image = event.target.result;
+    const key = wrapper.dataset.key;
+    const rowIndex = Number(wrapper.dataset.row);
+
+    if (project.memorial && Array.isArray(project.memorial[key])) {
+      const row = project.memorial[key][rowIndex];
+      row.foto = base64Image;
+
+      memorialMarkDirty(project);
+      await memorialSave(project);
+      renderMemorial(project);
+    }
+  };
+  reader.readAsDataURL(file);
+}
 	
 })();

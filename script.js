@@ -3562,13 +3562,14 @@ if (col.key === "foto" || col.key === "imagem") {
                   class="memorial-image-upload-wrapper" 
                   data-key="${escapeHTML(key)}" 
                   data-row="${rowIndex}" 
-                  tabindex="0" 
-                  title="Clique para enviar arquivo, arraste uma imagem ou aperte Ctrl+V"
+                  tabindex="0"
+                  style="outline: none;"
+                  title="Clique para enviar, arraste um arquivo ou clique e aperte Ctrl+V"
                 >
                   ${
                     value
                       ? `<img src="${value}" alt="Item" class="memorial-thumb" />`
-                      : `<span class="memorial-img-placeholder">Clique, Arraste ou Ctrl+V</span>`
+                      : `<span class="memorial-img-placeholder">Cole (Ctrl+V) ou Clique</span>`
                   }
                   <input type="file" class="memorial-file-input" accept="image/*" style="display:none;" />
                 </div>
@@ -6087,15 +6088,23 @@ document.addEventListener("drop", async (e) => {
   if (file && file.type.startsWith("image/")) await processAndSaveImage(wrapper, file);
 });
 
+// 4. SUPORTE A COLAR IMAGEM (CTRL+V) REFORÇADO
 document.addEventListener("paste", async (e) => {
   const wrapper = e.target.closest(".memorial-image-upload-wrapper");
   if (!wrapper) return;
-  const items = e.clipboardData.items;
-  for (let item of items) {
-    if (item.type.indexOf("image") !== -1) {
-      const file = item.getAsFile();
-      if (file) await processAndSaveImage(wrapper, file);
-      break;
+
+  const clipboardItems = e.clipboardData || window.clipboardData;
+  if (!clipboardItems) return;
+
+  const items = clipboardItems.items;
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf("image") !== -1) {
+      const file = items[i].getAsFile();
+      if (file) {
+        e.preventDefault();
+        await processAndSaveImage(wrapper, file);
+        break;
+      }
     }
   }
 });

@@ -1145,30 +1145,83 @@ async function importFiles(files, arr) {
       </div>`;
   }
 
-  function attachDropzone(container, arr, rerender) {
-const dz = container?.matches?.("[data-dropzone]")
-  ? container
-  : $("[data-dropzone]", container);
+function attachDropzone(container, arr, rerender) {
+  if (!container) return;
 
-if (!dz) return;
+  let dz = null;
 
-const input = $("[data-file-input]", dz);
-if (!input) return;
-    input.addEventListener("change", async () => {
-      if (input.files.length && (await importFiles(Array.from(input.files), arr))) rerender();
-      input.value = "";
-    });
-    dz.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      dz.classList.add("dragover");
-    });
-    dz.addEventListener("dragleave", () => dz.classList.remove("dragover"));
-    dz.addEventListener("drop", async (e) => {
-      e.preventDefault();
-      dz.classList.remove("dragover");
-      if (e.dataTransfer.files.length && (await importFiles(Array.from(e.dataTransfer.files), arr))) rerender();
-    });
+  // Se o próprio container for o dropzone
+  if (
+    typeof container.matches === "function" &&
+    container.matches("[data-dropzone]")
+  ) {
+    dz = container;
   }
+
+  // Caso contrário, procura dentro dele
+  if (!dz && typeof container.querySelector === "function") {
+    dz = container.querySelector("[data-dropzone]");
+  }
+
+  if (!dz) {
+    console.warn("attachDropzone: nenhum [data-dropzone] encontrado.", container);
+    return;
+  }
+
+  const input =
+    typeof dz.querySelector === "function"
+      ? dz.querySelector("[data-file-input]")
+      : null;
+
+  if (!input) {
+    console.warn("attachDropzone: nenhum [data-file-input] encontrado.");
+    return;
+  }
+
+  input.addEventListener("change", async () => {
+    try {
+      if (
+        input.files &&
+        input.files.length &&
+        (await importFiles(Array.from(input.files), arr))
+      ) {
+        rerender();
+      }
+    } catch (error) {
+      console.error("Erro no upload do dropzone:", error);
+    } finally {
+      input.value = "";
+    }
+  });
+
+  dz.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dz.classList.add("dragover");
+  });
+
+  dz.addEventListener("dragleave", () => {
+    dz.classList.remove("dragover");
+  });
+
+  dz.addEventListener("drop", async (e) => {
+    e.preventDefault();
+    dz.classList.remove("dragover");
+
+    try {
+      const files = e.dataTransfer?.files;
+
+      if (
+        files &&
+        files.length &&
+        (await importFiles(Array.from(files), arr))
+      ) {
+        rerender();
+      }
+    } catch (error) {
+      console.error("Erro no drop de arquivos:", error);
+    }
+  });
+}
 
 function fileListHTML(files) {
   // 1. Garantia contra o erro: se files não for uma lista (ex: undefined), usa lista vazia []
@@ -1250,6 +1303,7 @@ function fileListHTML(files) {
     })
     .join("");
 }
+
   /* ---------------- Render: painel ---------------- */
 function cardHTML(p, index) {
   const statusLabel = STATUS_LABELS[p.status] || p.status;
@@ -6239,73 +6293,43 @@ document.addEventListener("drop", async (e) => {
 // ==========================================================
 
 async function processAndSaveImageFile(wrapper, file) {
+  if (!wrapper || !file) return false;
 
-  if (!wrapper || !file) return;
-
-  if (!file.type || !file.type.startsWith("image/")) {
-    if (typeof showToast === "function") {
-      showToast("O arquivo selecionado não é uma imagem.", true);
-    }
-    return;
-  }
-
-  return new Promise((resolve) => {
-
-    const reader = new FileReader();
-
-    reader.onload = async (event) => {
-
-      try {
-
-        const imageData = event.target?.result;
-
-        if (!imageData) {
-          throw new Error("Não foi possível ler a imagem.");
-        }
-
-        const saved = await saveImageToProject(
-          wrapper,
-          imageData
-        );
-
-        resolve(saved);
-
-      } catch (error) {
-
-        console.error(
-          "Erro ao processar imagem:",
-          error
-        );
-
-        if (typeof showToast === "function") {
-          showToast(
-            "Não foi possível salvar a imagem.",
-            true
-          );
-        }
-
-        resolve(false);
-      }
-    };
-
-    reader.onerror = () => {
-
-      console.error(
-        "Erro ao ler arquivo de imagem."
-      );
-
+  try {
+    if (!file.type || !file.type.startsWith("image/")) {
       if (typeof showToast === "function") {
-        showToast(
-          "Não foi possível ler o arquivo de imagem.",
-          true
-        );
+        showToast("O arquivo selecionado não é uma imagem.", true);
       }
+      return false;
+    }
 
-      resolve(false);
-    };
+    if (typeof showToast === "function") {
+      showToast(`Enviando ${file.name || "imagem"}...`, false);
+    }
 
-    reader.readAsDataURL(file);
-  });
+    // 1. Envia a imagem para o Supabase Storage
+    const imageUrl = await uploadMemorialImageToStorage(file);
+
+    // 2. Salva somente a URL no projeto
+    const saved = await saveImageToProject(wrapper, imageUrl);
+
+    if (saved) {
+      if (typeof showToast === "function") {
+        showToast("Imagem adicionada com sucesso!", false);
+      }
+    }
+
+    return saved;
+
+  } catch (error) {
+    console.error("Erro no upload da imagem do Memorial:", error);
+
+    if (typeof showToast === "function") {
+      showToast("Não foi possível carregar a imagem.", true);
+    }
+
+    return false;
+  }
 }
 
 
@@ -6314,25 +6338,28 @@ async function processAndSaveImageFile(wrapper, file) {
 // ==========================================================
 
 async function processAndSaveImageURL(wrapper, url) {
-
   if (!wrapper || !url) return false;
 
-  return saveImageToProject(
-    wrapper,
-    url.trim()
-  );
-}
+  const cleanUrl = String(url).trim();
 
+  if (
+    !/^https?:\/\//i.test(cleanUrl) &&
+    !/^data:image\//i.test(cleanUrl)
+  ) {
+    return false;
+  }
+
+  // URL externa:
+  // armazenamos a referência sem transformar em Base64.
+  return saveImageToProject(wrapper, cleanUrl);
+}
 
 // ==========================================================
 // SALVAR IMAGEM NO PROJETO ATUAL
 // ==========================================================
 
-async function saveImageToProject(wrapper, imageValue) {
-
-  if (!wrapper || !imageValue) {
-    return false;
-  }
+async function saveImageToProject(wrapper, imageUrl) {
+  if (!wrapper || !imageUrl) return false;
 
   const project = currentProject();
 
@@ -6342,47 +6369,29 @@ async function saveImageToProject(wrapper, imageValue) {
     );
 
     if (typeof showToast === "function") {
-      showToast(
-        "Nenhum projeto está selecionado.",
-        true
-      );
+      showToast("Nenhum projeto está selecionado.", true);
     }
 
     return false;
   }
 
-
   const key = wrapper.dataset.key;
+  const rowIndex = Number(wrapper.dataset.row);
 
-  const rowIndex = Number(
-    wrapper.dataset.row
-  );
-
-
-  if (
-    !key ||
-    !Number.isInteger(rowIndex) ||
-    rowIndex < 0
-  ) {
-
-    console.error(
-      "Dados da imagem inválidos:",
-      {
-        key,
-        rowIndex,
-        wrapper
-      }
-    );
+  if (!key || !Number.isInteger(rowIndex) || rowIndex < 0) {
+    console.error("Dados da imagem inválidos:", {
+      key,
+      rowIndex,
+      wrapper
+    });
 
     return false;
   }
-
 
   if (
     !project.memorial ||
     !Array.isArray(project.memorial[key])
   ) {
-
     console.error(
       "Categoria do Memorial não encontrada:",
       key
@@ -6391,70 +6400,100 @@ async function saveImageToProject(wrapper, imageValue) {
     return false;
   }
 
-
   const row = project.memorial[key][rowIndex];
 
   if (!row) {
-
-    console.error(
-      "Linha do Memorial não encontrada:",
-      {
-        key,
-        rowIndex
-      }
-    );
+    console.error("Linha do Memorial não encontrada:", {
+      key,
+      rowIndex
+    });
 
     return false;
   }
 
-
-  // ----------------------------------------------
-  // SALVA A IMAGEM NA LINHA
-  // ----------------------------------------------
-
-  row.foto = imageValue;
-
-
-  // ----------------------------------------------
-  // MARCA COMO ALTERADO
-  // ----------------------------------------------
+  // IMPORTANTE:
+  // Agora guardamos somente a URL, nunca mais o Base64.
+  row.foto = imageUrl;
 
   memorialMarkDirty(project);
-
-
-  // ----------------------------------------------
-  // SALVA NO FIREBASE
-  // ----------------------------------------------
 
   const saved = await memorialSave(project);
 
   if (!saved) {
-
     if (typeof showToast === "function") {
-      showToast(
-        "Não foi possível salvar a imagem.",
-        true
-      );
+      showToast("Não foi possível salvar a imagem.", true);
     }
 
     return false;
   }
-
-
-  // ----------------------------------------------
-  // ATUALIZA A TELA
-  // ----------------------------------------------
 
   renderMemorial(project);
 
   return true;
 }
 
-
 // ==========================================================
-// FIM — IMAGENS DO MEMORIAL
+// MEMORIAL — UPLOAD DE IMAGENS PARA O SUPABASE STORAGE
 // ==========================================================
 
+async function uploadMemorialImageToStorage(file) {
+  if (!file) {
+    throw new Error("Nenhum arquivo foi fornecido.");
+  }
+
+  if (!file.type || !file.type.startsWith("image/")) {
+    throw new Error("O arquivo selecionado não é uma imagem.");
+  }
+
+  const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+  if (file.size > MAX_IMAGE_SIZE) {
+    throw new Error(
+      "A imagem é muito grande. O tamanho máximo permitido é 10 MB."
+    );
+  }
+
+  const cleanBaseUrl = SUPABASE_URL.replace(/\/$/, "");
+  const bucketName = "menche-files";
+
+  // Nome seguro e único
+  const originalName = file.name || "imagem.jpg";
+
+  const cleanName = originalName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9.-]/g, "_");
+
+  const uniqueName =
+    `memorial_${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${cleanName}`;
+
+  const uploadUrl =
+    `${cleanBaseUrl}/storage/v1/object/${bucketName}/${encodeURIComponent(uniqueName)}`;
+
+  const response = await fetch(uploadUrl, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "apikey": SUPABASE_KEY,
+      "Content-Type": file.type,
+      "x-upsert": "true"
+    },
+    body: file
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+
+    throw new Error(
+      errorData.message ||
+      errorData.error ||
+      `Erro HTTP ${response.status}`
+    );
+  }
+
+  return `${cleanBaseUrl}/storage/v1/object/public/${bucketName}/${encodeURIComponent(uniqueName)}`;
+}
+	
 // ==========================================================
 // CONTROLE DA TELA DE INTRODUÇÃO (LOGO PULSANTO)
 // ==========================================================

@@ -3558,36 +3558,19 @@ function memorialSectionHTML(project, key) {
 if (col.key === "foto" || col.key === "imagem") {
             return `
               <td>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <!-- Área para colar (Ctrl+V) ou Arrastar a imagem -->
-                  <div 
-                    class="memorial-image-upload-wrapper" 
-                    data-key="${escapeHTML(key)}" 
-                    data-row="${rowIndex}" 
-                    tabindex="0"
-                    onclick="this.focus()"
-                    title="Clique uma vez no quadradinho e aperte Ctrl+V para colar, ou arraste uma imagem"
-                    style="width: 60px; height: 60px; border: 2px dashed rgba(255,255,255,0.25); border-radius: 6px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); overflow: hidden; cursor: pointer; outline: none;"
-                  >
-                    ${
-                      value
-                        ? `<img src="${value}" alt="Item" style="width: 100%; height: 100%; object-fit: cover;" />`
-                        : `<span style="font-size: 9px; text-align: center; color: #aaa; padding: 2px; line-height: 1.1;">Cole Ctrl+V</span>`
-                    }
-                  </div>
-
-                  <!-- Botão separado exclusivo para procurar no computador -->
-                  <button 
-                    type="button" 
-                    class="btn-upload-pc" 
-                    data-key="${escapeHTML(key)}" 
-                    data-row="${rowIndex}"
-                    title="Enviar imagem do computador"
-                    style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #ccc; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 11px;"
-                  >
-                    📁
-                  </button>
-                  <input type="file" class="memorial-file-input-pc" accept="image/*" style="display:none;" />
+                <div 
+                  class="memorial-image-upload-wrapper" 
+                  data-key="${escapeHTML(key)}" 
+                  data-row="${rowIndex}" 
+                  contenteditable="true"
+                  title="Clique na caixinha, cole (Ctrl+V) ou arraste uma imagem"
+                  style="width: 65px; height: 65px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 6px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); overflow: hidden; cursor: pointer; outline: none; position: relative;"
+                >
+                  ${
+                    value
+                      ? `<img src="${value}" alt="Item" style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;" />`
+                      : `<span style="font-size: 9px; text-align: center; color: #aaa; padding: 2px; line-height: 1.1; pointer-events: none;">Cole Ctrl+V</span>`
+                  }
                 </div>
               </td>
             `;
@@ -6052,14 +6035,17 @@ document.addEventListener("change", async (e) => {
 });
 
 // 3. Suporte a Colar (Ctrl+V) focando ou clicando no quadradinho da esquerda
+// ==========================================================
+// SUPORTE DEFINITIVO: COLAR (CTRL+V) E ARRASTAR (DRAG & DROP)
+// ==========================================================
+
 document.addEventListener("paste", async (e) => {
   const wrapper = e.target.closest(".memorial-image-upload-wrapper");
   if (!wrapper) return;
 
-  const clipboardItems = e.clipboardData || window.clipboardData;
-  if (!clipboardItems) return;
+  const items = (e.clipboardData || window.clipboardData)?.items;
+  if (!items) return;
 
-  const items = clipboardItems.items;
   for (let i = 0; i < items.length; i++) {
     if (items[i].type.indexOf("image") !== -1) {
       const file = items[i].getAsFile();
@@ -6072,7 +6058,6 @@ document.addEventListener("paste", async (e) => {
   }
 });
 
-// 4. Arraste e Solte (Drag and Drop) no quadradinho
 document.addEventListener("dragover", (e) => {
   if (e.target.closest(".memorial-image-upload-wrapper")) {
     e.preventDefault();
@@ -6090,7 +6075,6 @@ document.addEventListener("drop", async (e) => {
   }
 });
 
-// 5. Função padrão para salvar a imagem no projeto
 async function processAndSaveImage(wrapper, file) {
   const reader = new FileReader();
   reader.onload = async function (event) {

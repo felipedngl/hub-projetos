@@ -917,13 +917,32 @@ async function saveProjects(customProjects = null) {
 
   saveQueue = saveQueue.then(async () => {
     try {
-      for (const proj of listToSave) {
-        await db.collection("projects")
-          .doc(String(proj.id))
-          .set(proj, {
-            merge: true
-          });
-      }
+for (const proj of listToSave) {
+
+  if (containsBase64Data(proj)) {
+    console.error(
+      "[FIRESTORE] Salvamento bloqueado: Base64 detectado no projeto.",
+      proj.id,
+      proj
+    );
+
+    if (typeof showToast === "function") {
+      showToast(
+        "Salvamento bloqueado: um arquivo ainda está sendo armazenado como Base64. O arquivo precisa ser enviado ao armazenamento antes de salvar.",
+        true
+      );
+    }
+
+    throw new Error(
+      `Base64 detectado no projeto ${proj.id}. Salvamento no Firestore bloqueado.`
+    );
+  }
+
+  await db
+    .collection("projects")
+    .doc(String(proj.id))
+    .set(proj, { merge: true });
+}
 
       return true;
 

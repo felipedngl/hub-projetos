@@ -3563,8 +3563,7 @@ if (col.key === "foto" || col.key === "imagem") {
                   data-key="${escapeHTML(key)}" 
                   data-row="${rowIndex}" 
                   tabindex="0"
-                  style="outline: none;"
-                  title="Clique para enviar, arraste um arquivo ou clique e aperte Ctrl+V"
+                  title="Clique para enviar arquivo, arraste uma imagem, ou clique na linha e aperte Ctrl+V"
                 >
                   ${
                     value
@@ -6010,87 +6009,23 @@ function applyViewMode(mode) {
 }
 
 // ==========================================================
-// EVENTOS GLOBAIS: IMAGEM E OBSERVAÇÃO
+// EVENTOS GLOBAIS: CLIQUE (ABRE PASTA) E COLAR (CTRL+V NA LINHA)
 // ==========================================================
 
+// 1. O clique na caixinha continua abrindo a pasta do computador
 document.addEventListener("click", async (e) => {
   const imgWrapper = e.target.closest(".memorial-image-upload-wrapper");
-  if (imgWrapper) {
-    const fileInput = imgWrapper.querySelector(".memorial-file-input");
-    if (fileInput) fileInput.click();
-    return;
-  }
-
-  const btnObs = e.target.closest(".btn-open-obs-modal");
-  if (btnObs) {
-    const key = btnObs.dataset.key;
-    const rowIndex = Number(btnObs.dataset.row);
-
-    if (!project.memorial || !project.memorial[key] || !project.memorial[key][rowIndex]) return;
-
-    const currentRow = project.memorial[key][rowIndex];
-    const fieldName = currentRow.obs !== undefined ? 'obs' : 'observacao';
-    const currentText = currentRow[fieldName] || "";
-
-    const oldModal = document.getElementById("memorial-obs-modal-bg");
-    if (oldModal) oldModal.remove();
-
-    const modalBg = document.createElement("div");
-    modalBg.id = "memorial-obs-modal-bg";
-    modalBg.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:99999;";
-    
-    modalBg.innerHTML = `
-      <div style="background:#181f23;padding:25px;border-radius:12px;width:90%;max-width:500px;border:1px solid rgba(255,255,255,0.2);box-shadow:0 15px 30px rgba(0,0,0,0.6);">
-        <h3 style="color:#fff;margin-bottom:15px;font-size:1.1rem;font-weight:600;">Editar Observação do Item</h3>
-        <textarea id="modal-obs-text" rows="6" style="width:100%;background:#111619;color:#fff;border:1px solid rgba(255,255,255,0.2);padding:12px;border-radius:8px;resize:vertical;font-family:inherit;font-size:0.95rem;outline:none;">${currentText}</textarea>
-        <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:18px;">
-          <button type="button" id="modal-cancel" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:#ccc;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:0.9rem;">Cancelar</button>
-          <button type="button" id="modal-save" style="background:#3b82f6;border:none;color:#fff;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.9rem;">Salvar</button>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(modalBg);
-    const textarea = document.getElementById("modal-obs-text");
-    textarea.focus();
-
-    document.getElementById("modal-cancel").onclick = () => modalBg.remove();
-    modalBg.onclick = (ev) => { if (ev.target === modalBg) modalBg.remove(); };
-
-    document.getElementById("modal-save").onclick = async () => {
-      currentRow[fieldName] = textarea.value;
-      memorialMarkDirty(project);
-      await memorialSave(project);
-      modalBg.remove();
-      renderMemorial(project);
-    };
-    return;
-  }
+  if (!imgWrapper) return;
+  
+  // Se clicou diretamente no input ou na imagem já existente, deixa o comportamento padrão
+  const fileInput = imgWrapper.querySelector(".memorial-file-input");
+  if (fileInput) fileInput.click();
 });
 
-document.addEventListener("change", async (e) => {
-  if (!e.target.classList.contains("memorial-file-input")) return;
-  const fileInput = e.target;
-  const wrapper = fileInput.closest(".memorial-image-upload-wrapper");
-  if (!wrapper || !fileInput.files || fileInput.files.length === 0) return;
-  await processAndSaveImage(wrapper, fileInput.files[0]);
-});
-
-document.addEventListener("dragover", (e) => {
-  if (e.target.closest(".memorial-image-upload-wrapper")) e.preventDefault();
-});
-
-document.addEventListener("drop", async (e) => {
-  const wrapper = e.target.closest(".memorial-image-upload-wrapper");
-  if (!wrapper) return;
-  e.preventDefault();
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith("image/")) await processAndSaveImage(wrapper, file);
-});
-
-// 4. SUPORTE A COLAR IMAGEM (CTRL+V) REFORÇADO
+// 2. SUPORTE A COLAR (CTRL+V) EM QUALQUER LUGAR DA LINHA OU DA CAIXINHA
 document.addEventListener("paste", async (e) => {
-  const wrapper = e.target.closest(".memorial-image-upload-wrapper");
+  // Procura se o foco está em uma caixinha de imagem ou dentro da linha da tabela
+  const wrapper = e.target.closest(".memorial-image-upload-wrapper") || e.target.closest("tr")?.querySelector(".memorial-image-upload-wrapper");
   if (!wrapper) return;
 
   const clipboardItems = e.clipboardData || window.clipboardData;
@@ -6109,6 +6044,25 @@ document.addEventListener("paste", async (e) => {
   }
 });
 
+// 3. ARRASTAR E SOLTAR (DRAG AND DROP)
+document.addEventListener("dragover", (e) => {
+  if (e.target.closest(".memorial-image-upload-wrapper")) {
+    e.preventDefault();
+  }
+});
+
+document.addEventListener("drop", async (e) => {
+  const wrapper = e.target.closest(".memorial-image-upload-wrapper");
+  if (!wrapper) return;
+  e.preventDefault();
+
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith("image/")) {
+    await processAndSaveImage(wrapper, file);
+  }
+});
+
+// 4. FUNÇÃO AUXILIAR PARA PROCESSAR E SALVAR A IMAGEM
 async function processAndSaveImage(wrapper, file) {
   const reader = new FileReader();
   reader.onload = async function (event) {
@@ -6127,14 +6081,5 @@ async function processAndSaveImage(wrapper, file) {
   };
   reader.readAsDataURL(file);
 }
-
-// Força o splash (logo pulsando) a sumir assim que o script carregar
-  const splashCheck = document.getElementById("introSplash");
-  if (splashCheck) {
-	splashCheck.style.opacity = "0";
-	setTimeout(() => {
-	  splashCheck.style.display = "none";
-	}, 400);
-  }
 
 })();

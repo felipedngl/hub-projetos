@@ -4536,44 +4536,19 @@ function renderMemorial(project) {
     );
   });
 
+// ==========================================================
+// ARQUIVOS
+// ==========================================================
 
-  // ==========================================================
-  // ARQUIVOS
-  // ==========================================================
+const memorialDropzone = $("#memorialDropzone");
 
+if (memorialDropzone) {
   attachDropzone(
-    "#memorialDropzone",
-    "#memorialFileInput",
-    async (files) => {
-
-      if (!files || !files.length) {
-        return;
-      }
-
-      const imported =
-        await importFiles(files);
-
-      if (!Array.isArray(imported)) {
-        return;
-      }
-
-      project.memorialFiles =
-        Array.isArray(project.memorialFiles)
-          ? project.memorialFiles
-          : [];
-
-      project.memorialFiles.push(
-        ...imported
-      );
-
-      memorialMarkDirty(project);
-
-      await memorialSave(project);
-
-      renderMemorial(project);
-    }
+    memorialDropzone,
+    project.memorialFiles,
+    () => renderMemorial(project)
   );
-
+}
 
   // ==========================================================
   // EXCLUIR ARQUIVO

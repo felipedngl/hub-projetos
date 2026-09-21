@@ -2891,7 +2891,68 @@ function memorialClientHTML(project) {
   );
 }
 
-/* ---------------- Contratos (proprietário) ---------------- */
+// ==========================================================
+// CONTRATOS — UPLOAD PARA O SUPABASE STORAGE
+// ==========================================================
+
+async function uploadContractToStorage(file) {
+  if (!file) {
+    throw new Error("Nenhum arquivo foi fornecido.");
+  }
+
+  const MAX_CONTRACT_SIZE = 10 * 1024 * 1024; // 10 MB
+
+  if (file.size > MAX_CONTRACT_SIZE) {
+    throw new Error(
+      "O contrato é muito grande. O tamanho máximo permitido é 10 MB."
+    );
+  }
+
+  const cleanBaseUrl = SUPABASE_URL.replace(/\/$/, "");
+  const bucketName = "menche-files";
+
+  const originalName = file.name || "contrato";
+
+  const cleanName = originalName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9.-]/g, "_");
+
+  const uniqueName =
+    `contrato_${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${cleanName}`;
+
+  const uploadUrl =
+    `${cleanBaseUrl}/storage/v1/object/${bucketName}/${encodeURIComponent(uniqueName)}`;
+
+  const response = await fetch(uploadUrl, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "apikey": SUPABASE_KEY,
+      "Content-Type": file.type || "application/octet-stream",
+      "x-upsert": "true"
+    },
+    body: file
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+
+    throw new Error(
+      errorData.message ||
+      errorData.error ||
+      `Erro HTTP ${response.status}`
+    );
+  }
+
+  return `${cleanBaseUrl}/storage/v1/object/public/${bucketName}/${encodeURIComponent(uniqueName)}`;
+}
+
+
+// ==========================================================
+// CONTRATOS & DOCUMENTOS
+// ==========================================================
+
 function renderContracts(project) {
   const stage = STAGES.find((s) => s.id === "contratos");
   const container = $("#stageContainer");
@@ -2983,21 +3044,57 @@ function renderContracts(project) {
           allowClientDownload,
         };
       } else {
-        const file = fileInput.files[0];
-        if (file.size > 4 * 1024 * 1024) {
-          if (typeof showToast === "function") showToast("O arquivo excede 4MB.", true);
-          return;
-        }
-        const dataUrl = await readFileAsDataUrl(file);
-        item = {
-          id: typeof uid === "function" ? uid() : String(Date.now()),
-          name,
-          kind: "file",
-          value: dataUrl,
-          fileName: file.name,
-          fileType: file.type,
-          allowClientDownload,
-        };
+		const file = fileInput.files[0];
+		
+		if (!file) {
+		  showToast("Selecione um arquivo.", true);
+		  return;
+		}
+		
+		if (file.size > 10 * 1024 * 1024) {
+		  showToast(
+		    "O contrato é muito grande. O tamanho máximo permitido é 10 MB.",
+		    true
+		  );
+		  return;
+		}
+		
+		try {
+		  showToast(`Enviando ${file.name}...`, false);
+		
+		  // IMPORTANTE:
+		  // O arquivo vai diretamente para o Supabase.
+		  // Nunca é convertido para Base64.
+		  const publicUrl = await uploadContractToStorage(file);
+		
+		  item = {
+		    id,
+		    name: file.name,
+		    kind: "file",
+		
+		    // IMPORTANTE:
+		    // value agora contém SOMENTE a URL do Supabase.
+		    value: publicUrl,
+		
+		    fileName: file.name,
+		    fileType: file.type || "application/octet-stream",
+		    fileSize: file.size,
+		
+		    allowClientDownload
+		  };
+		
+		  showToast("Contrato enviado com sucesso!", false);
+		
+		} catch (error) {
+		  console.error("Erro no upload do contrato:", error);
+		
+		  showToast(
+		    error?.message || "Não foi possível enviar o contrato.",
+		    true
+		  );
+		
+		  return;
+		}
       }
 
       if (!Array.isArray(project.contracts)) {

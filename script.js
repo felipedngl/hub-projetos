@@ -862,6 +862,30 @@ renderSidebar();
 
 let saveQueue = Promise.resolve();
 
+// ==========================================================
+// PROTEÇÃO — IMPEDIR BASE64 NO FIRESTORE
+// ==========================================================
+
+function containsBase64Data(value, path = "project") {
+  if (typeof value === "string") {
+    return /^data:[^;]+;base64,/i.test(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.some((item, index) =>
+      containsBase64Data(item, `${path}[${index}]`)
+    );
+  }
+
+  if (value && typeof value === "object") {
+    return Object.entries(value).some(([key, val]) =>
+      containsBase64Data(val, `${path}.${key}`)
+    );
+  }
+
+  return false;
+}
+
 async function saveProjects(customProjects = null) {
   let listToSave = customProjects;
 

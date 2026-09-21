@@ -1083,6 +1083,121 @@ window.diagnosticoMemorial = function () {
   console.log("=== FIM DO DIAGNÓSTICO ===");
 };
 
+// ===== MIGRAÇÃO TEMPORÁRIA DAS IMAGENS BASE64 DO MEMORIAL =====
+window.migrarFotosMemorial = async function () {
+  const projeto = currentProject();
+
+  if (!projeto) {
+    console.error("MIGRAÇÃO: nenhum projeto atual encontrado.");
+    return;
+  }
+
+  console.log("=== INICIANDO MIGRAÇÃO DAS FOTOS ===");
+
+  let migradas = 0;
+
+  for (const [categoria, linhas] of Object.entries(projeto.memorial || {})) {
+
+    if (!Array.isArray(linhas)) continue;
+
+    for (let indice = 0; indice < linhas.length; indice++) {
+
+      const linha = linhas[indice];
+
+      if (!linha?.foto) continue;
+
+      const foto = String(linha.foto);
+
+      if (!foto.startsWith("data:image/")) {
+        console.log(
+          `Ignorando ${categoria} / linha ${indice}: não é Base64.`
+        );
+        continue;
+      }
+
+      try {
+        console.log(
+          `Convertendo ${categoria} / linha ${indice}...`
+        );
+
+        const response = await fetch(foto);
+        const blob = await response.blob();
+
+        const extensao =
+          blob.type === "image/png"
+            ? "png"
+            : blob.type === "image/webp"
+              ? "webp"
+              : "jpg";
+
+        const arquivo = new File(
+          [blob],
+          `memorial_${categoria}_${indice}_${Date.now()}.${extensao}`,
+          {
+            type: blob.type || "image/jpeg"
+          }
+        );
+
+        console.log(
+          "Tamanho da imagem:",
+          arquivo.size,
+          "bytes"
+        );
+
+        const novaUrl =
+          await uploadMemorialImageToStorage(arquivo);
+
+        linha.foto = novaUrl;
+
+        console.log(
+          `Imagem migrada: ${categoria} / linha ${indice}`,
+          novaUrl
+        );
+
+        migradas++;
+
+      } catch (erro) {
+
+        console.error(
+          `Erro ao migrar ${categoria} / linha ${indice}:`,
+          erro
+        );
+
+      }
+    }
+  }
+
+  if (!migradas) {
+    console.log(
+      "Nenhuma imagem Base64 foi migrada."
+    );
+    return;
+  }
+
+  console.log(
+    `=== ${migradas} IMAGEM(NS) MIGRADA(S) ===`
+  );
+
+  console.log(
+    "Salvando projeto sem os Base64..."
+  );
+
+  const salvo = await saveProjects([projeto]);
+
+  if (salvo !== false) {
+    console.log(
+      "=== PROJETO SALVO COM SUCESSO ==="
+    );
+    console.log(
+      "As imagens agora estão no Supabase e o projeto guarda apenas as URLs."
+    );
+  } else {
+    console.error(
+      "O salvamento do projeto retornou false."
+    );
+  }
+};
+
   /* ---------------- Arquivos ---------------- */
   function readFileAsDataUrl(file) {
     return new Promise((resolve, reject) => {

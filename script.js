@@ -3559,34 +3559,30 @@ if (col.key === "foto" || col.key === "imagem") {
             return `
               <td>
                 <div style="display: flex; align-items: center; gap: 6px;">
-                  <!-- Área para colar (Ctrl+V) ou Arrastar -->
+                  <!-- Área visual da foto -->
                   <div 
                     class="memorial-image-upload-wrapper" 
                     data-key="${escapeHTML(key)}" 
                     data-row="${rowIndex}" 
-                    tabindex="0"
-                    title="Clique no quadradinho e aperte Ctrl+V para colar, ou arraste uma imagem"
-                    style="width: 60px; height: 60px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 6px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); overflow: hidden; cursor: pointer; outline: none;"
+                    style="width: 50px; height: 50px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 6px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); overflow: hidden;"
                   >
                     ${
                       value
-                        ? `<img src="${value}" alt="Item" style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;" />`
-                        : `<span style="font-size: 9px; text-align: center; color: #aaa; padding: 2px; line-height: 1.1; pointer-events: none;">Cole Ctrl+V</span>`
+                        ? `<img src="${value}" alt="Item" style="width: 100%; height: 100%; object-fit: cover;" />`
+                        : `<span style="font-size: 8px; text-align: center; color: #aaa; line-height: 1.1;">Cole Ctrl+V</span>`
                     }
                   </div>
 
-                  <!-- Botão separado para procurar no computador -->
+                  <!-- Botão de pasta com o gatilho direto no onclick para nunca falhar -->
                   <button 
                     type="button" 
-                    class="btn-upload-pc" 
-                    data-key="${escapeHTML(key)}" 
-                    data-row="${rowIndex}"
+                    onclick="this.nextElementSibling.click()"
                     title="Enviar imagem do computador"
-                    style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #ccc; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 11px;"
+                    style="background: #222; border: 1px solid rgba(255,255,255,0.3); color: #fff; border-radius: 4px; padding: 6px 8px; cursor: pointer; font-size: 12px;"
                   >
                     📁
                   </button>
-                  <input type="file" class="memorial-file-input-pc" accept="image/*" style="display:none;" />
+                  <input type="file" class="memorial-file-input-pc" accept="image/*" style="display:none;" onchange="handleDirectFilePC(this, '${escapeHTML(key)}', ${rowIndex})" />
                 </div>
               </td>
             `;

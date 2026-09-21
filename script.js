@@ -6111,19 +6111,6 @@ async function processAndSaveImage(wrapper, file) {
 }
 
 // ==========================================================
-  // CONTROLE DA TELA DE INTRODUÇÃO (LOGO PULSANTO)
-  // ==========================================================
-  const splashEl = document.getElementById("introSplash");
-  if (splashEl) {
-    setTimeout(() => {
-      splashEl.style.opacity = "0";
-      setTimeout(() => {
-        splashEl.style.display = "none";
-      }, 500); // Tempo da transição suave para sumir
-    }, 1200); // Tempo que a logo fica visível antes de abrir o painel
-  }
-
-// ==========================================================
 // 1. CONTROLE DA TELA DE INTRODUÇÃO (LOGO PULSANTO)
 // ==========================================================
 const splashEl = document.getElementById("introSplash");

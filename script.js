@@ -1017,6 +1017,72 @@ if (window.messaging) {
     return projects.find((p) => p.id === currentProjectId) || null;
   }
 
+// ===== DIAGNÓSTICO TEMPORÁRIO DO MEMORIAL =====
+window.diagnosticoMemorial = function () {
+  const projeto = currentProject();
+
+  if (!projeto) {
+    console.error("DIAGNÓSTICO: nenhum projeto atual encontrado.");
+    return;
+  }
+
+  const tamanhoProjeto = new Blob([
+    JSON.stringify(projeto)
+  ]).size;
+
+  console.log("=== DIAGNÓSTICO DO MEMORIAL ===");
+  console.log("Projeto:", projeto.id);
+  console.log("Tamanho aproximado:", tamanhoProjeto, "bytes");
+  console.log(
+    "Limite Firestore:",
+    1048576,
+    "bytes"
+  );
+  console.log(
+    "Percentual:",
+    ((tamanhoProjeto / 1048576) * 100).toFixed(2) + "%"
+  );
+
+  console.log("=== FOTOS DO MEMORIAL ===");
+
+  let encontrouFoto = false;
+
+  Object.entries(projeto.memorial || {}).forEach(
+    ([categoria, linhas]) => {
+
+      (linhas || []).forEach((linha, indice) => {
+
+        if (!linha?.foto) return;
+
+        encontrouFoto = true;
+
+        const foto = String(linha.foto);
+
+        console.log({
+          categoria,
+          linha: indice,
+          tamanho: foto.length,
+          tipo:
+            foto.startsWith("data:image/")
+              ? "BASE64 / DATA URL"
+              : foto.startsWith("https://")
+                ? "URL"
+                : "OUTRO",
+          inicio: foto.slice(0, 100)
+        });
+      });
+    }
+  );
+
+  if (!encontrouFoto) {
+    console.log(
+      "Nenhuma foto encontrada nas linhas do Memorial."
+    );
+  }
+
+  console.log("=== FIM DO DIAGNÓSTICO ===");
+};
+
   /* ---------------- Arquivos ---------------- */
   function readFileAsDataUrl(file) {
     return new Promise((resolve, reject) => {

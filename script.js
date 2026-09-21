@@ -6170,4 +6170,24 @@ async function saveImageToProject(wrapper, imageValue) {
   }
 }
 
+// Função direta para processar o arquivo escolhido pelo botão 📁
+async function handleDirectFilePC(inputElement, key, rowIndex) {
+  if (!inputElement.files || inputElement.files.length === 0) return;
+  const file = inputElement.files[0];
+
+  const reader = new FileReader();
+  reader.onload = async function (event) {
+    const base64Image = event.target.result;
+
+    if (project.memorial && Array.isArray(project.memorial[key])) {
+      project.memorial[key][rowIndex].foto = base64Image;
+
+      memorialMarkDirty(project);
+      await memorialSave(project);
+      renderMemorial(project);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
 })();

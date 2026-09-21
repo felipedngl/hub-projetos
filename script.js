@@ -6021,173 +6021,438 @@ function applyViewMode(mode) {
 }
 
 // ==========================================================
-// EVENTOS GLOBAIS: COLAR (CTRL+V), ARRASTAR E BOTÃO DO PC
+// MEMORIAL — IMAGENS DOS ITENS
+// Clique • Arquivo do PC • Ctrl+V • URL • Drag & Drop
 // ==========================================================
 
-// 1. Clicar no botão de pasta abre o explorador de arquivos do computador
-document.addEventListener("click", async (e) => {
-  const btnPc = e.target.closest(".btn-upload-pc");
-  if (!btnPc) return;
-  
-  // Acha o input de arquivo escondido logo ao lado do botão
-  const td = btnPc.closest("td");
-  const fileInput = td ? td.querySelector(".memorial-file-input-pc") : null;
-  if (fileInput) fileInput.click();
-});
-
-// 2. Processar arquivo escolhido pelo computador
-document.addEventListener("change", async (e) => {
-  if (!e.target.classList.contains("memorial-file-input-pc")) return;
-  const fileInput = e.target;
-  const td = fileInput.closest("td");
-  const wrapper = td ? td.querySelector(".memorial-image-upload-wrapper") : null;
-  
-  if (!wrapper || !fileInput.files || fileInput.files.length === 0) return;
-  await processAndSaveImage(wrapper, fileInput.files[0]);
-});
-
-// ==========================================================
-// 1. CONTROLE DA TELA DE INTRODUÇÃO (LOGO PULSANTO)
-// ==========================================================
-if (document.getElementById("introSplash")) {
-  setTimeout(() => {
-    const splash = document.getElementById("introSplash");
-    if (splash) {
-      splash.style.opacity = "0";
-      setTimeout(() => {
-        splash.style.display = "none";
-      }, 500);
-    }
-  }, 1200);
-}
-
-// ==========================================================
-// 2. GERENCIAMENTO DE IMAGENS (CLIQUE, PC, CTRL+V E LINK)
-// ==========================================================
 let activeImageWrapper = null;
 
-// Memoriza qual caixinha foi clicada e gerencia o botão do PC (📁)
+
+// ----------------------------------------------------------
+// 1. IDENTIFICA A CAIXA DE IMAGEM ATIVA
+// ----------------------------------------------------------
+
 document.addEventListener("click", (e) => {
   const wrapper = e.target.closest(".memorial-image-upload-wrapper");
+
   if (wrapper) {
     activeImageWrapper = wrapper;
   }
+});
 
+
+// ----------------------------------------------------------
+// 2. BOTÃO 📁 — ABRIR EXPLORADOR DO COMPUTADOR
+// ----------------------------------------------------------
+
+document.addEventListener("click", (e) => {
   const btnPc = e.target.closest(".btn-upload-pc");
+
   if (!btnPc) return;
+
   const td = btnPc.closest("td");
-  const fileInput = td ? td.querySelector(".memorial-file-input-pc") : null;
-  if (fileInput) fileInput.click();
+
+  if (!td) return;
+
+  const fileInput = td.querySelector(".memorial-file-input-pc");
+
+  if (!fileInput) return;
+
+  e.preventDefault();
+
+  activeImageWrapper =
+    td.querySelector(".memorial-image-upload-wrapper") ||
+    activeImageWrapper;
+
+  fileInput.click();
 });
 
-// Processa o arquivo escolhido pelo computador
+
+// ----------------------------------------------------------
+// 3. ARQUIVO ESCOLHIDO NO COMPUTADOR
+// ----------------------------------------------------------
+
 document.addEventListener("change", async (e) => {
-  if (!e.target.classList.contains("memorial-file-input-pc")) return;
-  const fileInput = e.target;
-  const td = fileInput.closest("td");
-  const wrapper = td ? td.querySelector(".memorial-image-upload-wrapper") : null;
-  if (!wrapper || !fileInput.files || fileInput.files.length === 0) return;
-  await processAndSaveImageFile(wrapper, fileInput.files[0]);
-});
+  const input = e.target;
 
-// Suporte a colar (Ctrl+V) - Funciona tanto para arquivos copiados quanto para links (URLs) de imagem
-document.addEventListener("paste", async (e) => {
-  const wrapper = e.target.closest(".memorial-image-upload-wrapper") || activeImageWrapper;
+  if (!input.classList.contains("memorial-file-input-pc")) {
+    return;
+  }
+
+  const td = input.closest("td");
+
+  if (!td) return;
+
+  const wrapper = td.querySelector(".memorial-image-upload-wrapper");
+
   if (!wrapper) return;
 
-  const clipboardItems = e.clipboardData || window.clipboardData;
-  if (!clipboardItems) return;
+  if (!input.files || !input.files.length) {
+    return;
+  }
 
-  // Tenta colar como arquivo de imagem copiado
-  let handled = false;
-  const items = clipboardItems.items;
+  activeImageWrapper = wrapper;
+
+  const file = input.files[0];
+
+  if (!file.type || !file.type.startsWith("image/")) {
+    if (typeof showToast === "function") {
+      showToast("Selecione um arquivo de imagem.", true);
+    }
+    return;
+  }
+
+  await processAndSaveImageFile(wrapper, file);
+
+  // Permite escolher novamente o mesmo arquivo depois
+  input.value = "";
+});
+
+
+// ----------------------------------------------------------
+// 4. CTRL + V
+// ----------------------------------------------------------
+
+document.addEventListener("paste", async (e) => {
+  const wrapper =
+    e.target.closest(".memorial-image-upload-wrapper") ||
+    activeImageWrapper;
+
+  if (!wrapper) return;
+
+  const clipboard = e.clipboardData || window.clipboardData;
+
+  if (!clipboard) return;
+
+
+  // ----------------------------------------------
+  // PRIMEIRO: tenta imagem real no clipboard
+  // ----------------------------------------------
+
+  const items = clipboard.items;
+
   if (items) {
     for (let i = 0; i < items.length; i++) {
-      if (items[i].type.indexOf("image") !== -1) {
-        const file = items[i].getAsFile();
+
+      const item = items[i];
+
+      if (
+        item.kind === "file" &&
+        item.type &&
+        item.type.startsWith("image/")
+      ) {
+
+        const file = item.getAsFile();
+
         if (file) {
           e.preventDefault();
-          handled = true;
+
+          activeImageWrapper = wrapper;
+
           await processAndSaveImageFile(wrapper, file);
-          break;
+
+          return;
         }
       }
     }
   }
 
-  // Se não for arquivo, tenta colar como LINK da imagem ("Copiar endereço da imagem")
-  if (!handled) {
-    const textData = clipboardItems.getData("text");
-    if (textData && (textData.startsWith("http://") || textData.startsWith("https://") || textData.startsWith("data:image"))) {
-      e.preventDefault();
-      await processAndSaveImageURL(wrapper, textData.trim());
-    }
-  }
-});
 
-// Arrastar e soltar (Drag & Drop)
-document.addEventListener("dragover", (e) => {
-  if (e.target.closest(".memorial-image-upload-wrapper")) {
-    e.preventDefault();
-  }
-});
+  // ----------------------------------------------
+  // SEGUNDO: tenta texto / endereço da imagem
+  // ----------------------------------------------
 
-document.addEventListener("drop", async (e) => {
-  const wrapper = e.target.closest(".memorial-image-upload-wrapper");
-  if (!wrapper) return;
+  let text = "";
+
+  try {
+    text = clipboard.getData("text/plain");
+  } catch (error) {
+    text = "";
+  }
+
+  text = String(text || "").trim();
+
+  if (!text) return;
+
+
+  const isImageURL =
+    /^https?:\/\/.+/i.test(text) ||
+    /^data:image\//i.test(text);
+
+  if (!isImageURL) return;
+
   e.preventDefault();
 
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith("image/")) {
-    await processAndSaveImageFile(wrapper, file);
-  }
+  activeImageWrapper = wrapper;
+
+  await processAndSaveImageURL(wrapper, text);
 });
 
-// Funções para salvar no projeto
+
+// ----------------------------------------------------------
+// 5. ARRASTAR E SOLTAR IMAGEM
+// ----------------------------------------------------------
+
+document.addEventListener("dragover", (e) => {
+  const wrapper = e.target.closest(
+    ".memorial-image-upload-wrapper"
+  );
+
+  if (!wrapper) return;
+
+  e.preventDefault();
+
+  activeImageWrapper = wrapper;
+});
+
+
+document.addEventListener("drop", async (e) => {
+  const wrapper = e.target.closest(
+    ".memorial-image-upload-wrapper"
+  );
+
+  if (!wrapper) return;
+
+  e.preventDefault();
+
+  activeImageWrapper = wrapper;
+
+  const files = e.dataTransfer?.files;
+
+  if (!files || !files.length) return;
+
+  const file = files[0];
+
+  if (!file.type || !file.type.startsWith("image/")) {
+    if (typeof showToast === "function") {
+      showToast("Solte apenas arquivos de imagem.", true);
+    }
+    return;
+  }
+
+  await processAndSaveImageFile(wrapper, file);
+});
+
+
+// ==========================================================
+// PROCESSAMENTO DO ARQUIVO
+// ==========================================================
+
 async function processAndSaveImageFile(wrapper, file) {
-  const reader = new FileReader();
-  reader.onload = async function (event) {
-    await saveImageToProject(wrapper, event.target.result);
-  };
-  reader.readAsDataURL(file);
+
+  if (!wrapper || !file) return;
+
+  if (!file.type || !file.type.startsWith("image/")) {
+    if (typeof showToast === "function") {
+      showToast("O arquivo selecionado não é uma imagem.", true);
+    }
+    return;
+  }
+
+  return new Promise((resolve) => {
+
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+
+      try {
+
+        const imageData = event.target?.result;
+
+        if (!imageData) {
+          throw new Error("Não foi possível ler a imagem.");
+        }
+
+        const saved = await saveImageToProject(
+          wrapper,
+          imageData
+        );
+
+        resolve(saved);
+
+      } catch (error) {
+
+        console.error(
+          "Erro ao processar imagem:",
+          error
+        );
+
+        if (typeof showToast === "function") {
+          showToast(
+            "Não foi possível salvar a imagem.",
+            true
+          );
+        }
+
+        resolve(false);
+      }
+    };
+
+    reader.onerror = () => {
+
+      console.error(
+        "Erro ao ler arquivo de imagem."
+      );
+
+      if (typeof showToast === "function") {
+        showToast(
+          "Não foi possível ler o arquivo de imagem.",
+          true
+        );
+      }
+
+      resolve(false);
+    };
+
+    reader.readAsDataURL(file);
+  });
 }
+
+
+// ==========================================================
+// PROCESSAMENTO DE URL
+// ==========================================================
 
 async function processAndSaveImageURL(wrapper, url) {
-  await saveImageToProject(wrapper, url);
+
+  if (!wrapper || !url) return false;
+
+  return saveImageToProject(
+    wrapper,
+    url.trim()
+  );
 }
+
+
+// ==========================================================
+// SALVAR IMAGEM NO PROJETO ATUAL
+// ==========================================================
 
 async function saveImageToProject(wrapper, imageValue) {
-  const key = wrapper.dataset.key;
-  const rowIndex = Number(wrapper.dataset.row);
 
-  if (project.memorial && Array.isArray(project.memorial[key])) {
-    const row = project.memorial[key][rowIndex];
-    row.foto = imageValue;
-
-    memorialMarkDirty(project);
-    await memorialSave(project);
-    renderMemorial(project);
+  if (!wrapper || !imageValue) {
+    return false;
   }
-}
 
-// Função direta para processar o arquivo escolhido pelo botão 📁
-async function handleDirectFilePC(inputElement, key, rowIndex) {
-  if (!inputElement.files || inputElement.files.length === 0) return;
-  const file = inputElement.files[0];
+  const project = currentProject();
 
-  const reader = new FileReader();
-  reader.onload = async function (event) {
-    const base64Image = event.target.result;
+  if (!project) {
+    console.error(
+      "Nenhum projeto atual encontrado para salvar a imagem."
+    );
 
-    if (project.memorial && Array.isArray(project.memorial[key])) {
-      project.memorial[key][rowIndex].foto = base64Image;
-
-      memorialMarkDirty(project);
-      await memorialSave(project);
-      renderMemorial(project);
+    if (typeof showToast === "function") {
+      showToast(
+        "Nenhum projeto está selecionado.",
+        true
+      );
     }
-  };
-  reader.readAsDataURL(file);
+
+    return false;
+  }
+
+
+  const key = wrapper.dataset.key;
+
+  const rowIndex = Number(
+    wrapper.dataset.row
+  );
+
+
+  if (
+    !key ||
+    !Number.isInteger(rowIndex) ||
+    rowIndex < 0
+  ) {
+
+    console.error(
+      "Dados da imagem inválidos:",
+      {
+        key,
+        rowIndex,
+        wrapper
+      }
+    );
+
+    return false;
+  }
+
+
+  if (
+    !project.memorial ||
+    !Array.isArray(project.memorial[key])
+  ) {
+
+    console.error(
+      "Categoria do Memorial não encontrada:",
+      key
+    );
+
+    return false;
+  }
+
+
+  const row = project.memorial[key][rowIndex];
+
+  if (!row) {
+
+    console.error(
+      "Linha do Memorial não encontrada:",
+      {
+        key,
+        rowIndex
+      }
+    );
+
+    return false;
+  }
+
+
+  // ----------------------------------------------
+  // SALVA A IMAGEM NA LINHA
+  // ----------------------------------------------
+
+  row.foto = imageValue;
+
+
+  // ----------------------------------------------
+  // MARCA COMO ALTERADO
+  // ----------------------------------------------
+
+  memorialMarkDirty(project);
+
+
+  // ----------------------------------------------
+  // SALVA NO FIREBASE
+  // ----------------------------------------------
+
+  const saved = await memorialSave(project);
+
+  if (!saved) {
+
+    if (typeof showToast === "function") {
+      showToast(
+        "Não foi possível salvar a imagem.",
+        true
+      );
+    }
+
+    return false;
+  }
+
+
+  // ----------------------------------------------
+  // ATUALIZA A TELA
+  // ----------------------------------------------
+
+  renderMemorial(project);
+
+  return true;
 }
+
+
+// ==========================================================
+// FIM — IMAGENS DO MEMORIAL
+// ==========================================================
 
 })();

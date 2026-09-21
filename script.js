@@ -2956,38 +2956,65 @@ async function uploadContractToStorage(file) {
 function renderContracts(project) {
   const stage = STAGES.find((s) => s.id === "contratos");
   const container = $("#stageContainer");
+
+  if (!container || !stage) return;
+
   container.innerHTML = `
     <div class="stage-header">
       <h2>${stage.label}</h2>
       <p class="stage-hint">${stage.hint}</p>
     </div>
+
     <div class="panel">
       <h3>${ICONS.contratos} Documentos e links</h3>
+
       <div class="contract-list" id="contractList">
-        ${project.contracts && project.contracts.length ? contractListHTML(project.contracts) : '<div class="file-empty">Nenhum contrato registrado.</div>'}
+        ${
+          project.contracts && project.contracts.length
+            ? contractListHTML(project.contracts)
+            : '<div class="file-empty">Nenhum contrato registrado.</div>'
+        }
       </div>
+
       <div class="contract-form">
         <div class="field-row">
           <div class="field">
             <label for="cName">Nome do documento</label>
-            <input type="text" id="cName" placeholder="Ex.: Contrato de prestação de serviços" />
+            <input
+              type="text"
+              id="cName"
+              placeholder="Ex.: Contrato de prestação de serviços"
+            />
           </div>
+
           <div class="field">
             <label for="cKind">Tipo</label>
+
             <select id="cKind">
               <option value="link">Link (URL)</option>
               <option value="file">Arquivo (PDF / imagem)</option>
             </select>
           </div>
         </div>
+
         <div class="field" id="cLinkField">
           <label for="cLink">Link</label>
-          <input type="url" id="cLink" placeholder="https://drive.google.com/..." />
+          <input
+            type="url"
+            id="cLink"
+            placeholder="https://drive.google.com/..."
+          />
         </div>
+
         <div class="field" id="cFileField" hidden>
           <label for="cFile">Arquivo</label>
-          <input type="file" id="cFile" accept=".pdf,image/*,.doc,.docx" />
+          <input
+            type="file"
+            id="cFile"
+            accept=".pdf,image/*,.doc,.docx"
+          />
         </div>
+
         <div class="contract-download-permission">
           <label>
             <input type="checkbox" id="cAllowDownload" />
@@ -2996,10 +3023,17 @@ function renderContracts(project) {
         </div>
 
         <div>
-          <button type="button" class="btn-small" id="btnAddContract">+ Adicionar documento</button>
+          <button
+            type="button"
+            class="btn-small"
+            id="btnAddContract"
+          >
+            + Adicionar documento
+          </button>
         </div>
       </div>
-    </div>`;
+    </div>
+  `;
 
   const kindSel = $("#cKind");
   const linkField = $("#cLinkField");
@@ -3007,10 +3041,13 @@ function renderContracts(project) {
 
   const toggle = () => {
     const isLink = kindSel.value === "link";
+
     linkField.hidden = !isLink;
     fileField.hidden = isLink;
   };
+
   kindSel.addEventListener("change", toggle);
+  toggle();
 
   $("#btnAddContract").addEventListener("click", async () => {
     const name = $("#cName").value.trim();
@@ -3019,133 +3056,230 @@ function renderContracts(project) {
     const fileInput = $("#cFile");
 
     if (!name) {
-      if (typeof showToast === "function") showToast("Informe o nome do documento.", true);
+      if (typeof showToast === "function") {
+        showToast("Informe o nome do documento.", true);
+      }
       return;
     }
+
     if (isLink && !link) {
-      if (typeof showToast === "function") showToast("Informe o link.", true);
+      if (typeof showToast === "function") {
+        showToast("Informe o link.", true);
+      }
       return;
     }
-    if (!isLink && !fileInput.files.length) {
-      if (typeof showToast === "function") showToast("Selecione um arquivo.", true);
+
+    if (!isLink && (!fileInput.files || !fileInput.files.length)) {
+      if (typeof showToast === "function") {
+        showToast("Selecione um arquivo.", true);
+      }
       return;
     }
 
     const allowClientDownload = $("#cAllowDownload").checked;
-    let item;
+
+    let item = null;
 
     try {
+      // ======================================================
+      // CONTRATO DO TIPO LINK
+      // ======================================================
+
       if (isLink) {
         item = {
-          id: typeof uid === "function" ? uid() : String(Date.now()),
+          id: typeof uid === "function"
+            ? uid()
+            : String(Date.now()),
+
           name,
+
           kind: "link",
-          value: typeof normalizeUrl === "function" ? normalizeUrl(link) : link,
-          allowClientDownload,
+
+          value:
+            typeof normalizeUrl === "function"
+              ? normalizeUrl(link)
+              : link,
+
+          allowClientDownload
         };
-      } else {
-		const file = fileInput.files[0];
-		
-		if (!file) {
-		  showToast("Selecione um arquivo.", true);
-		  return;
-		}
-		
-		if (file.size > 10 * 1024 * 1024) {
-		  showToast(
-		    "O contrato é muito grande. O tamanho máximo permitido é 10 MB.",
-		    true
-		  );
-		  return;
-		}
-		
-		try {
-		  showToast(`Enviando ${file.name}...`, false);
-		
-		  // IMPORTANTE:
-		  // O arquivo vai diretamente para o Supabase.
-		  // Nunca é convertido para Base64.
-		  const publicUrl = await uploadContractToStorage(file);
-		
-		  item = {
-		    id,
-		    name: file.name,
-		    kind: "file",
-		
-		    // IMPORTANTE:
-		    // value agora contém SOMENTE a URL do Supabase.
-		    value: publicUrl,
-		
-		    fileName: file.name,
-		    fileType: file.type || "application/octet-stream",
-		    fileSize: file.size,
-		
-		    allowClientDownload
-		  };
-		
-		  showToast("Contrato enviado com sucesso!", false);
-		
-		} catch (error) {
-		  console.error("Erro no upload do contrato:", error);
-		
-		  showToast(
-		    error?.message || "Não foi possível enviar o contrato.",
-		    true
-		  );
-		
-		  return;
-		}
       }
+
+      // ======================================================
+      // CONTRATO DO TIPO ARQUIVO
+      // ======================================================
+
+      else {
+        const file = fileInput.files[0];
+
+        if (!file) {
+          if (typeof showToast === "function") {
+            showToast("Selecione um arquivo.", true);
+          }
+          return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+          if (typeof showToast === "function") {
+            showToast(
+              "O contrato é muito grande. O tamanho máximo permitido é 10 MB.",
+              true
+            );
+          }
+          return;
+        }
+
+        if (typeof showToast === "function") {
+          showToast(`Enviando ${file.name}...`, false);
+        }
+
+        // IMPORTANTE:
+        // O arquivo NÃO passa por FileReader,
+        // readAsDataURL() ou Base64.
+        //
+        // Ele vai diretamente para o Supabase Storage.
+        const publicUrl = await uploadContractToStorage(file);
+
+        item = {
+          id: typeof uid === "function"
+            ? uid()
+            : String(Date.now()),
+
+          name,
+
+          kind: "file",
+
+          // SOMENTE A URL FICA NO FIRESTORE.
+          value: publicUrl,
+
+          fileName: file.name,
+
+          fileType:
+            file.type || "application/octet-stream",
+
+          fileSize: file.size,
+
+          allowClientDownload
+        };
+
+        if (typeof showToast === "function") {
+          showToast("Contrato enviado com sucesso!", false);
+        }
+      }
+
+      // ======================================================
+      // SALVAR METADADOS DO CONTRATO NO PROJETO
+      // ======================================================
 
       if (!Array.isArray(project.contracts)) {
         project.contracts = [];
       }
 
       project.contracts.push(item);
-      if (typeof saveProjects === "function" && (await saveProjects())) {
+
+      if (
+        typeof saveProjects === "function" &&
+        (await saveProjects())
+      ) {
         $("#cName").value = "";
-        if ($("#cLink")) $("#cLink").value = "";
-        fileInput.value = "";
+
+        if ($("#cLink")) {
+          $("#cLink").value = "";
+        }
+
+        if ($("#cFile")) {
+          $("#cFile").value = "";
+        }
+
+        if ($("#cAllowDownload")) {
+          $("#cAllowDownload").checked = false;
+        }
+
         renderContracts(project);
-        if (typeof showToast === "function") showToast("Documento adicionado.");
+
+        if (typeof showToast === "function") {
+          showToast("Documento adicionado.");
+        }
       }
+
     } catch (err) {
-      console.error("Erro ao adicionar documento:", err);
-      if (typeof showToast === "function") showToast("Erro ao processar o arquivo.", true);
+      console.error(
+        "Erro ao adicionar documento:",
+        err
+      );
+
+      if (typeof showToast === "function") {
+        showToast(
+          err?.message ||
+          "Erro ao processar o arquivo.",
+          true
+        );
+      }
     }
   });
 
-  $$("#contractList .contract-download-checkbox").forEach((checkbox) => {
-    checkbox.addEventListener("change", async () => {
-      const id = checkbox.dataset.contractId;
-      const contract = project.contracts.find((c) => c.id === id);
+  // ==========================================================
+  // PERMISSÃO DE DOWNLOAD
+  // ==========================================================
 
-      if (!contract) return;
+  $$("#contractList .contract-download-checkbox").forEach(
+    (checkbox) => {
+      checkbox.addEventListener("change", async () => {
+        const id = checkbox.dataset.contractId;
 
-      contract.allowClientDownload = checkbox.checked;
+        const contract =
+          project.contracts.find((c) => c.id === id);
 
-      if (typeof saveProjects === "function" && (await saveProjects())) {
-        if (typeof showToast === "function") {
-          showToast(
-            checkbox.checked
-              ? "Download liberado para o cliente."
-              : "Download bloqueado para o cliente."
-          );
+        if (!contract) return;
+
+        contract.allowClientDownload =
+          checkbox.checked;
+
+        if (
+          typeof saveProjects === "function" &&
+          (await saveProjects())
+        ) {
+          if (typeof showToast === "function") {
+            showToast(
+              checkbox.checked
+                ? "Download liberado para o cliente."
+                : "Download bloqueado para o cliente."
+            );
+          }
         }
-      }
-    });
-  });
+      });
+    }
+  );
+
+  // ==========================================================
+  // REMOVER CONTRATO
+  // ==========================================================
 
   $$("#contractList .file-remove").forEach((btn) => {
     btn.addEventListener("click", async () => {
-      const contractItem = btn.closest(".contract-item");
-      const id = contractItem ? contractItem.dataset.id : null;
+      const contractItem =
+        btn.closest(".contract-item");
+
+      const id =
+        contractItem
+          ? contractItem.dataset.id
+          : null;
+
       if (!id) return;
 
-      project.contracts = project.contracts.filter((c) => c.id !== id);
-      if (typeof saveProjects === "function" && (await saveProjects())) {
+      project.contracts =
+        project.contracts.filter(
+          (c) => c.id !== id
+        );
+
+      if (
+        typeof saveProjects === "function" &&
+        (await saveProjects())
+      ) {
         renderContracts(project);
-        if (typeof showToast === "function") showToast("Documento removido.");
+
+        if (typeof showToast === "function") {
+          showToast("Documento removido.");
+        }
       }
     });
   });

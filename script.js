@@ -1746,6 +1746,20 @@ function renderSidebar() {
             });
           }
 
+				if (clientMode && changed && Array.isArray(stage.files)) {
+			  db.collection("projects")
+			    .doc(String(p.id))
+			    .update({
+			      [`stages.${currentStage}.files`]: stage.files
+			    })
+			    .catch((error) => {
+			      console.error(
+			        "[CLIENT] Erro ao marcar arquivos como lidos:",
+			        error
+			      );
+			    });
+			}
+
 			if (changed || stage.checklistUpdated === true) {
 			  if (stage.checklistUpdated === true) {
 			    stage.checklistUpdated = false;

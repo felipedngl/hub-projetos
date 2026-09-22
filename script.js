@@ -2729,6 +2729,15 @@ try {
 }
 
 function stageConversationHTML(messages) {
+
+  if (clientMode) {
+    messages = messages.filter(
+      (message) =>
+        message.author === "client" ||
+        message.readByClient !== true
+    );
+  }
+	
   if (!messages || !messages.length) {
     return `
       <div class="conversation-empty">

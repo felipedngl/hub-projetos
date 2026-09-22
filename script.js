@@ -2741,32 +2741,66 @@ try {
     });
   }
 
-  // Evento do botão de aprovação da etapa pelo cliente
-  const btnApproveStage = $("#btnApproveStageClient");
-  if (btnApproveStage) {
-    btnApproveStage.addEventListener("click", async () => {
-      if (!confirm("Deseja confirmar a aprovação formal desta etapa do projeto?")) return;
+// Evento do botão de aprovação da etapa pelo cliente
+const btnApproveStage = $("#btnApproveStageClient");
 
-      const now = new Date();
-      const formattedDate = now.toLocaleDateString("pt-BR") + " às " + now.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
+if (btnApproveStage) {
+  btnApproveStage.addEventListener("click", async () => {
+    if (!confirm("Deseja confirmar a aprovação formal desta etapa do projeto?")) {
+      return;
+    }
 
+    const now = new Date();
+
+    const formattedDate =
+      now.toLocaleDateString("pt-BR") +
+      " às " +
+      now.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+    btnApproveStage.disabled = true;
+    btnApproveStage.textContent = "Aprovando...";
+
+    try {
       s.approved = true;
       s.approvedAt = formattedDate;
       s.status = "concluida";
       s.progress = 100;
 
-      btnApproveStage.disabled = true;
-      btnApproveStage.textContent = "Aprovando...";
+      await db
+        .collection("projects")
+        .doc(String(project.id))
+        .update({
+          [`stages.${stageKey}.approved`]: true,
+          [`stages.${stageKey}.approvedAt`]: formattedDate,
+          [`stages.${stageKey}.status`]: "concluida",
+          [`stages.${stageKey}.progress`]: 100
+        });
 
-      if (typeof saveProjects === "function" && await saveProjects()) {
-        if (typeof showToast === "function") showToast("Etapa aprovada com sucesso!");
-        renderStageClient(project, stage);
-      } else {
-        btnApproveStage.disabled = false;
-        btnApproveStage.textContent = "Aprovar Etapa";
+      if (typeof showToast === "function") {
+        showToast("Etapa aprovada com sucesso!");
       }
-    });
-  }
+
+      renderStageClient(project, stage);
+
+    } catch (error) {
+      console.error("[CLIENT] Erro ao aprovar etapa:", error);
+
+      s.approved = false;
+      s.approvedAt = null;
+      s.status = "em_andamento";
+      s.progress = 0;
+
+      btnApproveStage.disabled = false;
+      btnApproveStage.textContent = "Aprovar Etapa";
+
+      if (typeof showToast === "function") {
+        showToast("Não foi possível aprovar a etapa.", true);
+      }
+    }
+  });
 }
 
 function stageConversationHTML(messages) {

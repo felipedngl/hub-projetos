@@ -879,6 +879,7 @@ function containsBase64Data(value, path = "project") {
     );
   }
 
+
   return false;
 }
 
@@ -907,10 +908,14 @@ async function saveProjects(customProjects = null) {
     return false;
   }
 
+  if (clientMode) {
+    return;
+  }
+
   const projectIds = listToSave.map((proj) => String(proj.id));
 
   projectIds.forEach(markLocalProjectWrite);
-
+	
   saveQueue = saveQueue.then(async () => {
     try {
 for (const proj of listToSave) {

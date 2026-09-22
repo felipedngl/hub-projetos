@@ -805,26 +805,6 @@ Object.keys(project.stages || {}).forEach((stageId) => {
       Number(a.createdAt || 0) - Number(b.createdAt || 0)
   );
 });
-		
-      Object.entries(messagesByStage).forEach(([stageId, messages]) => {
-        if (!project.stages || !project.stages[stageId]) return;
-
-        const existingMessages = Array.isArray(
-          project.stages[stageId].clientMessages
-        )
-          ? project.stages[stageId].clientMessages.filter(
-              (message) => message.author !== "client"
-            )
-          : [];
-
-        project.stages[stageId].clientMessages = [
-          ...existingMessages,
-          ...messages
-        ].sort(
-          (a, b) =>
-            Number(a.createdAt || 0) - Number(b.createdAt || 0)
-        );
-      });
 
       if (currentProject()?.id === projectId) {
         renderStage(true);

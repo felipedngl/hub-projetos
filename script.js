@@ -24,13 +24,29 @@ async function signOutFromFirebase() {
   await firebaseAuth.signOut();
 }
 
+let authStateReady = false;
+let authStateUser = null;
+let resolveAuthReady;
+
+const authReadyPromise = new Promise((resolve) => {
+  resolveAuthReady = resolve;
+});
+
 firebaseAuth?.onAuthStateChanged((user) => {
+  authStateUser = user;
+  authStateReady = true;
+
   if (user) {
-    console.log("[AUTH] Usuário autenticado:", user.email || user.uid);
+    console.log(
+      "[AUTH] Usuário autenticado:",
+      user.email || user.uid
+    );
   } else {
     console.log("[AUTH] Nenhum usuário autenticado.");
   }
-});	
+
+  resolveAuthReady(user);
+});
 
 function getFirebaseUser() {
   return firebaseAuth?.currentUser || null;
@@ -5575,6 +5591,8 @@ function bindEvents() {
 
 /* ---------------- Inicialização da Aplicação ---------------- */
 async function init() {
+  await authReadyPromise;
+
   if (
     typeof DESIGNER_KEY !== "undefined" &&
     sessionStorage.getItem(DESIGNER_KEY) === "true"

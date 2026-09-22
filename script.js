@@ -2373,8 +2373,9 @@ function renderStageClient(project, stage) {
 // --- MARCAR MENSAGENS DO DESIGNER COMO LIDAS ---
 if (Array.isArray(s.clientMessages)) {
   s.clientMessages.forEach((msg) => {
-	if (msg.author === "designer" && msg.readByClient !== true) {
-	  msg.readByClient = true;
+if (msg.author === "designer" && msg.readByClient !== true) {
+  msg.readByClient = true;
+  clientMessagesChanged = true;
 	}
   });
 

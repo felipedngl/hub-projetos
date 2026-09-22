@@ -5535,11 +5535,11 @@ async function init() {
     );
 
     if (targetProject) {
-      if (!designerUnlocked && targetProject.clientPassword) {
-        clientMode = true;
-        document.body.classList.add("client-view");
-        promptClientPassword(targetProject);
-      } else {
+		if (!designerUnlocked) {
+		  clientMode = true;
+		  document.body.classList.add("client-view");
+		  promptClientPassword(targetProject);
+		} else {
         if (!designerUnlocked) {
           clientMode = true;
           document.body.classList.add("client-view");

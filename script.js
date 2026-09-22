@@ -762,19 +762,16 @@ if (!clientMessagesListenerInitialized) {
           ...doc.data()
         };
 
-		const isNewMessage =
+const isNewMessage =
   !knownClientMessageIds.has(message.id);
 
 if (isNewMessage) {
   knownClientMessageIds.add(message.id);
 
-  // Só toca para mensagens que chegaram agora,
-  // nunca para mensagens carregadas ao abrir/atualizar.
-  if (message.author === "designer" && clientMode) {
-    playMessageSound();
-  }
-
-  if (message.author === "client" && !clientMode) {
+  if (
+    (message.author === "designer" && clientMode) ||
+    (message.author === "client" && !clientMode)
+  ) {
     playMessageSound();
   }
 }

@@ -2371,6 +2371,9 @@ function renderStageClient(project, stage) {
   const s = stagesData[stageKey] || { checklist: [], files: [], clientMessages: [], status: "nao_iniciado" };
 
 // --- MARCAR MENSAGENS DO DESIGNER COMO LIDAS ---
+
+let clientMessagesChanged = false;
+	
 if (Array.isArray(s.clientMessages)) {
   s.clientMessages.forEach((msg) => {
 if (msg.author === "designer" && msg.readByClient !== true) {

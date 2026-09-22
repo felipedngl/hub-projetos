@@ -2299,20 +2299,32 @@ function renderStageClient(project, stage) {
   // Declaração ÚNICA da variável 's'
   const s = stagesData[stageKey] || { checklist: [], files: [], clientMessages: [], status: "nao_iniciado" };
 
-  // --- MARCAR MENSAGENS DO DESIGNER COMO LIDAS ---
-  if (Array.isArray(s.clientMessages)) {
-    let unreadFound = false;
-    s.clientMessages.forEach((msg) => {
-      if (msg.author === "designer" && !msg.readByClient) {
-        msg.readByClient = true;
-        unreadFound = true;
-      }
-    });
+// --- MARCAR MENSAGENS DO DESIGNER COMO LIDAS ---
+if (Array.isArray(s.clientMessages)) {
+  s.clientMessages.forEach((msg) => {
+    if (msg.author === "designer" && msg.readByClient !== true) {
+      msg.readByClient = true;
 
-    if (unreadFound && typeof saveProjects === "function") {
-      saveProjects();
+      db.collection("projects")
+        .doc(String(project.id))
+        .collection("clientMessages")
+        .doc(String(msg.id))
+        .update({
+          readByClient: true
+        })
+        .catch((error) => {
+          console.error(
+            "[CLIENT] Erro ao marcar mensagem como lida:",
+            error
+          );
+        });
     }
+  });
+
+  if (typeof renderSidebar === "function") {
+    renderSidebar();
   }
+}
 
   const container = $("#stageContainer");
   if (!container) return;

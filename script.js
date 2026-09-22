@@ -652,6 +652,33 @@ let unsubscribeClientMessagesListener = null;
 let projectListenerSnapshot = null;
 let messageAudioContext = null;
 
+function initMessageAudio() {
+  if (messageAudioContext) return;
+
+  try {
+    const AudioContextClass =
+      window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContextClass) return;
+
+    messageAudioContext = new AudioContextClass();
+
+    if (messageAudioContext.state === "suspended") {
+      messageAudioContext.resume().catch(() => {});
+    }
+  } catch (error) {
+    console.debug("Não foi possível inicializar o áudio:", error);
+  }
+}
+
+document.addEventListener(
+  "pointerdown",
+  () => {
+    initMessageAudio();
+  },
+  { once: true }
+);
+
 const pendingLocalProjectWrites = new Map();
 
 function markLocalProjectWrite(projectId) {

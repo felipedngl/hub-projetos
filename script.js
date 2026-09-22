@@ -5594,6 +5594,8 @@ async function init() {
     projects = initialProjects;
   }
 
+  console.log("[INIT] Projetos carregados:", projects.length);
+
   // ============================================================
   // ABERTURA DE PROJETO
   // ============================================================

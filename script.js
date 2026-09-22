@@ -2373,23 +2373,9 @@ function renderStageClient(project, stage) {
 // --- MARCAR MENSAGENS DO DESIGNER COMO LIDAS ---
 if (Array.isArray(s.clientMessages)) {
   s.clientMessages.forEach((msg) => {
-    if (msg.author === "designer" && msg.readByClient !== true) {
-      msg.readByClient = true;
-
-      db.collection("projects")
-        .doc(String(project.id))
-        .collection("clientMessages")
-        .doc(String(msg.id))
-        .update({
-          readByClient: true
-        })
-        .catch((error) => {
-          console.error(
-            "[CLIENT] Erro ao marcar mensagem como lida:",
-            error
-          );
-        });
-    }
+	if (msg.author === "designer" && msg.readByClient !== true) {
+	  msg.readByClient = true;
+	}
   });
 
   if (typeof renderSidebar === "function") {

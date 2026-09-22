@@ -5511,6 +5511,8 @@ function bindEvents() {
 
 /* ---------------- Inicialização da Aplicação ---------------- */
 async function init() {
+  console.log("[INIT] iniciou");
+	
   if (
     typeof DESIGNER_KEY !== "undefined" &&
     sessionStorage.getItem(DESIGNER_KEY) === "true"

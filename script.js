@@ -5871,6 +5871,53 @@ function enableCardDragging() {
   });
 }
 
+async function createClientAuthAccount(project, password) {
+  if (!project || !project.id || !password) {
+    throw new Error("Projeto ou senha não informados.");
+  }
+
+  const clientEmail =
+    project.clientEmail ||
+    `client_${project.id}@hub-menche.com`;
+
+  const apiKey =
+    typeof firebaseConfig !== "undefined"
+      ? firebaseConfig.apiKey
+      : null;
+
+  if (!apiKey) {
+    throw new Error("Firebase API Key não encontrada.");
+  }
+
+  const response = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: clientEmail,
+        password: password,
+        returnSecureToken: true
+      })
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error?.message || "Não foi possível criar o acesso do cliente."
+    );
+  }
+
+  return {
+    clientUid: data.localId,
+    clientEmail: clientEmail
+  };
+}
+
 /* ---------------- Modal de Compartilhamento (Cliques Diretos + Animação) ---------------- */
 function openShareModal() {
   // 1. Identifica o projeto ativo

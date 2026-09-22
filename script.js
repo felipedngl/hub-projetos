@@ -5282,21 +5282,36 @@ const verifyPassword = async () => {
   try {
     showToast("Verificando credenciais...");
 
-    await firebase.auth().signInWithEmailAndPassword(
-      DESIGNER_EMAIL,
-      pwd
-    );
-
-    if (typeof unlockDesigner === "function") {
-      unlockDesigner();
-    }
-
-    modal.style.display = "none";
-    lockedEl.remove();
-    document.body.classList.remove("hub-is-locked");
-
-    showDashboard();
-    showToast("Acesso liberado com sucesso!");
+	await firebase.auth().signInWithEmailAndPassword(
+	  DESIGNER_EMAIL,
+	  pwd
+	);
+	
+	// Recarrega todos os projetos agora que a designer
+	// está autenticada e autorizada pelo Firestore.
+	const cloudProjects =
+	  typeof loadProjects === "function"
+		? await loadProjects()
+		: [];
+	
+	if (cloudProjects && cloudProjects.length > 0) {
+	  projects = cloudProjects.map((p) =>
+		typeof seedProject === "function"
+		  ? seedProject(p)
+		  : p
+	  );
+	}
+	
+	if (typeof unlockDesigner === "function") {
+	  unlockDesigner();
+	}
+	
+	modal.style.display = "none";
+	lockedEl.remove();
+	document.body.classList.remove("hub-is-locked");
+	
+	showDashboard();
+	showToast("Acesso liberado com sucesso!");
   } catch (error) {
     console.error("[AUTH] Erro no acesso da designer:", error);
     showToast("Senha incorreta.", true);

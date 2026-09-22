@@ -2382,6 +2382,20 @@ if (msg.author === "designer" && msg.readByClient !== true) {
 	}
   });
 
+if (clientMessagesChanged) {
+  db.collection("projects")
+    .doc(String(project.id))
+    .update({
+      [`stages.${stageKey}.clientMessages`]: s.clientMessages
+    })
+    .catch((error) => {
+      console.error(
+        "[CLIENT] Erro ao salvar mensagens como lidas:",
+        error
+      );
+    });
+}
+	
   if (typeof renderSidebar === "function") {
     renderSidebar();
   }

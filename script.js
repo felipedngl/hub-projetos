@@ -9,6 +9,7 @@ const STORAGE_KEY = "archDashV3";
 const DESIGNER_KEY = "archDashV3_designer";
 const DESIGNER_EMAIL = "mencheinteriores@outlook.com";
 const CLIENT_ACCESS_TTL = 7 * 24 * 60 * 60 * 1000;
+const firebaseAuth = window.auth || null;
 
 function getClientAccessKey(projectId) {
   return `hub_client_access_${projectId}`;

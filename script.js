@@ -6010,6 +6010,29 @@ function openShareModal() {
     p.clientPassword = novaSenha;
     p.client_password = novaSenha;
 
+	if (!p.clientUid || !p.clientEmail) {
+  try {
+    const authAccount = await createClientAuthAccount(p, novaSenha);
+
+    p.clientUid = authAccount.clientUid;
+    p.clientEmail = authAccount.clientEmail;
+
+    console.log("[CLIENT AUTH] Conta criada:", {
+      clientUid: p.clientUid,
+      clientEmail: p.clientEmail
+    });
+
+  } catch (error) {
+    console.error("[CLIENT AUTH] Erro ao criar conta:", error);
+    showToast(
+      "Não foi possível criar o acesso do cliente: " +
+      (error.message || "erro desconhecido"),
+      true
+    );
+    return;
+  }
+}
+
 	const projectSlug =
   typeof slugify === "function"
     ? slugify(p.title)

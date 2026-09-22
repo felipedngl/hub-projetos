@@ -734,6 +734,8 @@ if (typeof unsubscribeClientMessagesListener === "function") {
   unsubscribeClientMessagesListener = null;
 }
 
+let knownClientMessageIds = new Set();	
+	
 unsubscribeClientMessagesListener = db
   .collection("projects")
   .doc(String(projectId))

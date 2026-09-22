@@ -2653,13 +2653,23 @@ if (stage.special === "contracts") {
         s.clientMessages = [];
       }
 
-      s.clientMessages.push({
-        id: typeof uid === "function" ? uid() : String(Date.now()),
-        author: "client",
-        text,
-        createdAt: Date.now(),
-        readByDesigner: false,
-      });
+const messageId =
+  typeof uid === "function" ? uid() : String(Date.now());
+
+const clientMessage = {
+  id: messageId,
+  author: "client",
+  text,
+  createdAt: Date.now(),
+  readByDesigner: false
+};
+
+await db
+  .collection("projects")
+  .doc(String(project.id))
+  .collection("clientMessages")
+  .doc(messageId)
+  .set(clientMessage);
 
       sendButton.disabled = true;
       sendButton.textContent = "Enviando...";

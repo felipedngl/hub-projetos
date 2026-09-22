@@ -5271,33 +5271,37 @@ function showHubLocked() {
         modal.style.display = "none";
       });
 
-      const verifyPassword = async () => {
-        const pwd = input ? input.value.trim() : "";
-        if (!pwd) {
-          showToast("Digite a senha para continuar.", true);
-          return;
-        }
+const verifyPassword = async () => {
+  const pwd = input ? input.value.trim() : "";
 
-        try {
-          showToast("Verificando credenciais...");
-          if (typeof db !== "undefined" && db) {
-            const configDoc = await db.collection("settings").doc("access").get();
-            if (configDoc.exists && configDoc.data().password === pwd) {
-              if (typeof unlockDesigner === "function") unlockDesigner();
-              modal.style.display = "none";
-              lockedEl.remove();
-			  document.body.classList.remove("hub-is-locked");
-              showDashboard();
-              showToast("Acesso liberado com sucesso!");
-              return;
-            }
-          }
-          showToast("Senha incorreta.", true);
-        } catch (error) {
-          console.error("Erro na validação do Firestore:", error);
-          showToast("Erro ao conectar com o banco de dados.", true);
-        }
-      };
+  if (!pwd) {
+    showToast("Digite a senha para continuar.", true);
+    return;
+  }
+
+  try {
+    showToast("Verificando credenciais...");
+
+    await firebase.auth().signInWithEmailAndPassword(
+      DESIGNER_EMAIL,
+      pwd
+    );
+
+    if (typeof unlockDesigner === "function") {
+      unlockDesigner();
+    }
+
+    modal.style.display = "none";
+    lockedEl.remove();
+    document.body.classList.remove("hub-is-locked");
+
+    showDashboard();
+    showToast("Acesso liberado com sucesso!");
+  } catch (error) {
+    console.error("[AUTH] Erro no acesso da designer:", error);
+    showToast("Senha incorreta.", true);
+  }
+};
 
       btnConfirm?.addEventListener("click", verifyPassword);
     }

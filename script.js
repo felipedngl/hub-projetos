@@ -5576,6 +5576,43 @@ function bindEvents() {
   });
 }
 
+async function loadProjects() {
+  try {
+    if (typeof db === "undefined" || !db) {
+      console.warn("Firestore 'db' não está definido.");
+      return null;
+    }
+
+    const snapshot = await db
+      .collection("projects")
+      .get();
+
+    const projectsList = [];
+
+    snapshot.forEach((doc) => {
+      projectsList.push({
+        id: doc.id,
+        ...doc.data(),
+      });
+    });
+
+    console.log(
+      "[FIRESTORE] Projetos carregados:",
+      projectsList.length
+    );
+
+    return projectsList;
+
+  } catch (error) {
+    console.error(
+      "[FIRESTORE] Erro ao carregar projetos:",
+      error
+    );
+
+    return null;
+  }
+}
+	
 /* ---------------- Inicialização da Aplicação ---------------- */
 async function init() {
   if (

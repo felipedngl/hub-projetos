@@ -826,6 +826,73 @@ function listenToCurrentProject(projectId) {
   projectListenerSnapshot = null;
   let isFirstSnapshot = true; // Flag para controlar o som na primeira leitura
 
+  // Listener separado para mensagens do cliente
+if (typeof unsubscribeClientMessagesListener === "function") {
+  unsubscribeClientMessagesListener();
+  unsubscribeClientMessagesListener = null;
+}
+
+unsubscribeClientMessagesListener = db
+  .collection("projects")
+  .doc(String(projectId))
+  .collection("clientMessages")
+  .onSnapshot(
+    (snapshot) => {
+      const project = projects.find((p) => p.id === projectId);
+      if (!project) return;
+
+      const messagesByStage = {};
+
+      snapshot.forEach((doc) => {
+        const message = {
+          id: doc.id,
+          ...doc.data()
+        };
+
+        const stageId = message.stageId;
+        if (!stageId) return;
+
+        if (!messagesByStage[stageId]) {
+          messagesByStage[stageId] = [];
+        }
+
+        messagesByStage[stageId].push(message);
+      });
+
+      Object.entries(messagesByStage).forEach(([stageId, messages]) => {
+        if (!project.stages || !project.stages[stageId]) return;
+
+        const existingMessages = Array.isArray(
+          project.stages[stageId].clientMessages
+        )
+          ? project.stages[stageId].clientMessages.filter(
+              (message) => message.author !== "client"
+            )
+          : [];
+
+        project.stages[stageId].clientMessages = [
+          ...existingMessages,
+          ...messages
+        ].sort(
+          (a, b) =>
+            Number(a.createdAt || 0) - Number(b.createdAt || 0)
+        );
+      });
+
+      if (currentProject()?.id === projectId) {
+        renderStage(true);
+      }
+
+      renderSidebar();
+    },
+    (error) => {
+      console.error(
+        "[CHAT] Erro no listener de mensagens:",
+        error
+      );
+    }
+  );
+
   unsubscribeProjectListener = db.collection("projects").doc(projectId).onSnapshot(
     (doc) => {
       if (!doc.exists) return;

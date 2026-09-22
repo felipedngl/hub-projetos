@@ -5623,6 +5623,8 @@ async function promptClientPassword(project) {
   		"true"
 	  );
 
+	  showSoundPermission();
+
       modal.setAttribute("hidden", "");
       modal.style.display = "none";
       document.body.classList.remove("client-view");

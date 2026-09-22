@@ -937,6 +937,39 @@ if (hasPendingLocalProjectWrite(projectId)) {
 const previous = projectListenerSnapshot;
 projectListenerSnapshot = updatedProject;
 
+if (clientMode && previous) {
+  Object.entries(updatedProject.stages || {}).forEach(
+    ([stageId, stage]) => {
+      const oldMessages =
+        Array.isArray(previous.stages?.[stageId]?.clientMessages)
+          ? previous.stages[stageId].clientMessages
+          : [];
+
+      const oldIds = new Set(
+        oldMessages.map((msg) => msg.id)
+      );
+
+      const newDesignerMessages =
+        Array.isArray(stage.clientMessages)
+          ? stage.clientMessages.filter(
+              (msg) =>
+                msg.author === "designer" &&
+                !oldIds.has(msg.id)
+            )
+          : [];
+
+      if (newDesignerMessages.length > 0) {
+        console.log(
+          "[SOM] Nova mensagem do designer detectada:",
+          newDesignerMessages
+        );
+
+        playMessageSound();
+      }
+    }
+  );
+}
+		
 const index = projects.findIndex(
   (p) => p.id === projectId
 );

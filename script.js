@@ -908,10 +908,15 @@ const updatedProject = {
 };
 
 console.log(
-  "[SYNC] Mensagens por etapa:",
+  "[SYNC] Mensagens detalhadas:",
   Object.entries(updatedProject.stages || {}).map(([stageId, stage]) => ({
     stageId,
-    mensagens: stage.clientMessages || []
+    mensagens: (stage.clientMessages || []).map(msg => ({
+      id: msg.id,
+      author: msg.author,
+      text: msg.text,
+      createdAt: msg.createdAt
+    }))
   }))
 );
 

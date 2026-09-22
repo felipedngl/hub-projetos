@@ -5388,6 +5388,11 @@ async function promptClientPassword(project) {
       }
 
       await signInWithFirebase(project.clientEmail, entered);
+	  
+	  sessionStorage.setItem(
+  		`client_authenticated_${project.id}`,
+  		"true"
+	  );
 
       modal.setAttribute("hidden", "");
       modal.style.display = "none";

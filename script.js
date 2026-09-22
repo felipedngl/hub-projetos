@@ -705,6 +705,12 @@ function hasPendingLocalProjectWrite(projectId) {
 }
 
 function playMessageSound() {	
+  console.log("[SOM] playMessageSound chamado", {
+  clientMode,
+  audioContext: !!messageAudioContext,
+  audioState: messageAudioContext?.state
+});
+	
   try {
 if (!messageAudioContext) {
   initMessageAudio();

@@ -5952,14 +5952,17 @@ function openShareModal() {
     ? slugify(p.title)
     : p.id;
 
-await db.collection("clientAccess")
+db.collection("clientAccess")
   .doc(p.id)
   .set({
     slug: projectSlug,
     projectId: p.id,
     clientUid: p.clientUid || null,
     clientEmail: p.clientEmail || null
-  }, { merge: true });
+  }, { merge: true })
+  .catch((error) => {
+    console.error("[CLIENT ACCESS] Erro ao salvar:", error);
+  });
 
     if (typeof projects !== "undefined" && Array.isArray(projects)) {
       const item = projects.find(proj => proj.id === p.id);

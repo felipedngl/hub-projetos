@@ -5314,11 +5314,11 @@ function copyShareLink() {
   });
 }
 
-function promptClientPassword(project) {
-  // Esconde imediatamente a busca e os filtros da tela
+async function promptClientPassword(project) {
   document.body.classList.add("client-view");
 
   const modal = $("#passwordModal") || $("#pwdModal");
+
   if (!modal) {
     document.body.classList.remove("client-view");
     openProject(project.id);
@@ -5341,16 +5341,32 @@ function promptClientPassword(project) {
     pwdInput.focus();
   }
 
-  const handleAuth = () => {
+  const handleAuth = async () => {
     const entered = pwdInput ? pwdInput.value.trim() : "";
-    if (entered === project.clientPassword) {
+
+    if (!entered) {
+      showToast("Digite a senha para continuar.", true);
+      return;
+    }
+
+    try {
+      if (!project.clientUid) {
+        showToast("Este projeto ainda não está configurado para acesso do cliente.", true);
+        return;
+      }
+
+      await signInWithFirebase(project.clientEmail, entered);
+
       modal.setAttribute("hidden", "");
       modal.style.display = "none";
-      // Remove a trava visual da tela de senha ao acertar a senha
       document.body.classList.remove("client-view");
+
       openProject(project.id);
-    } else {
-      showToast("Senha incorreta. Tente novamente.", true);
+
+      showToast("Acesso liberado!");
+    } catch (error) {
+      console.error("[AUTH] Erro no acesso do cliente:", error);
+      showToast("Senha incorreta ou acesso não autorizado.", true);
     }
   };
 

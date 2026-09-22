@@ -5651,12 +5651,18 @@ async function init() {
       ? await loadProjects()
       : [];
 
+console.log("[INIT] cloudProjects:", cloudProjects);
+console.log("[INIT] quantidade:", cloudProjects?.length);
+	
   if (cloudProjects && cloudProjects.length > 0) {
     projects = cloudProjects.map((p) =>
       typeof seedProject === "function"
         ? seedProject(p)
         : p
     );
+
+console.log("[INIT] projects após carregamento:", projects.length);	  
+	  
   } else if (typeof initialProjects !== "undefined") {
     projects = initialProjects;
   }

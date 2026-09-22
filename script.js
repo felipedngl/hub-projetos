@@ -5612,11 +5612,19 @@ async function init() {
 	  clientEmail: accessData.clientEmail || null
 	};
 	
-	projects = [targetProject];
-	
-	promptClientPassword(targetProject);
-	
-	return;
+projects = [targetProject];
+
+const clientSessionKey =
+  `client_authenticated_${targetProject.id}`;
+
+if (sessionStorage.getItem(clientSessionKey) === "true") {
+  openProject(targetProject.id);
+  return;
+}
+
+promptClientPassword(targetProject);
+return;
+		
     } catch (error) {
       console.error(
         "[INIT] Erro ao localizar projeto do cliente:",

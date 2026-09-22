@@ -5511,64 +5511,116 @@ function bindEvents() {
 
 /* ---------------- Inicialização da Aplicação ---------------- */
 async function init() {
-  if (typeof DESIGNER_KEY !== "undefined" && sessionStorage.getItem(DESIGNER_KEY) === "true") {
+  if (
+    typeof DESIGNER_KEY !== "undefined" &&
+    sessionStorage.getItem(DESIGNER_KEY) === "true"
+  ) {
     designerUnlocked = true;
   }
 
   bindEvents();
-
   initViewModeSwitcher();
-
-  // Inicializa o controle do botão de lupa expandível
   initSearchToggle();
 
-  const cloudProjects = typeof loadProjects === "function"
-  ? await loadProjects()
-  : [];	
-	
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectParam = urlParams.get("project") || urlParams.get("p");
+
+  // ============================================================
+  // ACESSO DIRETO A PROJETO PELO LINK DO CLIENTE
+  // ============================================================
+
+  if (projectParam && !designerUnlocked) {
+    clientMode = true;
+    document.body.classList.add("client-view");
+
+    try {
+      const snapshot = await db.collection("projects").get();
+
+      const targetProjectDoc = snapshot.docs.find((doc) => {
+        const data = doc.data();
+
+        const titleSlug =
+          typeof slugify === "function"
+            ? slugify(data.title || "")
+            : String(data.title || "")
+                .toLowerCase()
+                .replace(/\s+/g, "-");
+
+        return (
+          doc.id === projectParam ||
+          titleSlug === projectParam ||
+          data.slug === projectParam
+        );
+      });
+
+      if (!targetProjectDoc) {
+        showToast("Projeto não encontrado.", true);
+        showDashboard();
+        return;
+      }
+
+      const targetProject = {
+        id: targetProjectDoc.id,
+        ...targetProjectDoc.data()
+      };
+
+      projects = [targetProject];
+
+      promptClientPassword(targetProject);
+
+      return;
+    } catch (error) {
+      console.error("[INIT] Erro ao localizar projeto:", error);
+      showToast("Erro ao carregar o projeto.", true);
+      showDashboard();
+      return;
+    }
+  }
+
+  // ============================================================
+  // ACESSO DA DESIGNER
+  // ============================================================
+
+  const cloudProjects =
+    typeof loadProjects === "function"
+      ? await loadProjects()
+      : [];
+
   if (cloudProjects && cloudProjects.length > 0) {
-    projects = cloudProjects.map((p) => (typeof seedProject === "function" ? seedProject(p) : p));
+    projects = cloudProjects.map((p) =>
+      typeof seedProject === "function" ? seedProject(p) : p
+    );
   } else if (typeof initialProjects !== "undefined") {
     projects = initialProjects;
   }
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const projectIdParam = urlParams.get("project") || urlParams.get("p");
+  // ============================================================
+  // ABERTURA DE PROJETO
+  // ============================================================
 
-  if (projectIdParam) {
+  if (projectParam) {
     const targetProject = projects.find(
-      (p) => p.id === projectIdParam || (typeof slugify === "function" && slugify(p.title) === slugify(projectIdParam)) || p.slug === projectIdParam
+      (p) =>
+        p.id === projectParam ||
+        (
+          typeof slugify === "function" &&
+          slugify(p.title) === slugify(projectParam)
+        ) ||
+        p.slug === projectParam
     );
 
     if (targetProject) {
-		if (!designerUnlocked) {
-		  clientMode = true;
-		  document.body.classList.add("client-view");
-		  promptClientPassword(targetProject);
-		} else {
-        if (!designerUnlocked) {
-          clientMode = true;
-          document.body.classList.add("client-view");
-        }
-        openProject(targetProject.id);
-      }
+      openProject(targetProject.id);
     } else {
       showDashboard();
     }
   } else {
-    // ➔ GARANTE QUE O DASHBOARD SEMPRE ABRE E REMOVE TRAVAS AO RECARREGAR NA RAIZ:
     document.body.classList.remove("hub-is-locked");
     document.body.classList.remove("client-view");
     showDashboard();
   }
 }
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init);
-} else {
-  init();
-}
-
+	
 /* ---------------- Lógica da Lupa de Busca ---------------- */
 function initSearchToggle() {
   const btnToggle = document.getElementById("btnToggleSearch");

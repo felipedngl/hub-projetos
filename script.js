@@ -833,6 +833,13 @@ if (!clientMessagesListenerInitialized) {
           ...doc.data()
         };
 
+	  console.log(
+    "[CHAT] Snapshot recebido:",
+    message.id,
+    message.author,
+    message.text
+  );
+
 const isNewMessage =
   !knownClientMessageIds.has(message.id);
 

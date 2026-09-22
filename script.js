@@ -2798,6 +2798,8 @@ if (btnApproveStage) {
   });
 }
 
+} 
+
 function stageConversationHTML(messages) {
 	
   if (!messages || !messages.length) {

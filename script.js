@@ -2622,26 +2622,47 @@ if (stage.special === "contracts") {
     });
   });
 
-  $$("#stageConversation .btn-message-delete").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const messageId = button.dataset.messageId;
-      const index = s.clientMessages?.findIndex((m) => m.id === messageId);
+$$("#stageConversation .btn-message-delete").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const messageId = button.dataset.messageId;
 
-      if (index === -1 || index === undefined) return;
+    const index = s.clientMessages?.findIndex(
+      (m) => String(m.id) === String(messageId)
+    );
 
-      const message = s.clientMessages[index];
-      if (!message || message.author !== "client") return;
+    if (index === -1 || index === undefined) return;
 
-      if (!confirm("Apagar esta mensagem?")) return;
+    const message = s.clientMessages[index];
+
+    if (!message || message.author !== "client") return;
+
+    if (!confirm("Apagar esta mensagem?")) return;
+
+    try {
+      await db
+        .collection("projects")
+        .doc(String(project.id))
+        .collection("clientMessages")
+        .doc(String(messageId))
+        .delete();
 
       s.clientMessages.splice(index, 1);
 
-      if (typeof saveProjects === "function" && await saveProjects()) {
-        renderStageClient(project, stage);
-        if (typeof showToast === "function") showToast("Mensagem apagada.");
+      renderStageClient(project, stage);
+
+      if (typeof showToast === "function") {
+        showToast("Mensagem apagada.");
       }
-    });
+
+    } catch (error) {
+      console.error("[CHAT] Erro ao apagar mensagem:", error);
+
+      if (typeof showToast === "function") {
+        showToast("Não foi possível apagar a mensagem.", true);
+      }
+    }
   });
+});
 
   if (sendButton) {
     sendButton.addEventListener("click", async () => {

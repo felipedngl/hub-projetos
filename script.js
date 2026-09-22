@@ -2788,11 +2788,6 @@ if (btnApproveStage) {
     } catch (error) {
       console.error("[CLIENT] Erro ao aprovar etapa:", error);
 
-      s.approved = false;
-      s.approvedAt = null;
-      s.status = "em_andamento";
-      s.progress = 0;
-
       btnApproveStage.disabled = false;
       btnApproveStage.textContent = "Aprovar Etapa";
 

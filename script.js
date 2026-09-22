@@ -2269,29 +2269,27 @@ if (clientMode && typeof setupClientNotificationPrompt === "function") {
           s.clientMessages = [];
         }
 
-        s.clientMessages.push({
-          id: uid(),
-          author: "designer",
-          text,
-          createdAt: Date.now(),
-          readByClient: false,
-        });
+s.clientMessages.push({
+  id: uid(),
+  author: "designer",
+  text,
+  createdAt: Date.now(),
+  readByClient: false,
+});
 
-        designerButton.disabled = true;
-        designerButton.textContent = "Enviando...";
+designerButton.disabled = true;
+designerButton.textContent = "Enviando...";
 
-        const saved = await saveProjects();
+const saved = await saveProjects();
 
-        if (saved) {
-          renderStage();
-          showToast("Resposta enviada.");
-        } else {
-          s.clientMessages.pop();
-          designerButton.disabled = false;
-          designerButton.textContent = "Enviar resposta";
-        }
-      });
-    }
+if (saved) {
+  renderStage();
+  showToast("Resposta enviada.");
+} else {
+  s.clientMessages.pop();
+  designerButton.disabled = false;
+  designerButton.textContent = "Enviar resposta";
+}
 
     // Permissão individual de download para o cliente
     $$("#stageFiles .file-download-toggle").forEach((checkbox) => {

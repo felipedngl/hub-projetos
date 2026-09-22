@@ -746,7 +746,12 @@ function playMessageSound() {
     console.debug("Som de mensagem indisponível:", error);
   }
 }
-	
+
+let unsubscribeProjectListener = null;
+let unsubscribeClientMessagesListener = null;
+let projectListenerSnapshot = null;
+let messageAudioContext = null;
+
 function listenToCurrentProject(projectId) {
   if (!projectId) return null;
 

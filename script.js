@@ -1723,7 +1723,6 @@ function renderSidebar() {
 			
 			  if (dot) {
 			    dot.classList.remove("message", "file");
-			    dot.classList.add("approved");
 			  }
 			
 			  const badge = btn.querySelector(".unread-badge");

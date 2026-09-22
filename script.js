@@ -5569,29 +5569,18 @@ async function init() {
       const clientUid = accessData.clientUid;
 
       // Busca somente o projeto correspondente
-      const projectDoc = await db
-        .collection("projects")
-        .doc(projectId)
-        .get();
-
-      if (!projectDoc.exists) {
-        showToast("Projeto não encontrado.", true);
-        showDashboard();
-        return;
-      }
-
-      const targetProject = {
-        id: projectDoc.id,
-        ...projectDoc.data()
-      };
-
-      // Guarda somente o projeto do cliente na memória
-      projects = [targetProject];
-
-      // Abre o modal de autenticação
-      promptClientPassword(targetProject);
-
-      return;
+	const targetProject = {
+	  id: projectId,
+	  title: accessData.slug || projectId,
+	  clientUid: accessData.clientUid || null,
+	  clientEmail: accessData.clientEmail || null
+	};
+	
+	projects = [targetProject];
+	
+	promptClientPassword(targetProject);
+	
+	return;
     } catch (error) {
       console.error(
         "[INIT] Erro ao localizar projeto do cliente:",

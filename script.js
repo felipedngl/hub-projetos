@@ -907,6 +907,11 @@ const updatedProject = {
   ...doc.data()
 };
 
+console.log(
+  "[SYNC] Projeto recebido:",
+  updatedProject.stages
+);
+
 // ------------------------------------------------------------
 // Ignora snapshots locais pendentes enquanto uma gravação
 // ainda está acontecendo.

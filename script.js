@@ -2707,8 +2707,6 @@ try {
     .doc(messageId)
     .set(clientMessage);
 
-  s.clientMessages.push(clientMessage);
-
   if (input) input.value = "";
 
   renderStageClient(project, stage);

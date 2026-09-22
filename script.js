@@ -5527,7 +5527,70 @@ async function init() {
     urlParams.get("project") || urlParams.get("p");
 
   // ============================================================
-  // CARREGA OS PROJETOS
+  // ACESSO POR LINK DE CLIENTE
+  // ============================================================
+
+  if (projectParam && !designerUnlocked) {
+    clientMode = true;
+    document.body.classList.add("client-view");
+
+    try {
+      const accessSnapshot = await db
+        .collection("clientAccess")
+        .where("slug", "==", projectParam)
+        .limit(1)
+        .get();
+
+      if (accessSnapshot.empty) {
+        showToast("Projeto não encontrado.", true);
+        showDashboard();
+        return;
+      }
+
+      const accessDoc = accessSnapshot.docs[0];
+      const accessData = accessDoc.data();
+
+      const projectId = accessDoc.id;
+      const clientUid = accessData.clientUid;
+
+      // Busca somente o projeto correspondente
+      const projectDoc = await db
+        .collection("projects")
+        .doc(projectId)
+        .get();
+
+      if (!projectDoc.exists) {
+        showToast("Projeto não encontrado.", true);
+        showDashboard();
+        return;
+      }
+
+      const targetProject = {
+        id: projectDoc.id,
+        ...projectDoc.data()
+      };
+
+      // Guarda somente o projeto do cliente na memória
+      projects = [targetProject];
+
+      // Abre o modal de autenticação
+      promptClientPassword(targetProject);
+
+      return;
+    } catch (error) {
+      console.error(
+        "[INIT] Erro ao localizar projeto do cliente:",
+        error
+      );
+
+      showToast("Erro ao carregar o projeto.", true);
+      showDashboard();
+      return;
+    }
+  }
+
+  // ============================================================
+  // ACESSO DA DESIGNER
   // ============================================================
 
   const cloudProjects =
@@ -5546,7 +5609,7 @@ async function init() {
   }
 
   // ============================================================
-  // ACESSO POR LINK DE PROJETO
+  // ABERTURA DE PROJETO
   // ============================================================
 
   if (projectParam) {
@@ -5561,36 +5624,15 @@ async function init() {
     );
 
     if (targetProject) {
-      // --------------------------------------------------------
-      // CLIENTE
-      // --------------------------------------------------------
-      if (!designerUnlocked) {
-        clientMode = true;
-        document.body.classList.add("client-view");
-
-        await promptClientPassword(targetProject);
-        return;
-      }
-
-      // --------------------------------------------------------
-      // DESIGNER
-      // --------------------------------------------------------
       openProject(targetProject.id);
-      return;
+    } else {
+      showDashboard();
     }
-
+  } else {
+    document.body.classList.remove("hub-is-locked");
+    document.body.classList.remove("client-view");
     showDashboard();
-    return;
   }
-
-  // ============================================================
-  // DASHBOARD NORMAL
-  // ============================================================
-
-  document.body.classList.remove("hub-is-locked");
-  document.body.classList.remove("client-view");
-
-  showDashboard();
 }
 
 // ============================================================

@@ -1698,19 +1698,26 @@ function renderSidebar() {
           }
 
 			if (changed || stage.checklistUpdated === true) {
-			  // Marca a atualização da checklist como lida
 			  if (stage.checklistUpdated === true) {
-				stage.checklistUpdated = false;
+			    stage.checklistUpdated = false;
 			  }
 			
-			  // Remove a indicação visual de notificação
+			  // Atualiza imediatamente o estado visual da etapa
 			  btn.classList.remove("has-unread-message");
+			
+			  const dot = btn.querySelector(".nav-dot");
+			
+			  if (dot) {
+			    dot.classList.remove("message", "file");
+			    dot.classList.add("approved");
+			  }
 			
 			  const badge = btn.querySelector(".unread-badge");
 			  if (badge) badge.remove();
 			
-			  if (typeof saveProjects === "function") {
-				saveProjects();
+			  // Só o designer precisa salvar a leitura no projeto.
+			  if (!clientMode && typeof saveProjects === "function") {
+			    saveProjects();
 			  }
 			}
         }

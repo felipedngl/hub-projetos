@@ -1743,8 +1743,8 @@ function openProject(id) {
   renderStage();
   window.scrollTo({ top: 0 });
 
-  if (clientMode) {
-    setupClientNotificationPrompt();
+if (clientMode && typeof setupClientNotificationPrompt === "function") {
+  setupClientNotificationPrompt();
   }
 }
 

@@ -1728,6 +1728,25 @@ function renderSidebar() {
 	  
 function openProject(id) {
   currentProjectId = id;
+
+  if (clientMode) {
+  const user = getFirebaseUser();
+
+  if (!user) {
+    console.error("[AUTH] Cliente sem usuário autenticado.");
+    showDashboard();
+    return;
+  }
+
+  const project = projects.find((p) => p.id === id);
+
+  if (!project || project.clientUid !== user.uid) {
+    console.error("[AUTH] Cliente tentou acessar projeto não autorizado:", id);
+    showDashboard();
+    return;
+  }
+}
+	
   listenToCurrentProject(id);
   
   currentStage = "briefing";

@@ -2048,6 +2048,7 @@ body.client-mode .stage-nav button {
 .conversation-message-actions {
   opacity: 1;
 }
+
 /* Aviso de mensagem nova na etapa */
 .stage-link.has-unread-message {
   background: #f28c28 !important;
@@ -2796,7 +2797,7 @@ body.client-password-mode .modal--narrow {
 /* ---------- Campo de prazo da etapa ---------- */
 
 #stageDeadline {
-  width: 100%;
+  width: 180px;
   padding: 11px 13px;
   border: 1px solid var(--border-strong);
   border-radius: 10px;

@@ -729,6 +729,7 @@ async function loadProjects() {
 }
 
 let unsubscribeProjectListener = null;
+let unsubscribeClientMessagesListener = null;	
 let projectListenerSnapshot = null;
 let messageAudioContext = null;
 

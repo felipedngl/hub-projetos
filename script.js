@@ -681,17 +681,35 @@ document.addEventListener(
 
 function enableClientSound() {
   try {
-    if (!messageAudioContext) {
-      initMessageAudio();
-    }
+    initMessageAudio();
 
     if (!messageAudioContext) return;
 
-    if (messageAudioContext.state === "suspended") {
-      messageAudioContext.resume().catch(() => {});
-    }
+    messageAudioContext.resume().then(() => {
+      console.log("[SOM] Áudio do cliente ativado:", messageAudioContext.state);
 
-    console.log("[SOM] Áudio do cliente ativado.");
+      // Teste imediato do áudio
+      const now = messageAudioContext.currentTime;
+
+      const osc = messageAudioContext.createOscillator();
+      const gain = messageAudioContext.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(880, now);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+
+      osc.connect(gain);
+      gain.connect(messageAudioContext.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.25);
+    }).catch((error) => {
+      console.error("[SOM] Não foi possível iniciar o áudio:", error);
+    });
+
   } catch (error) {
     console.error("[SOM] Erro ao ativar áudio:", error);
   }

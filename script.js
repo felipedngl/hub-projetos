@@ -679,6 +679,24 @@ document.addEventListener(
   { once: true }
 );
 
+function enableClientSound() {
+  try {
+    if (!messageAudioContext) {
+      initMessageAudio();
+    }
+
+    if (!messageAudioContext) return;
+
+    if (messageAudioContext.state === "suspended") {
+      messageAudioContext.resume().catch(() => {});
+    }
+
+    console.log("[SOM] Áudio do cliente ativado.");
+  } catch (error) {
+    console.error("[SOM] Erro ao ativar áudio:", error);
+  }
+}
+	
 const pendingLocalProjectWrites = new Map();
 
 function markLocalProjectWrite(projectId) {

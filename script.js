@@ -712,6 +712,31 @@ let unsubscribeClientMessagesListener = null;
 let projectListenerSnapshot = null;
 let messageAudioContext = null;
 
+const pendingLocalProjectWrites = new Map();
+
+function markLocalProjectWrite(projectId) {
+  if (!projectId) return;
+
+  const current = pendingLocalProjectWrites.get(projectId) || 0;
+  pendingLocalProjectWrites.set(projectId, current + 1);
+}
+
+function finishLocalProjectWrite(projectId) {
+  if (!projectId) return;
+
+  const current = pendingLocalProjectWrites.get(projectId) || 0;
+
+  if (current <= 1) {
+    pendingLocalProjectWrites.delete(projectId);
+  } else {
+    pendingLocalProjectWrites.set(projectId, current - 1);
+  }
+}
+
+function hasPendingLocalProjectWrite(projectId) {
+  return !!projectId && pendingLocalProjectWrites.has(projectId);
+}
+
 function playMessageSound() {	
   try {
     const ctx = messageAudioContext;

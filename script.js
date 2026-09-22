@@ -1672,12 +1672,26 @@ function renderSidebar() {
                   msg.readByClient = true;
                   changed = true;
                 }
-              } else {
-                if (msg.author === "client" && msg.readByDesigner !== true) {
-                  msg.readByDesigner = true;
-                  changed = true;
-                }
-              }
+				} else {
+				  if (msg.author === "client" && msg.readByDesigner !== true) {
+				    msg.readByDesigner = true;
+				    changed = true;
+				
+				    db.collection("projects")
+				      .doc(String(p.id))
+				      .collection("clientMessages")
+				      .doc(String(msg.id))
+				      .update({
+				        readByDesigner: true
+				      })
+				      .catch((error) => {
+				        console.error(
+				          "[CHAT] Erro ao marcar mensagem como lida pelo designer:",
+				          error
+				        );
+				      });
+				  }
+				}
             });
           }
 

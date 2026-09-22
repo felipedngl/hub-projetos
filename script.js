@@ -6000,7 +6000,7 @@ function openShareModal() {
   const copyBtn = card.querySelector("#btnCopyLinkReal");
 
   // AÇÃO DO BOTÃO SALVAR SENHA
-  pwdBtn.onclick = function(e) {
+  pwdBtn.onclick = async function(e) {
     e.preventDefault();
     e.stopPropagation();
 

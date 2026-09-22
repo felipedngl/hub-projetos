@@ -31,6 +31,10 @@ firebaseAuth?.onAuthStateChanged((user) => {
     console.log("[AUTH] Nenhum usuário autenticado.");
   }
 });	
+
+function getFirebaseUser() {
+  return firebaseAuth?.currentUser || null;
+}
 	
 function getClientAccessKey(projectId) {
   return `hub_client_access_${projectId}`;

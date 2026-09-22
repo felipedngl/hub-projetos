@@ -707,86 +707,17 @@ async function loadClientProject(projectId) {
   }
 }
 
-async function loadProjects() {
-  try {
-    if (typeof db === "undefined" || !db) {
-      console.warn("Firestore 'db' não está definido globalmente.");
-      return null;
-    }
-    const snapshot = await db.collection("projects").get();
-    const projectsList = [];
-    snapshot.forEach((doc) => {
-      projectsList.push({
-        id: doc.id,
-        ...doc.data(),
-      });
-    });
-    return projectsList;
-  } catch (error) {
-    console.error("Erro ao carregar do Firebase:", error);
-    return null;
-  }
-}
-
-let unsubscribeProjectListener = null;
-let unsubscribeClientMessagesListener = null;	
-let projectListenerSnapshot = null;
-let messageAudioContext = null;
-
-// ============================================================
-// CONTROLE DE SINCRONIZAÇÃO DE EDIÇÕES LOCAIS
-// ============================================================
-
-const pendingLocalProjectWrites = new Map();
-	
-function markLocalProjectWrite(projectId) {
-  if (!projectId) return;
-
-  const current = pendingLocalProjectWrites.get(projectId) || 0;
-  pendingLocalProjectWrites.set(projectId, current + 1);
-}
-
-function finishLocalProjectWrite(projectId) {
-  if (!projectId) return;
-
-  const current = pendingLocalProjectWrites.get(projectId) || 0;
-
-  if (current <= 1) {
-    pendingLocalProjectWrites.delete(projectId);
-  } else {
-    pendingLocalProjectWrites.set(projectId, current - 1);
-  }
-}
-
-function hasPendingLocalProjectWrite(projectId) {
-  return !!projectId && pendingLocalProjectWrites.has(projectId);
-}
-
-function armMessageAudio() {
-  try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    if (!messageAudioContext) messageAudioContext = new AudioCtx();
-    if (messageAudioContext.state === "suspended") {
-      messageAudioContext.resume().catch(() => {});
-    }
-  } catch (error) {
-    console.debug("Áudio de mensagens indisponível:", error);
-  }
-}
-
-document.addEventListener("pointerdown", armMessageAudio, { once: true });
-document.addEventListener("keydown", armMessageAudio, { once: true });
-
 function playMessageSound() {
   try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-
-    if (!messageAudioContext) messageAudioContext = new AudioCtx();
-
     const ctx = messageAudioContext;
+
+    // O áudio só pode tocar depois que o usuário
+    // tiver interagido com a página.
+    if (!ctx) return;
+
     const start = () => {
+      if (ctx.state !== "running") return;
+
       const now = ctx.currentTime;
       const gain = ctx.createGain();
       const osc = ctx.createOscillator();
@@ -801,6 +732,7 @@ function playMessageSound() {
 
       osc.connect(gain);
       gain.connect(ctx.destination);
+
       osc.start(now);
       osc.stop(now + 0.25);
     };
@@ -814,7 +746,7 @@ function playMessageSound() {
     console.debug("Som de mensagem indisponível:", error);
   }
 }
-
+	
 function listenToCurrentProject(projectId) {
   if (!projectId) return null;
 

@@ -5947,6 +5947,20 @@ function openShareModal() {
     p.clientPassword = novaSenha;
     p.client_password = novaSenha;
 
+	const projectSlug =
+  typeof slugify === "function"
+    ? slugify(p.title)
+    : p.id;
+
+await db.collection("clientAccess")
+  .doc(p.id)
+  .set({
+    slug: projectSlug,
+    projectId: p.id,
+    clientUid: p.clientUid || null,
+    clientEmail: p.clientEmail || null
+  }, { merge: true });
+
     if (typeof projects !== "undefined" && Array.isArray(projects)) {
       const item = projects.find(proj => proj.id === p.id);
       if (item) {

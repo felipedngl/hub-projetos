@@ -706,11 +706,13 @@ function hasPendingLocalProjectWrite(projectId) {
 
 function playMessageSound() {	
   try {
-    const ctx = messageAudioContext;
+if (!messageAudioContext) {
+  initMessageAudio();
+}
 
-    // O áudio só pode tocar depois que o usuário
-    // tiver interagido com a página.
-    if (!ctx) return;
+const ctx = messageAudioContext;
+
+if (!ctx) return;
 
     const start = () => {
       if (ctx.state !== "running") return;

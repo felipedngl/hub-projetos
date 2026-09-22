@@ -734,7 +734,8 @@ if (typeof unsubscribeClientMessagesListener === "function") {
   unsubscribeClientMessagesListener = null;
 }
 
-let knownClientMessageIds = new Set();	
+let knownClientMessageIds = new Set();
+let clientMessagesListenerInitialized = false;
 	
 unsubscribeClientMessagesListener = db
   .collection("projects")
@@ -745,6 +746,14 @@ unsubscribeClientMessagesListener = db
       const project = projects.find((p) => p.id === projectId);
       if (!project) return;
 
+if (!clientMessagesListenerInitialized) {
+  snapshot.forEach((doc) => {
+    knownClientMessageIds.add(doc.id);
+  });
+
+  clientMessagesListenerInitialized = true;
+}
+		
       const messagesByStage = {};
 
       snapshot.forEach((doc) => {

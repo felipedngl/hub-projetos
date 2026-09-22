@@ -5511,8 +5511,6 @@ function bindEvents() {
 
 /* ---------------- Inicialização da Aplicação ---------------- */
 async function init() {
-  console.log("[INIT] iniciou");
-	
   if (
     typeof DESIGNER_KEY !== "undefined" &&
     sessionStorage.getItem(DESIGNER_KEY) === "true"
@@ -5525,62 +5523,11 @@ async function init() {
   initSearchToggle();
 
   const urlParams = new URLSearchParams(window.location.search);
-  const projectParam = urlParams.get("project") || urlParams.get("p");
+  const projectParam =
+    urlParams.get("project") || urlParams.get("p");
 
   // ============================================================
-  // ACESSO DIRETO A PROJETO PELO LINK DO CLIENTE
-  // ============================================================
-
-  if (projectParam && !designerUnlocked) {
-    clientMode = true;
-    document.body.classList.add("client-view");
-
-    try {
-      const snapshot = await db.collection("projects").get();
-
-      const targetProjectDoc = snapshot.docs.find((doc) => {
-        const data = doc.data();
-
-        const titleSlug =
-          typeof slugify === "function"
-            ? slugify(data.title || "")
-            : String(data.title || "")
-                .toLowerCase()
-                .replace(/\s+/g, "-");
-
-        return (
-          doc.id === projectParam ||
-          titleSlug === projectParam ||
-          data.slug === projectParam
-        );
-      });
-
-      if (!targetProjectDoc) {
-        showToast("Projeto não encontrado.", true);
-        showDashboard();
-        return;
-      }
-
-      const targetProject = {
-        id: targetProjectDoc.id,
-        ...targetProjectDoc.data()
-      };
-
-      projects = [targetProject];
-
-      promptClientPassword(targetProject);
-
-      return;
-    } catch (error) {
-      console.error("[INIT] Erro ao localizar projeto:", error);
-      showToast("Erro ao carregar o projeto.", true);
-      showDashboard();
-      return;
-    }
-  }
-
-  // ============================================================
-  // ACESSO DA DESIGNER
+  // CARREGA OS PROJETOS
   // ============================================================
 
   const cloudProjects =
@@ -5590,16 +5537,16 @@ async function init() {
 
   if (cloudProjects && cloudProjects.length > 0) {
     projects = cloudProjects.map((p) =>
-      typeof seedProject === "function" ? seedProject(p) : p
+      typeof seedProject === "function"
+        ? seedProject(p)
+        : p
     );
   } else if (typeof initialProjects !== "undefined") {
     projects = initialProjects;
   }
 
-  console.log("[INIT] Projetos carregados:", projects.length);
-
   // ============================================================
-  // ABERTURA DE PROJETO
+  // ACESSO POR LINK DE PROJETO
   // ============================================================
 
   if (projectParam) {
@@ -5614,15 +5561,46 @@ async function init() {
     );
 
     if (targetProject) {
+      // --------------------------------------------------------
+      // CLIENTE
+      // --------------------------------------------------------
+      if (!designerUnlocked) {
+        clientMode = true;
+        document.body.classList.add("client-view");
+
+        await promptClientPassword(targetProject);
+        return;
+      }
+
+      // --------------------------------------------------------
+      // DESIGNER
+      // --------------------------------------------------------
       openProject(targetProject.id);
-    } else {
-      showDashboard();
+      return;
     }
-  } else {
-    document.body.classList.remove("hub-is-locked");
-    document.body.classList.remove("client-view");
+
     showDashboard();
+    return;
   }
+
+  // ============================================================
+  // DASHBOARD NORMAL
+  // ============================================================
+
+  document.body.classList.remove("hub-is-locked");
+  document.body.classList.remove("client-view");
+
+  showDashboard();
+}
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
 }
 	
 /* ---------------- Lógica da Lupa de Busca ---------------- */

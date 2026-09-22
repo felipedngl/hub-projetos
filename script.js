@@ -736,6 +736,8 @@ let messageAudioContext = null;
 // CONTROLE DE SINCRONIZAÇÃO DE EDIÇÕES LOCAIS
 // ============================================================
 
+const pendingLocalProjectWrites = new Map();
+	
 function markLocalProjectWrite(projectId) {
   if (!projectId) return;
 

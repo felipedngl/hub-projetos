@@ -2653,28 +2653,49 @@ if (stage.special === "contracts") {
         s.clientMessages = [];
       }
 
-      s.clientMessages.push({
-        id: typeof uid === "function" ? uid() : String(Date.now()),
-        author: "client",
-        text,
-        createdAt: Date.now(),
-        readByDesigner: false,
-      });
+const messageId =
+  typeof uid === "function" ? uid() : String(Date.now());
 
-      sendButton.disabled = true;
-      sendButton.textContent = "Enviando...";
+const clientMessage = {
+  id: messageId,
+  author: "client",
+  text,
+  createdAt: Date.now(),
+  readByDesigner: false,
+  stageId: stageKey,
+  projectId: project.id
+};
 
-      const saved = (typeof saveProjects === "function") ? await saveProjects() : false;
+sendButton.disabled = true;
+sendButton.textContent = "Enviando...";
 
-      if (saved) {
-        if (input) input.value = "";
-        renderStageClient(project, stage);
-        if (typeof showToast === "function") showToast("Observação enviada.");
-      } else {
-        s.clientMessages.pop();
-        sendButton.disabled = false;
-        sendButton.textContent = "Enviar observação";
-      }
+try {
+  await db
+    .collection("projects")
+    .doc(String(project.id))
+    .collection("clientMessages")
+    .doc(messageId)
+    .set(clientMessage);
+
+  s.clientMessages.push(clientMessage);
+
+  if (input) input.value = "";
+
+  renderStageClient(project, stage);
+
+  if (typeof showToast === "function") {
+    showToast("Observação enviada.");
+  }
+} catch (error) {
+  console.error("[CHAT] Erro ao salvar mensagem do cliente:", error);
+
+  sendButton.disabled = false;
+  sendButton.textContent = "Enviar observação";
+
+  if (typeof showToast === "function") {
+    showToast("Erro ao enviar observação.", true);
+  }
+}
     });
   }
 

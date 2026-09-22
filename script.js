@@ -11,6 +11,19 @@ const DESIGNER_EMAIL = "mencheinteriores@outlook.com";
 const CLIENT_ACCESS_TTL = 7 * 24 * 60 * 60 * 1000;
 const firebaseAuth = window.auth || null;
 
+async function signInWithFirebase(email, password) {
+  if (!firebaseAuth) {
+    throw new Error("Firebase Auth não está disponível.");
+  }
+
+  return firebaseAuth.signInWithEmailAndPassword(email, password);
+}
+
+async function signOutFromFirebase() {
+  if (!firebaseAuth) return;
+  await firebaseAuth.signOut();
+}
+	
 function getClientAccessKey(projectId) {
   return `hub_client_access_${projectId}`;
 }

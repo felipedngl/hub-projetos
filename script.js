@@ -23,6 +23,14 @@ async function signOutFromFirebase() {
   if (!firebaseAuth) return;
   await firebaseAuth.signOut();
 }
+
+firebaseAuth?.onAuthStateChanged((user) => {
+  if (user) {
+    console.log("[AUTH] Usuário autenticado:", user.email || user.uid);
+  } else {
+    console.log("[AUTH] Nenhum usuário autenticado.");
+  }
+});	
 	
 function getClientAccessKey(projectId) {
   return `hub_client_access_${projectId}`;

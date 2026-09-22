@@ -5403,6 +5403,63 @@ function showToast(message, isError = false) {
   }, 3000);
 }
 
+function showSoundPermission() {
+  const existing = document.querySelector(".sound-permission-popup");
+  if (existing) existing.remove();
+
+  const popup = document.createElement("div");
+
+  popup.className = "sound-permission-popup";
+
+  popup.innerHTML = `
+    <div style="font-weight:600;margin-bottom:6px;">
+      Ativar sons?
+    </div>
+    <div style="font-size:13px;margin-bottom:10px;">
+      Ative os sons para receber avisos de novas mensagens.
+    </div>
+    <button
+      type="button"
+      id="btnEnableClientSound"
+      style="
+        border:0;
+        border-radius:6px;
+        padding:8px 14px;
+        cursor:pointer;
+        font-weight:600;
+      "
+    >
+      Ativar sons
+    </button>
+  `;
+
+  popup.style.cssText = `
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 280px;
+    background: #fff;
+    color: #222;
+    padding: 16px;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.25);
+    z-index: 20000;
+  `;
+
+  document.body.appendChild(popup);
+
+  const button = document.getElementById("btnEnableClientSound");
+
+  button?.addEventListener("click", () => {
+    enableClientSound();
+
+    if (messageAudioContext) {
+      popup.remove();
+      showToast("Sons ativados.");
+    }
+  });
+}
+	
 function showHubLocked() {
   document.body.classList.add("hub-is-locked");
   let lockedEl = $(".hub-locked");

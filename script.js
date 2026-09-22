@@ -713,75 +713,28 @@ async function loadProjects() {
       console.warn("Firestore 'db' não está definido globalmente.");
       return null;
     }
-
-    const user = firebaseAuth?.currentUser || null;
-
-    // UID da conta da designer
-    const DESIGNER_UID = "9mm774qQbddiRVjTBreYDOLD33b2";
-
-    // Designer: carrega todos os projetos
-    if (user && user.uid === DESIGNER_UID) {
-      const snapshot = await db.collection("projects").get();
-      const projectsList = [];
-
-      snapshot.forEach((doc) => {
-        projectsList.push({
-          id: doc.id,
-          ...doc.data(),
-        });
-      });
-
-      return projectsList;
-    }
-
-    // Cliente: carrega somente o projeto indicado pelo link
-    const urlParams = new URLSearchParams(window.location.search);
-    const projectParam = urlParams.get("project") || urlParams.get("p");
-
-    if (!user || !projectParam) {
-      return [];
-    }
-
-    // Primeiro tenta pelo ID do documento
-    const directDoc = await db.collection("projects").doc(projectParam).get();
-
-    if (directDoc.exists) {
-      const data = directDoc.data();
-
-      if (data.clientUid === user.uid) {
-        return [{
-          id: directDoc.id,
-          ...data,
-        }];
-      }
-
-      return [];
-    }
-
-    // Se o link usar slug, procura somente entre projetos
-    // pertencentes ao usuário autenticado.
-    const slugSnapshot = await db
-      .collection("projects")
-      .where("clientUid", "==", user.uid)
-      .where("slug", "==", projectParam)
-      .get();
-
+    const snapshot = await db.collection("projects").get();
     const projectsList = [];
-
-    slugSnapshot.forEach((doc) => {
+    snapshot.forEach((doc) => {
       projectsList.push({
         id: doc.id,
         ...doc.data(),
       });
     });
-
     return projectsList;
-
   } catch (error) {
     console.error("Erro ao carregar do Firebase:", error);
     return null;
   }
 }
+
+let unsubscribeProjectListener = null;
+let projectListenerSnapshot = null;
+let messageAudioContext = null;
+
+// ============================================================
+// CONTROLE DE SINCRONIZAÇÃO DE EDIÇÕES LOCAIS
+// ============================================================
 
 function markLocalProjectWrite(projectId) {
   if (!projectId) return;

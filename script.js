@@ -839,12 +839,13 @@ const isNewMessage =
 if (isNewMessage) {
   knownClientMessageIds.add(message.id);
 
-  if (
-    (message.author === "designer" && clientMode) ||
-    (message.author === "client" && !clientMode)
-  ) {
-    playMessageSound();
-  }
+if (
+  (message.author === "designer" && clientMode) ||
+  (message.author === "client" && !clientMode)
+) {
+  console.log("[SOM] Nova mensagem detectada:", message.author, message.text);
+  playMessageSound();
+}
 }
 
         const stageId = message.stageId;

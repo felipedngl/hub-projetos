@@ -620,70 +620,7 @@ function getStageProgress(stage) {
     return p;
   }
 
-  const initialProjects = [
-    seedProject({
-      id: "p1",
-      title: "NAMO",
-      client: "Nathalia",
-      area: 124,
-      type: "residencial",
-      status: "concluido",
-      image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80",
-      stages: {
-        briefing: {
-          text: "Apartamento de 3 dormitórios para casal e 2 filhos.\nDesejam estilo contemporâneo, tons neutros, e prioridade para conforto e integração dos ambientes.\nOrçamento total previsto: R$ 180.000.",
-          files: [],
-        },
-      },
-      memorial: {
-        moveis: [
-          { item: "Sofá 3 lugares", ambiente: "Sala de estar", fornecedor: "Tok & Stok", qty: "1", preco: "5800", link: "https://www.exemplo.com.br/sofa-linho" },
-          { item: "Mesa de jantar", ambiente: "Sala de jantar", fornecedor: "Lojas KD", qty: "1", preco: "3200", link: "" },
-        ],
-        marcenaria: [
-          { item: "Painel TV", ambiente: "Sala de estar", fornecedor: "Marcenaria Pinus", qty: "1", preco: "4500", link: "" },
-          { item: "Cozinha completa", ambiente: "Cozinha", fornecedor: "Marcenaria Pinus", qty: "1", preco: "28000", link: "" },
-        ],
-        fornecedores: [
-          { item: "Porcelanato 120x120", ambiente: "Sala", fornecedor: "Cerâmica Atlas", qty: "35", preco: "6900", link: "https://www.exemplo.com.br/porcelanato" },
-          { item: "Pastilha cimento", ambiente: "Banheiros", fornecedor: "Cerâmica Atlas", qty: "12", preco: "1400", link: "" },
-        ],
-      },
-    }),
-    seedProject({
-      id: "p2",
-      title: "SAFIRA",
-      client: "Vitória",
-      area: 86,
-      type: "residencial",
-      status: "em andamento",
-      image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80",
-      stages: {
-        briefing: {
-          text: "Loft para jovem profissional.\nEstética industrial, pé-direito duplo, espaço de home office e ampla área social integrada.",
-          files: [],
-        },
-      },
-    }),
-    seedProject({
-      id: "p3",
-      title: "Café Aurora",
-      client: "Aurora Bistrô Ltda.",
-      area: 210,
-      type: "comercial",
-      status: "concluido",
-      image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
-    }),
-    seedProject({
-      id: "p4",
-      title: "Escritório Studio Vetor",
-      client: "Studio Vetor Arquitetura",
-      area: 345,
-      type: "comercial",
-      status: "em andamento",
-      image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=900&q=80",
-    }),
-  ];
+ const initialProjects = [];
 
 /* ---------------- Persistência ---------------- */
 

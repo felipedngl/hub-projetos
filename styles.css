@@ -4095,6 +4095,21 @@ table.memorial-table td:nth-child(1) {
 }
 
 .deadline-overdue {
-  background: rgba(220, 38, 38, 0.14);
+  background: rgba(168, 85, 247, 0.16);
+  color: #c084fc;
+}
+
+.deadline-warning {
+  background: rgba(234, 179, 8, 0.14);
+  color: #facc15;
+}
+
+.deadline-near {
+  background: rgba(249, 115, 22, 0.16);
+  color: #fb923c;
+}
+
+.deadline-urgent {
+  background: rgba(220, 38, 38, 0.16);
   color: #f87171;
 }

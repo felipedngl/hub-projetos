@@ -2303,13 +2303,25 @@ if (clientMode && typeof setupClientNotificationPrompt === "function") {
     statusEl.classList.add("deadline-today");
     statusEl.textContent = "Entrega hoje.";
 
-  } else if (diffDays <= 7) {
+} else if (diffDays <= 3) {
 
-    statusEl.classList.add("deadline-near");
-    statusEl.textContent =
-      `Falta${diffDays === 1 ? "" : "m"} ${diffDays} ${diffDays === 1 ? "dia" : "dias"} para a entrega.`;
+  statusEl.classList.add("deadline-urgent");
+  statusEl.textContent =
+    `Falta${diffDays === 1 ? "" : "m"} ${diffDays} ${diffDays === 1 ? "dia" : "dias"} para a entrega.`;
 
-  } else {
+} else if (diffDays <= 7) {
+
+  statusEl.classList.add("deadline-near");
+  statusEl.textContent =
+    `Falta${diffDays} dias para a entrega.`;
+
+} else if (diffDays <= 15) {
+
+  statusEl.classList.add("deadline-warning");
+  statusEl.textContent =
+    `Faltam ${diffDays} dias para a entrega.`;
+
+} else {
 
     statusEl.classList.add("deadline-ok");
     statusEl.textContent =

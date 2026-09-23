@@ -1764,7 +1764,10 @@ function renderSidebar() {
 			unreadMsg ? "has-unread-message" : ""
 			}" data-stage="${stage.id}">
               ${(typeof ICONS !== "undefined" && ICONS[stage.id]) || ""}
-              <span class="nav-label">${index < 7 ? `${index + 1}. ` : ""}${stage.label}</span>
+              <span class="nav-label">
+			    <span class="stage-number">${index + 1}</span>
+			    ${stage.id === "briefing" ? "Briefing" : stage.label}
+			  </span>
 			  <span
 			  class="nav-dot ${dotClass}"
 			  title="Etapa"

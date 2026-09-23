@@ -2785,7 +2785,15 @@ function renderStageClient(project, stage) {
 
   const stagesData = project.stages || {};
   const stageKey = (stage && stage.id) ? stage.id : "projeto_executivo";
-  
+
+const checklistSeenKey =
+  `checklist_seen_${project.id}_${stageKey}`;
+
+localStorage.setItem(
+  checklistSeenKey,
+  "true"
+);
+	
   // Declaração ÚNICA da variável 's'
   const s = stagesData[stageKey] || { checklist: [], files: [], clientMessages: [], status: "nao_iniciado" };
 

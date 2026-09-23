@@ -4843,14 +4843,23 @@ function renderMemorial(project) {
 
       <div class="memorial-header">
 
-        <div class="memorial-header-text">
-          <h2>Memorial Descritivo</h2>
-
-          <p>
-            Cadastre os itens, quantidades, preços,
-            fornecedores e observações do projeto.
-          </p>
-        </div>
+		<div class="memorial-header-text">
+		  <h2>Memorial Descritivo</h2>
+		
+		  <p>
+		    Cadastre os itens, quantidades, preços,
+		    fornecedores e observações do projeto.
+		  </p>
+		</div>
+		
+		<button
+		  type="button"
+		  id="btnExpandMemorial"
+		  class="memorial-expand-btn"
+		  title="Expandir Memorial"
+		>
+		  ⛶ Expandir
+		</button>
 
         <div class="memorial-total-card">
           <span>Total</span>
@@ -5026,6 +5035,40 @@ function renderMemorial(project) {
     </div>
   `;
 
+// ==========================================================
+// EXPANDIR MEMORIAL
+// ==========================================================
+
+const btnExpandMemorial =
+  document.getElementById("btnExpandMemorial");
+
+if (btnExpandMemorial) {
+
+  btnExpandMemorial.addEventListener(
+    "click",
+    () => {
+
+      const memorialContainer =
+        document.querySelector(".memorial-container");
+
+      if (!memorialContainer) return;
+
+      memorialContainer.classList.toggle(
+        "memorial-expanded"
+      );
+
+      const expanded =
+        memorialContainer.classList.contains(
+          "memorial-expanded"
+        );
+
+      btnExpandMemorial.textContent =
+        expanded
+          ? "⛶ Recolher"
+          : "⛶ Expandir";
+    }
+  );
+}
 
   // ==========================================================
   // ESTADO DOS FILTROS

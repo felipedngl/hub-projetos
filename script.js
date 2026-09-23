@@ -4554,7 +4554,112 @@ if (col.key === "foto" || col.key === "imagem") {
   `;
 }
 
+$$(".btn-open-obs-modal").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const key = btn.dataset.key;
+    const rowIndex = Number(btn.dataset.row);
 
+    const project = currentProject();
+
+    if (!project || !project.memorial || !project.memorial[key]) {
+      return;
+    }
+
+    const row = project.memorial[key][rowIndex];
+
+    if (!row) {
+      return;
+    }
+
+    const currentObs = row.obs || "";
+
+    const modal = document.createElement("div");
+
+    modal.className = "obs-modal-overlay";
+
+    modal.innerHTML = `
+      <div class="obs-modal">
+
+        <div class="obs-modal-header">
+          <div>
+            <span class="obs-modal-label">Observação</span>
+            <h3>${escapeHTML(row.item || "Item")}</h3>
+          </div>
+
+          <button
+            type="button"
+            class="obs-modal-close"
+            aria-label="Fechar"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="obs-modal-body">
+          <textarea
+            class="obs-modal-textarea"
+            placeholder="Digite uma observação..."
+          >${escapeHTML(currentObs)}</textarea>
+        </div>
+
+        <div class="obs-modal-footer">
+          <button
+            type="button"
+            class="btn-secondary obs-modal-cancel"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            class="btn-primary obs-modal-save"
+          >
+            Salvar observação
+          </button>
+        </div>
+
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const textarea = modal.querySelector(".obs-modal-textarea");
+
+    textarea?.focus();
+
+    const closeModal = () => {
+      modal.remove();
+    };
+
+    modal
+      .querySelector(".obs-modal-close")
+      ?.addEventListener("click", closeModal);
+
+    modal
+      .querySelector(".obs-modal-cancel")
+      ?.addEventListener("click", closeModal);
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+
+    modal
+      .querySelector(".obs-modal-save")
+      ?.addEventListener("click", async () => {
+
+        row.obs = textarea.value.trim();
+
+        if (await saveProjects([project])) {
+          closeModal();
+          renderMemorial(project);
+          showToast("Observação salva.");
+        }
+      });
+  });
+});
+	
 function memorialGrandTotalHTML(project) {
   const total = memorialGrandTotal(project);
 

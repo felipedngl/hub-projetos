@@ -4390,3 +4390,30 @@ table.memorial-table td:nth-child(1) {
 .memorial-filter-panel.is-open {
   display: block;
 }
+
+/* ==========================================================
+   MEMORIAL DO CLIENTE — ROLAGEM HORIZONTAL DA TABELA
+   ========================================================== */
+
+.memorial-client-section-content .table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.memorial-client-section-content .memorial-table {
+  min-width: 900px;
+  width: max-content;
+  table-layout: auto;
+}
+
+.memorial-client-section-content .memorial-table th,
+.memorial-client-section-content .memorial-table td {
+  white-space: nowrap;
+}
+
+.memorial-client-section-content .memorial-link {
+  white-space: nowrap;
+}

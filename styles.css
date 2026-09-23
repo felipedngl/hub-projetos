@@ -3977,30 +3977,33 @@ table.memorial-table td:nth-child(1) {
 }
 
 /* ================================
-   CHECKLIST DA ETAPA — VISUAL MODERNO
+   CHECKLIST DA ETAPA — COMPACTO
    ================================ */
 
 .stage-checklist-compact {
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .stage-checklist-open-btn {
-  width: 100%;
-  min-height: 48px;
-  display: flex;
+  width: auto;
+  min-width: 240px;
+  height: 42px;
+
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 10px;
 
-  border: 1px solid #e2e5e9;
-  border-radius: 10px;
+  padding: 0 14px;
 
-  background: #f8f9fa;
-  color: #2f3439;
+  border: 1px solid var(--border-color, #d8d2c8);
+  border-radius: 8px;
+
+  background: var(--surface-color, #f5f1eb);
+  color: var(--text-color, #3d3935);
 
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
 
   cursor: pointer;
   text-align: left;
@@ -4008,51 +4011,43 @@ table.memorial-table td:nth-child(1) {
   appearance: none;
   -webkit-appearance: none;
 
-  transition:
-    background .18s ease,
-    border-color .18s ease,
-    box-shadow .18s ease;
+  transition: .18s ease;
 }
 
 .stage-checklist-open-btn:hover {
-  background: #f1f3f5;
-  border-color: #d6d9dd;
-}
-
-.stage-checklist-open-btn:focus {
-  outline: none;
-  border-color: #c9cdd2;
-  box-shadow: 0 0 0 3px rgba(0,0,0,.05);
+  background: var(--surface-hover, #ebe5dc);
+  border-color: var(--accent-color, #b8a48a);
 }
 
 .stage-checklist-open-btn strong {
   margin-left: auto;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: #6b7178;
+  opacity: .7;
 }
 
 .stage-checklist-chevron {
-  font-size: 16px;
-  color: #8a9097;
+  font-size: 13px;
+  opacity: .55;
 }
 
 
-/* SELECT — SITUAÇÃO */
+/* SITUAÇÃO */
 
 #stageStatus {
-  width: 100%;
-  min-height: 44px;
-  padding: 10px 38px 10px 12px;
+  width: 180px;
+  height: 42px;
 
-  border: 1px solid #e2e5e9;
-  border-radius: 9px;
+  padding: 0 34px 0 12px;
 
-  background-color: #fff;
-  color: #30343a;
+  border: 1px solid var(--border-color, #d8d2c8);
+  border-radius: 8px;
+
+  background-color: var(--surface-color, #f5f1eb);
+  color: var(--text-color, #3d3935);
 
   font-family: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
 
   cursor: pointer;
@@ -4063,25 +4058,17 @@ table.memorial-table td:nth-child(1) {
   background-image:
     linear-gradient(45deg, transparent 50%, #777 50%),
     linear-gradient(135deg, #777 50%, transparent 50%);
+
   background-position:
-    calc(100% - 18px) 18px,
-    calc(100% - 13px) 18px;
-  background-size:
-    5px 5px,
-    5px 5px;
+    calc(100% - 17px) 17px,
+    calc(100% - 12px) 17px;
+
+  background-size: 5px 5px;
   background-repeat: no-repeat;
-
-  transition:
-    border-color .18s ease,
-    box-shadow .18s ease;
-}
-
-#stageStatus:hover {
-  border-color: #d1d5da;
 }
 
 #stageStatus:focus {
   outline: none;
-  border-color: #c9cdd2;
-  box-shadow: 0 0 0 3px rgba(0,0,0,.05);
+  border-color: var(--accent-color, #b8a48a);
+  box-shadow: 0 0 0 2px rgba(184,164,138,.15);
 }

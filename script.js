@@ -4556,8 +4556,11 @@ if (col.key === "foto" || col.key === "imagem") {
           <thead>
             <tr>
               ${headers}
-			<th class="memorial-resizable-th memorial-actions-th">
-			  <span class="memorial-th-label">Ações</span>
+			<th
+			  class="memorial-resizable-th memorial-actions-th"
+			  data-column-key="acoes"
+			>
+		<span class="memorial-th-label">Ações</span>
 			  <span
 			    class="memorial-column-resizer"
 			    aria-hidden="true"

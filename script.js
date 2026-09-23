@@ -1810,38 +1810,43 @@ function renderSidebar() {
 			      : f.unreadByDesigner === true;
 			  });
 							
-				const checklist = Array.isArray(stageData?.checklist)
-				  ? stageData.checklist
-				  : [];
-				
-				const checklistSeenKey =
-				  clientMode && currentProject()?.id
-				    ? `checklist_seen_${currentProject().id}_${stage.id}`
-				    : null;
-				
-				const hasCheckedItems =
-				  checklist.some((item) => item.done === true) &&
-				  (
-				    !clientMode ||
-				    !checklistSeenKey ||
-				    localStorage.getItem(checklistSeenKey) !== "true"
-				  );
-				
-				const approved =
-				  stageData?.approved === true &&
-				  !!stageData?.approvedAt;
-				
-				const dotClass = unreadMsg
-				  ? "message"
-				  : unreadFiles
-				    ? "file"
-				    : approved
-				      ? "approved"
-				      : hasCheckedItems
-				        ? "checklist"
-				        : done
-				          ? "done"
-				          : "";
+		const checklist = Array.isArray(stageData?.checklist)
+		  ? stageData.checklist
+		  : [];
+		
+		const hasCheckedItems =
+		  checklist.some((item) => item.done === true);
+		
+		const checklistSeenKey =
+		  clientMode && currentProject()?.id
+			? `checklist_seen_${currentProject().id}_${stage.id}`
+			: null;
+		
+		const checklistUnseen =
+		  clientMode &&
+		  hasCheckedItems &&
+		  (
+			!checklistSeenKey ||
+			localStorage.getItem(checklistSeenKey) !== "true"
+		  );
+		
+		const approved =
+		  stageData?.approved === true &&
+		  !!stageData?.approvedAt;
+		
+		const dotClass = unreadMsg
+		  ? "message"
+		  : unreadFiles
+			? "file"
+			: approved
+			  ? "approved"
+			  : checklistUnseen
+				? "checklist"
+				: hasCheckedItems
+				  ? "checklist-seen"
+				  : done
+					? "done"
+					: "";
 			
           return `
 		  <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${
@@ -2998,6 +3003,17 @@ if (stage.special === "contracts") {
 
   if (btnViewChecklist) {
     btnViewChecklist.addEventListener("click", () => {
+
+	if (clientMode && project?.id && stageKey) {
+  localStorage.setItem(
+    `checklist_seen_${project.id}_${stageKey}`,
+    "true"
+  );
+
+  if (typeof renderSidebar === "function") {
+    renderSidebar();
+  }
+}
       const completed = checklist.filter(item => item.done).length;
 
       const modal = document.createElement("div");

@@ -3646,6 +3646,40 @@ function memorialClientHTML(project) {
 }
 
 // ==========================================================
+// ABRIR / FECHAR CATEGORIAS DO MEMORIAL DO CLIENTE
+// ==========================================================
+
+document.addEventListener("click", (event) => {
+
+  const button =
+    event.target.closest(
+      ".memorial-client-section-toggle"
+    );
+
+  if (!button) return;
+
+  const key =
+    button.dataset.memorialClientSection;
+
+  const content =
+    document.querySelector(
+      `[data-memorial-client-content="${key}"]`
+    );
+
+  if (!content) return;
+
+  const isOpen =
+    button.getAttribute("aria-expanded") === "true";
+
+  button.setAttribute(
+    "aria-expanded",
+    String(!isOpen)
+  );
+
+  content.hidden = isOpen;
+});	
+
+// ==========================================================
 // CONTRATOS — UPLOAD PARA O SUPABASE STORAGE
 // ==========================================================
 

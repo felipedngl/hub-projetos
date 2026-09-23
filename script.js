@@ -1739,6 +1739,7 @@ console.log("DIAGNÓSTICO ETAPA:", project.title, stage.id, {
 return !!(hasText || hasFiles || hasMessages);
 }
 
+
 function renderSidebar() {
   const p = currentProject();
   if (!p) return;
@@ -1814,13 +1815,17 @@ function renderSidebar() {
 				  : [];
 				
 				const checklistSeenKey =
-				  currentProject()?.id && stageData
+				  clientMode && currentProject()?.id
 				    ? `checklist_seen_${currentProject().id}_${stage.id}`
 				    : null;
 				
 				const hasCheckedItems =
 				  checklist.some((item) => item.done === true) &&
-				  !(checklistSeenKey && localStorage.getItem(checklistSeenKey) === "true");
+				  (
+				    !clientMode ||
+				    !checklistSeenKey ||
+				    localStorage.getItem(checklistSeenKey) !== "true"
+				  );
 				
 				const approved =
 				  stageData?.approved === true &&

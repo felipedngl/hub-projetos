@@ -1817,18 +1817,23 @@ function renderSidebar() {
 		const hasCheckedItems =
 		  checklist.some((item) => item.done === true);
 		
+const checkedCount =
+  checklist.filter((item) => item.done === true).length;
+
 		const checklistSeenKey =
 		  clientMode && currentProject()?.id
-			? `checklist_seen_${currentProject().id}_${stage.id}`
-			: null;
+		    ? `checklist_seen_${currentProject().id}_${stage.id}`
+		    : null;
+		
+		const seenCount =
+		  checklistSeenKey
+		    ? Number(localStorage.getItem(checklistSeenKey) || 0)
+		    : 0;
 		
 		const checklistUnseen =
 		  clientMode &&
-		  hasCheckedItems &&
-		  (
-			!checklistSeenKey ||
-			localStorage.getItem(checklistSeenKey) !== "true"
-		  );
+		  checkedCount > 0 &&
+		  checkedCount > seenCount;
 		
 		const approved =
 		  stageData?.approved === true &&
@@ -3005,15 +3010,19 @@ if (stage.special === "contracts") {
     btnViewChecklist.addEventListener("click", () => {
 
 	if (clientMode && project?.id && stageKey) {
-  localStorage.setItem(
-    `checklist_seen_${project.id}_${stageKey}`,
-    "true"
-  );
-
-  if (typeof renderSidebar === "function") {
-    renderSidebar();
-  }
-}
+	  const checkedCount =
+	    checklist.filter((item) => item.done === true).length;
+	
+	  localStorage.setItem(
+	    `checklist_seen_${project.id}_${stageKey}`,
+	    String(checkedCount)
+	  );
+	
+	  if (typeof renderSidebar === "function") {
+	    renderSidebar();
+	  }
+	}
+		
       const completed = checklist.filter(item => item.done).length;
 
       const modal = document.createElement("div");

@@ -2301,19 +2301,21 @@ if (clientMode && typeof setupClientNotificationPrompt === "function") {
   } else if (diffDays === 0) {
 
     statusEl.classList.add("deadline-today");
-    statusEl.textContent = "Entrega hoje.";
+    statusEl.textContent = "DIA DE ENTREGA!";
 
 } else if (diffDays <= 3) {
 
   statusEl.classList.add("deadline-urgent");
   statusEl.textContent =
-    `Falta${diffDays === 1 ? "" : "m"} ${diffDays} ${diffDays === 1 ? "dia" : "dias"} para a entrega.`;
+    diffDays === 1
+      ? "Falta 1 dia para a entrega."
+      : `Faltam ${diffDays} dias para a entrega.`;
 
 } else if (diffDays <= 7) {
 
   statusEl.classList.add("deadline-near");
   statusEl.textContent =
-    `Falta${diffDays} dias para a entrega.`;
+    `Faltam ${diffDays} dias para a entrega.`;
 
 } else if (diffDays <= 15) {
 

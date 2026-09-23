@@ -3995,56 +3995,51 @@ table.memorial-table td:nth-child(1) {
 
   padding: 0 14px;
 
-  border: 1px solid var(--border-color, #d8d2c8);
+  border: 1px solid rgba(255,255,255,.10);
   border-radius: 8px;
 
-  background: var(--surface-color, #f5f1eb);
-  color: var(--text-color, #3d3935);
+  background: #2f2f2f !important;
+  color: #f2f2f2 !important;
 
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
 
   cursor: pointer;
-  text-align: left;
-
   appearance: none;
   -webkit-appearance: none;
-
-  transition: .18s ease;
 }
 
 .stage-checklist-open-btn:hover {
-  background: var(--surface-hover, #ebe5dc);
-  border-color: var(--accent-color, #b8a48a);
+  background: #3a3a3a !important;
 }
 
 .stage-checklist-open-btn strong {
   margin-left: auto;
   font-size: 12px;
   font-weight: 600;
-  opacity: .7;
+  color: #f28c28;
 }
 
 .stage-checklist-chevron {
   font-size: 13px;
-  opacity: .55;
+  color: #aaa;
 }
 
 
 /* SITUAÇÃO */
 
 #stageStatus {
-  width: 180px;
+  width: 180px !important;
   height: 42px;
 
   padding: 0 34px 0 12px;
 
-  border: 1px solid var(--border-color, #d8d2c8);
+  border: 1px solid rgba(255,255,255,.10) !important;
   border-radius: 8px;
 
-  background-color: var(--surface-color, #f5f1eb);
-  color: var(--text-color, #3d3935);
+  background-color: #2f2f2f !important;
+  color: #f2f2f2 !important;
 
   font-family: inherit;
   font-size: 13px;
@@ -4054,21 +4049,15 @@ table.memorial-table td:nth-child(1) {
 
   appearance: none;
   -webkit-appearance: none;
-
-  background-image:
-    linear-gradient(45deg, transparent 50%, #777 50%),
-    linear-gradient(135deg, #777 50%, transparent 50%);
-
-  background-position:
-    calc(100% - 17px) 17px,
-    calc(100% - 12px) 17px;
-
-  background-size: 5px 5px;
-  background-repeat: no-repeat;
 }
 
 #stageStatus:focus {
   outline: none;
-  border-color: var(--accent-color, #b8a48a);
-  box-shadow: 0 0 0 2px rgba(184,164,138,.15);
+  border-color: #f28c28 !important;
+  box-shadow: 0 0 0 2px rgba(242,140,40,.15);
+}
+
+#stageStatus option {
+  background: #2f2f2f;
+  color: #f2f2f2;
 }

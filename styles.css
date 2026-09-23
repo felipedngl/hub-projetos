@@ -4250,3 +4250,30 @@ table.memorial-table td:nth-child(1) {
   background: #3a3a3a !important;
 }
 
+.stage-number {
+  width: 24px;
+  height: 24px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-right: 8px;
+
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 50%;
+
+  background: #2f2f2f;
+  color: #aaa;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  flex-shrink: 0;
+}
+
+.stage-link.active .stage-number {
+  background: #f28c28;
+  border-color: #f28c28;
+  color: #fff;
+}

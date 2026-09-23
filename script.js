@@ -6364,66 +6364,72 @@ function renderScheduleClientHTML(project) {
     monthName.charAt(0).toUpperCase() +
     monthName.slice(1);
 
-  const dayWidth = 34;
-  const labelWidth = 230;
-  const timelineWidth = daysInMonth * dayWidth;
+  const labelWidth = 250;
+  const dayWidth = 32;
+  const timelineWidth =
+    daysInMonth * dayWidth;
 
   /*
-   * Cabeçalho dos dias
+   * DIAS
    */
-  let daysHeaderHTML = "";
 
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(
-      year,
-      month,
-      day
-    );
+  let daysHTML = "";
 
-    const dayOfWeek = date.getDay();
+  for (
+    let day = 1;
+    day <= daysInMonth;
+    day++
+  ) {
+    const date =
+      new Date(year, month, day);
 
-    const isWeekend =
-      dayOfWeek === 0 ||
-      dayOfWeek === 6;
+    const weekDay =
+      date.getDay();
 
-    const isToday =
+    const weekend =
+      weekDay === 0 ||
+      weekDay === 6;
+
+    const todayMark =
       todayDay === day;
 
-    daysHeaderHTML += `
+    daysHTML += `
       <div
         style="
-          position: relative;
-          width: ${dayWidth}px;
-          min-width: ${dayWidth}px;
-          height: 48px;
-          box-sizing: border-box;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 2px;
-          border-left: 1px solid rgba(255,255,255,.055);
-          background: ${
-            isToday
-              ? "rgba(224,169,109,.14)"
-              : isWeekend
-                ? "rgba(255,255,255,.025)"
-                : "transparent"
+          width:${dayWidth}px;
+          min-width:${dayWidth}px;
+          height:44px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          position:relative;
+          color:${
+            todayMark
+              ? "#E8A15A"
+              : weekend
+                ? "#555"
+                : "#777"
+          };
+          font-size:10px;
+          font-weight:${
+            todayMark
+              ? "700"
+              : "500"
           };
         "
       >
+
         ${
-          isToday
+          todayMark
             ? `
               <span
                 style="
-                  position: absolute;
-                  top: 0;
-                  left: 4px;
-                  right: 4px;
-                  height: 2px;
-                  background: #e0a96d;
-                  border-radius: 0 0 3px 3px;
+                  position:absolute;
+                  width:20px;
+                  height:20px;
+                  border-radius:50%;
+                  border:1px solid rgba(232,161,90,.45);
+                  background:rgba(232,161,90,.08);
                 "
               ></span>
             `
@@ -6432,51 +6438,44 @@ function renderScheduleClientHTML(project) {
 
         <span
           style="
-            font-size: 10px;
-            color: ${
-              isToday
-                ? "#e0a96d"
-                : isWeekend
-                  ? "#777"
-                  : "#999"
-            };
-            font-weight: ${
-              isToday ? "700" : "500"
-            };
+            position:relative;
+            z-index:1;
           "
         >
           ${day}
         </span>
+
       </div>
     `;
   }
 
   /*
-   * Linhas do Gantt
+   * ATIVIDADES
    */
+
   let rowsHTML = "";
 
   if (!schedule.length) {
+
     rowsHTML = `
       <div
         style="
-          min-height: 150px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #777;
-          font-size: 13px;
-          background: #151515;
+          padding:70px 30px;
+          text-align:center;
+          color:#666;
+          font-size:12px;
         "
       >
         Nenhuma atividade cadastrada no cronograma.
       </div>
     `;
+
   } else {
+
     rowsHTML = schedule
       .map((item) => {
 
-        const itemTitle =
+        const title =
           item.task ||
           item.title ||
           item.activity ||
@@ -6493,30 +6492,43 @@ function renderScheduleClientHTML(project) {
           item.termino ||
           item.endDate;
 
+        const status =
+          item.status ||
+          "A Fazer";
+
         const startDate =
           rawStart
-            ? new Date(`${rawStart}T00:00:00`)
+            ? new Date(
+                `${rawStart}T00:00:00`
+              )
             : null;
 
         const endDate =
           rawEnd
-            ? new Date(`${rawEnd}T00:00:00`)
+            ? new Date(
+                `${rawEnd}T00:00:00`
+              )
             : null;
-
-        const status =
-          item.status || "A Fazer";
 
         let barHTML = "";
 
         if (
           startDate &&
           endDate &&
-          !Number.isNaN(startDate.getTime()) &&
-          !Number.isNaN(endDate.getTime())
+          !Number.isNaN(
+            startDate.getTime()
+          ) &&
+          !Number.isNaN(
+            endDate.getTime()
+          )
         ) {
 
           const monthStart =
-            new Date(year, month, 1);
+            new Date(
+              year,
+              month,
+              1
+            );
 
           const monthEnd =
             new Date(
@@ -6543,23 +6555,37 @@ function renderScheduleClientHTML(project) {
                 : daysInMonth;
 
             startDay =
-              Math.max(1, Math.min(daysInMonth, startDay));
+              Math.max(
+                1,
+                Math.min(
+                  daysInMonth,
+                  startDay
+                )
+              );
 
             endDay =
-              Math.max(1, Math.min(daysInMonth, endDay));
+              Math.max(
+                1,
+                Math.min(
+                  daysInMonth,
+                  endDay
+                )
+              );
 
             const left =
-              (startDay - 1) * dayWidth;
+              (startDay - 1) *
+              dayWidth;
 
             const width =
-              (endDay - startDay + 1) * dayWidth;
+              (endDay - startDay + 1) *
+              dayWidth;
 
             const startText =
               startDate.toLocaleDateString(
                 "pt-BR",
                 {
-                  day: "2-digit",
-                  month: "2-digit"
+                  day:"2-digit",
+                  month:"2-digit"
                 }
               );
 
@@ -6567,78 +6593,80 @@ function renderScheduleClientHTML(project) {
               endDate.toLocaleDateString(
                 "pt-BR",
                 {
-                  day: "2-digit",
-                  month: "2-digit"
+                  day:"2-digit",
+                  month:"2-digit"
                 }
               );
 
-            let barBackground =
-              "linear-gradient(90deg, #e0a96d, #c48b4d)";
+            let barColor =
+              "#D99052";
 
-            let barTextColor = "#17120d";
+            let barOpacity =
+              "1";
 
-            if (status === "Concluído") {
-              barBackground =
-                "linear-gradient(90deg, #5c9b72, #3f7d58)";
-              barTextColor = "#f4fff7";
+            if (
+              status === "Concluído"
+            ) {
+              barColor =
+                "#5F8F70";
             }
 
-            if (status === "Em Andamento") {
-              barBackground =
-                "linear-gradient(90deg, #e0a96d, #d18c4e)";
-              barTextColor = "#17120d";
-            }
-
-            if (status === "A Fazer") {
-              barBackground =
-                "linear-gradient(90deg, #777, #5f5f5f)";
-              barTextColor = "#fff";
+            if (
+              status === "A Fazer"
+            ) {
+              barColor =
+                "#777";
+              barOpacity =
+                ".75";
             }
 
             barHTML = `
               <div
                 title="${escapeHTML(
-                  itemTitle
+                  title
                 )}: ${startText} a ${endText}"
                 style="
-                  position: absolute;
-                  left: ${left}px;
-                  width: ${width}px;
-                  min-width: 12px;
-                  top: 9px;
-                  height: 26px;
-                  box-sizing: border-box;
-                  border-radius: 6px;
-                  background: ${barBackground};
-                  box-shadow:
-                    0 2px 6px rgba(0,0,0,.25);
-                  display: flex;
-                  align-items: center;
-                  padding: 0 9px;
-                  overflow: hidden;
-                  z-index: 2;
+                  position:absolute;
+                  left:${left}px;
+                  width:${width}px;
+                  top:50%;
+                  transform:translateY(-50%);
+                  height:24px;
+                  border-radius:6px;
+                  background:${barColor};
+                  opacity:${barOpacity};
+                  box-shadow:0 3px 10px rgba(0,0,0,.16);
+                  display:flex;
+                  align-items:center;
+                  padding:0 9px;
+                  box-sizing:border-box;
+                  overflow:hidden;
+                  z-index:3;
                 "
               >
+
                 <span
                   style="
-                    color: ${barTextColor};
-                    font-size: 10px;
-                    font-weight: 700;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
+                    color:#17130f;
+                    font-size:9px;
+                    font-weight:700;
+                    white-space:nowrap;
+                    overflow:hidden;
+                    text-overflow:ellipsis;
                   "
                 >
                   ${startText} – ${endText}
                 </span>
+
               </div>
             `;
           }
         }
 
         /*
-         * Grade vertical dos dias
+         * GRADE LEVE
          */
+
         let gridHTML = "";
 
         for (
@@ -6648,31 +6676,30 @@ function renderScheduleClientHTML(project) {
         ) {
 
           const date =
-            new Date(year, month, day);
+            new Date(
+              year,
+              month,
+              day
+            );
 
-          const dayOfWeek =
-            date.getDay();
+          const weekend =
+            date.getDay() === 0 ||
+            date.getDay() === 6;
 
-          const isWeekend =
-            dayOfWeek === 0 ||
-            dayOfWeek === 6;
-
-          const isToday =
+          const todayMark =
             todayDay === day;
 
           gridHTML += `
             <div
               style="
-                width: ${dayWidth}px;
-                min-width: ${dayWidth}px;
-                height: 100%;
-                box-sizing: border-box;
-                border-left: 1px solid rgba(255,255,255,.045);
-                background: ${
-                  isToday
-                    ? "rgba(224,169,109,.08)"
-                    : isWeekend
-                      ? "rgba(255,255,255,.018)"
+                width:${dayWidth}px;
+                min-width:${dayWidth}px;
+                height:100%;
+                background:${
+                  todayMark
+                    ? "rgba(232,161,90,.035)"
+                    : weekend
+                      ? "rgba(255,255,255,.012)"
                       : "transparent"
                 };
               "
@@ -6683,67 +6710,71 @@ function renderScheduleClientHTML(project) {
         return `
           <div
             style="
-              display: flex;
-              min-height: 54px;
-              border-bottom: 1px solid rgba(255,255,255,.055);
-              background: #151515;
+              display:flex;
+              min-height:64px;
+              position:relative;
             "
           >
 
+            <!-- NOME -->
+
             <div
               style="
-                width: ${labelWidth}px;
-                min-width: ${labelWidth}px;
-                box-sizing: border-box;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                padding: 7px 14px;
-                border-right: 1px solid rgba(255,255,255,.08);
-                background: #181818;
+                width:${labelWidth}px;
+                min-width:${labelWidth}px;
+                display:flex;
+                flex-direction:column;
+                justify-content:center;
+                padding:0 18px 0 4px;
+                box-sizing:border-box;
               "
             >
+
               <div
                 style="
-                  color: #f2f2f2;
-                  font-size: 12px;
-                  font-weight: 600;
-                  line-height: 1.3;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
+                  color:#E7E3DE;
+                  font-size:12px;
+                  font-weight:550;
+                  line-height:1.3;
+                  white-space:nowrap;
+                  overflow:hidden;
+                  text-overflow:ellipsis;
                 "
               >
-                ${escapeHTML(itemTitle)}
+                ${escapeHTML(title)}
               </div>
 
               <div
                 style="
-                  margin-top: 3px;
-                  color: #777;
-                  font-size: 10px;
+                  margin-top:4px;
+                  color:#666;
+                  font-size:9px;
+                  text-transform:uppercase;
+                  letter-spacing:.05em;
                 "
               >
                 ${escapeHTML(status)}
               </div>
+
             </div>
+
+            <!-- TIMELINE -->
 
             <div
               style="
-                position: relative;
-                width: ${timelineWidth}px;
-                min-width: ${timelineWidth}px;
-                height: 54px;
-                overflow: hidden;
+                width:${timelineWidth}px;
+                min-width:${timelineWidth}px;
+                height:64px;
+                position:relative;
               "
             >
 
               <div
                 style="
-                  position: absolute;
-                  inset: 0;
-                  display: flex;
-                  z-index: 0;
+                  position:absolute;
+                  inset:0;
+                  display:flex;
+                  z-index:0;
                 "
               >
                 ${gridHTML}
@@ -6764,62 +6795,56 @@ function renderScheduleClientHTML(project) {
       id="scheduleGanttBox"
       class="panel"
       style="
-        padding: 0;
-        margin-top: 24px;
-        overflow: hidden;
-        border-radius: 14px;
-        border: 1px solid rgba(255,255,255,.08);
-        background: #121212;
+        margin-top:28px;
+        padding:0;
+        overflow:hidden;
+        border:1px solid rgba(255,255,255,.06);
+        border-radius:14px;
+        background:#171717;
       "
     >
 
-      <!-- CABEÇALHO -->
+      <!-- HEADER -->
 
       <div
         style="
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 20px;
-          padding: 18px 20px;
-          background: #191919;
-          border-bottom: 1px solid rgba(255,255,255,.08);
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          padding:22px 24px;
+          border-bottom:1px solid rgba(255,255,255,.06);
         "
       >
 
         <div>
-          <h3
-            style="
-              margin: 0;
-              color: #f5f5f5;
-              font-size: 15px;
-              font-weight: 650;
-              letter-spacing: -.01em;
-            "
-          >
-            📅 Visão do Cronograma
-          </h3>
 
-          <p
+          <div
             style="
-              margin: 5px 0 0;
-              color: #777;
-              font-size: 11px;
+              color:#E7E3DE;
+              font-size:14px;
+              font-weight:600;
             "
           >
-            Acompanhamento das etapas e prazos da obra
-          </p>
+            Visão do Cronograma
+          </div>
+
+          <div
+            style="
+              margin-top:5px;
+              color:#666;
+              font-size:11px;
+            "
+          >
+            Acompanhamento das etapas da obra
+          </div>
+
         </div>
 
         <div
           style="
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px;
-            border-radius: 9px;
-            border: 1px solid rgba(255,255,255,.08);
-            background: #222;
+            display:flex;
+            align-items:center;
+            gap:8px;
           "
         >
 
@@ -6828,14 +6853,14 @@ function renderScheduleClientHTML(project) {
             onclick="changeScheduleMonth(-1)"
             aria-label="Mês anterior"
             style="
-              width: 34px;
-              height: 32px;
-              border: 0;
-              border-radius: 6px;
-              background: transparent;
-              color: #aaa;
-              font-size: 16px;
-              cursor: pointer;
+              width:32px;
+              height:32px;
+              border:1px solid rgba(255,255,255,.07);
+              border-radius:7px;
+              background:#1d1d1d;
+              color:#888;
+              font-size:18px;
+              cursor:pointer;
             "
           >
             ‹
@@ -6843,13 +6868,12 @@ function renderScheduleClientHTML(project) {
 
           <div
             style="
-              min-width: 145px;
-              padding: 0 8px;
-              text-align: center;
-              color: #f1f1f1;
-              font-size: 12px;
-              font-weight: 650;
-              text-transform: capitalize;
+              min-width:150px;
+              text-align:center;
+              color:#E7E3DE;
+              font-size:11px;
+              font-weight:600;
+              text-transform:capitalize;
             "
           >
             ${monthLabel}
@@ -6860,14 +6884,14 @@ function renderScheduleClientHTML(project) {
             onclick="changeScheduleMonth(1)"
             aria-label="Próximo mês"
             style="
-              width: 34px;
-              height: 32px;
-              border: 0;
-              border-radius: 6px;
-              background: transparent;
-              color: #aaa;
-              font-size: 16px;
-              cursor: pointer;
+              width:32px;
+              height:32px;
+              border:1px solid rgba(255,255,255,.07);
+              border-radius:7px;
+              background:#1d1d1d;
+              color:#888;
+              font-size:18px;
+              cursor:pointer;
             "
           >
             ›
@@ -6877,65 +6901,66 @@ function renderScheduleClientHTML(project) {
 
       </div>
 
-      <!-- GANTT -->
+      <!-- TIMELINE -->
 
       <div
         style="
-          overflow-x: auto;
-          overflow-y: hidden;
-          background: #121212;
+          overflow-x:auto;
+          overflow-y:hidden;
         "
       >
 
         <div
           style="
-            width: max-content;
-            min-width: 100%;
+            width:max-content;
+            min-width:100%;
           "
         >
 
-          <!-- CABEÇALHO DOS DIAS -->
+          <!-- DAYS -->
 
           <div
             style="
-              display: flex;
-              height: 48px;
-              background: #202020;
-              border-bottom: 1px solid rgba(255,255,255,.08);
+              display:flex;
+              height:44px;
+              border-bottom:1px solid rgba(255,255,255,.05);
             "
           >
 
             <div
               style="
-                width: ${labelWidth}px;
-                min-width: ${labelWidth}px;
-                box-sizing: border-box;
-                display: flex;
-                align-items: center;
-                padding: 0 14px;
-                color: #999;
-                font-size: 10px;
-                font-weight: 700;
-                letter-spacing: .06em;
-                border-right: 1px solid rgba(255,255,255,.08);
+                width:${labelWidth}px;
+                min-width:${labelWidth}px;
+                display:flex;
+                align-items:center;
+                padding-left:4px;
+                box-sizing:border-box;
+                color:#555;
+                font-size:9px;
+                font-weight:700;
+                letter-spacing:.08em;
               "
             >
-              SERVIÇOS / ETAPAS
+              SERVIÇOS
             </div>
 
             <div
               style="
-                display: flex;
-                width: ${timelineWidth}px;
-                min-width: ${timelineWidth}px;
+                display:flex;
+                width:${timelineWidth}px;
+                min-width:${timelineWidth}px;
               "
             >
-              ${daysHeaderHTML}
+              ${daysHTML}
             </div>
 
           </div>
 
-          ${rowsHTML}
+          <!-- ROWS -->
+
+          <div>
+            ${rowsHTML}
+          </div>
 
         </div>
 
@@ -6944,7 +6969,6 @@ function renderScheduleClientHTML(project) {
     </div>
   `;
 }
-
 
 function setupNewProjectModal() {
   const btnNew = $("#btnNewProject");

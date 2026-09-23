@@ -4417,3 +4417,415 @@ table.memorial-table td:nth-child(1) {
 .memorial-client-section-content .memorial-link {
   white-space: nowrap;
 }
+
+/* ==========================================================
+   MEMORIAL DO CLIENTE — VISUAL
+   ========================================================== */
+
+.memorial-client-section {
+  margin-bottom: 14px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #242424;
+}
+
+/* Cabeçalho da categoria */
+
+.memorial-client-section-toggle {
+  width: 100%;
+  min-height: 64px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 10px 16px;
+
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+
+  background: #2b2b2b;
+  color: #f2f2f2;
+
+  font-family: inherit;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.memorial-client-section-toggle:hover {
+  background: #303030;
+}
+
+.memorial-client-section-number {
+  width: 30px;
+  height: 30px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-right: 12px;
+
+  border: 1px solid #f28c28;
+  border-radius: 50%;
+
+  background: rgba(242,140,40,.12);
+  color: #f28c28;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  flex-shrink: 0;
+}
+
+.memorial-client-section-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.memorial-client-section-info strong {
+  color: #f5f5f5;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.memorial-client-section-info span {
+  color: #a9a9a9;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.memorial-client-section-arrow {
+  margin-left: auto;
+
+  color: #f28c28;
+
+  font-size: 22px;
+  line-height: 1;
+
+  transition: transform .2s ease;
+}
+
+.memorial-client-section-toggle[aria-expanded="true"]
+.memorial-client-section-arrow {
+  transform: rotate(90deg);
+}
+
+/* Área aberta */
+
+.memorial-client-section-content {
+  padding: 14px;
+  background: #202020;
+}
+
+/* Tabela */
+
+.memorial-client-section-content .memorial-table {
+  font-family: inherit;
+  font-size: 13px;
+  color: #e8e8e8;
+
+  border-collapse: separate;
+  border-spacing: 0;
+
+  background: #252525;
+}
+
+/* Cabeçalho das colunas */
+
+.memorial-client-section-content .memorial-table th {
+  padding: 12px 14px;
+
+  background: #2f2f2f;
+  color: #f28c28;
+
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+
+  border-right: 1px solid rgba(255,255,255,.10);
+  border-bottom: 1px solid rgba(242,140,40,.25);
+
+  white-space: nowrap;
+}
+
+.memorial-client-section-content
+.memorial-table th:last-child {
+  border-right: 0;
+}
+
+/* Células */
+
+.memorial-client-section-content .memorial-table td {
+  padding: 11px 14px;
+
+  color: #d8d8d8;
+
+  font-size: 13px;
+  line-height: 1.4;
+
+  border-right: 1px solid rgba(255,255,255,.08);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+
+  vertical-align: middle;
+}
+
+.memorial-client-section-content
+.memorial-table td:last-child {
+  border-right: 0;
+}
+
+/* Linhas alternadas */
+
+.memorial-client-section-content
+.memorial-table tbody tr:nth-child(even) {
+  background: #292929;
+}
+
+.memorial-client-section-content
+.memorial-table tbody tr:hover {
+  background: rgba(242,140,40,.07);
+}
+
+/* Link */
+
+.memorial-client-section-content .memorial-link {
+  color: #f28c28;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.memorial-client-section-content .memorial-link:hover {
+  color: #ffad55;
+  text-decoration: underline;
+}
+
+/* Resumo */
+
+.memorial-client-section-content .memorial-summary {
+  margin-top: 12px;
+  padding: 10px 12px;
+
+  border-left: 3px solid #f28c28;
+  border-radius: 4px;
+
+  background: rgba(242,140,40,.07);
+  color: #bdbdbd;
+
+  font-size: 12px;
+}
+
+.memorial-client-section-content
+.memorial-summary strong {
+  color: #f28c28;
+}
+
+/* ==========================================================
+   FILTROS DO MEMORIAL — VISUAL
+   ========================================================== */
+
+.memorial-filter-container {
+  margin-bottom: 18px;
+}
+
+/* Botão principal */
+
+.memorial-filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+
+  min-height: 40px;
+  padding: 0 15px;
+
+  border: 1px solid rgba(242,140,40,.35);
+  border-radius: 8px;
+
+  background: #292929;
+  color: #f2f2f2;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background .18s ease,
+    border-color .18s ease,
+    color .18s ease;
+}
+
+.memorial-filter-toggle:hover {
+  background: #333333;
+  border-color: rgba(242,140,40,.65);
+  color: #f28c28;
+}
+
+.memorial-filter-toggle.is-open {
+  background: rgba(242,140,40,.10);
+  border-color: #f28c28;
+  color: #f28c28;
+}
+
+.memorial-filter-toggle-icon {
+  color: #f28c28;
+  font-size: 15px;
+  line-height: 1;
+
+  transition: transform .2s ease;
+}
+
+.memorial-filter-toggle.is-open
+.memorial-filter-toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* Painel */
+
+.memorial-filter-panel {
+  display: none;
+
+  margin-top: 10px;
+  padding: 16px;
+
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+
+  background: #242424;
+}
+
+.memorial-filter-panel.is-open {
+  display: block;
+}
+
+/* Cabeçalho */
+
+.memorial-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.memorial-filter-header h3 {
+  margin: 0 0 4px;
+
+  color: #f2f2f2;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.memorial-filter-header p {
+  margin: 0;
+
+  color: #8f8f8f;
+  font-size: 12px;
+}
+
+/* Botão limpar */
+
+.memorial-clear-filters {
+  height: 34px;
+  padding: 0 12px;
+
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 7px;
+
+  background: #2d2d2d;
+  color: #bdbdbd;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition:
+    background .18s ease,
+    color .18s ease,
+    border-color .18s ease;
+}
+
+.memorial-clear-filters:hover {
+  background: #353535;
+  color: #f28c28;
+  border-color: rgba(242,140,40,.35);
+}
+
+/* Grupos */
+
+.memorial-filter-group {
+  padding: 12px 0;
+
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.memorial-filter-group:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.memorial-filter-label {
+  margin-bottom: 9px;
+
+  color: #a8a8a8;
+
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+/* Opções */
+
+.memorial-filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.memorial-filter-btn {
+  min-height: 32px;
+  padding: 0 11px;
+
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 7px;
+
+  background: #2d2d2d;
+  color: #bdbdbd;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition:
+    background .15s ease,
+    border-color .15s ease,
+    color .15s ease;
+}
+
+.memorial-filter-btn:hover {
+  background: #353535;
+  color: #f2f2f2;
+  border-color: rgba(255,255,255,.18);
+}
+
+.memorial-filter-btn.selected {
+  background: rgba(242,140,40,.12);
+  border-color: #f28c28;
+  color: #f28c28;
+  font-weight: 600;
+}

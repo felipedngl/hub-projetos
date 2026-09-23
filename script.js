@@ -1808,14 +1808,19 @@ function renderSidebar() {
 			      ? f.unreadByClient === true
 			      : f.unreadByDesigner === true;
 			  });
-			
+							
 				const checklist = Array.isArray(stageData?.checklist)
 				  ? stageData.checklist
 				  : [];
 				
-				const hasCheckedItems = checklist.some(
-				  (item) => item.done === true
-				);
+				const checklistSeenKey =
+				  currentProject()?.id && stageData
+				    ? `checklist_seen_${currentProject().id}_${stage.id}`
+				    : null;
+				
+				const hasCheckedItems =
+				  checklist.some((item) => item.done === true) &&
+				  !(checklistSeenKey && localStorage.getItem(checklistSeenKey) === "true");
 				
 				const approved =
 				  stageData?.approved === true &&

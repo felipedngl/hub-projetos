@@ -1810,48 +1810,34 @@ function renderSidebar() {
 			      : f.unreadByDesigner === true;
 			  });
 							
-		const checklist = Array.isArray(stageData?.checklist)
-		  ? stageData.checklist
-		  : [];
-		
-		const hasCheckedItems =
-		  checklist.some((item) => item.done === true);
-		
-const checkedCount =
-  checklist.filter((item) => item.done === true).length;
+const checklist = Array.isArray(stageData?.checklist)
+  ? stageData.checklist
+  : [];
 
-		const checklistSeenKey =
-		  clientMode && currentProject()?.id
-		    ? `checklist_seen_${currentProject().id}_${stage.id}`
-		    : null;
-		
-		const seenCount =
-		  checklistSeenKey
-		    ? Number(localStorage.getItem(checklistSeenKey) || 0)
-		    : 0;
-		
-		const checklistUnseen =
-		  clientMode &&
-		  checkedCount > 0 &&
-		  checkedCount > seenCount;
-		
-		const approved =
-		  stageData?.approved === true &&
-		  !!stageData?.approvedAt;
-				
-		const dotClass = unreadMsg
-		  ? "message"
-		  : unreadFiles
-		    ? "file"
-		    : approved
-		      ? "approved"
-		      : checklistUnseen
-		        ? "checklist"
-		        : hasCheckedItems
-		          ? "done"
-		          : done
-		            ? "done"
-		            : "";
+const hasCheckedItems =
+  checklist.some((item) => item.done === true);
+
+const checklistUnseen =
+  clientMode &&
+  stageData?.checklistUpdated === true;
+
+const approved =
+  stageData?.approved === true &&
+  !!stageData?.approvedAt;
+
+const dotClass = unreadMsg
+  ? "message"
+  : unreadFiles
+    ? "file"
+    : approved
+      ? "approved"
+      : checklistUnseen
+        ? "checklist"
+        : hasCheckedItems
+          ? "done"
+          : done
+            ? "done"
+            : "";
 			
           return `
 		  <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${
@@ -2355,7 +2341,8 @@ if (clientMode && typeof setupClientNotificationPrompt === "function") {
     const stageDeadline = $("#stageDeadline");
     const btnSaveStageProgress = $("#btnSaveStageProgress");
 
-	function updateStageDeadlineStatus() {
+	  
+function updateStageDeadlineStatus() {
   const statusEl = $("#stageDeadlineStatus");
   const deadlineInput = $("#stageDeadline");
 
@@ -2800,14 +2787,6 @@ function renderStageClient(project, stage) {
 
   const stagesData = project.stages || {};
   const stageKey = (stage && stage.id) ? stage.id : "projeto_executivo";
-
-const checklistSeenKey =
-  `checklist_seen_${project.id}_${stageKey}`;
-
-localStorage.setItem(
-  checklistSeenKey,
-  "true"
-);
 	
   // Declaração ÚNICA da variável 's'
   const s = stagesData[stageKey] || { checklist: [], files: [], clientMessages: [], status: "nao_iniciado" };
@@ -3007,21 +2986,51 @@ if (stage.special === "contracts") {
   const btnViewChecklist = $("#btnViewChecklist");
 
   if (btnViewChecklist) {
-    btnViewChecklist.addEventListener("click", () => {
+    btnViewChecklist.addEventListener("click", async () => {
 
-	if (clientMode && project?.id && stageKey) {
-	  const checkedCount =
-	    checklist.filter((item) => item.done === true).length;
-	
-	  localStorage.setItem(
-	    `checklist_seen_${project.id}_${stageKey}`,
-	    String(checkedCount)
-	  );
-	
-	  if (typeof renderSidebar === "function") {
-	    renderSidebar();
-	  }
-	}
+if (clientMode && project?.id && stageKey) {
+  try {
+    await db
+      .collection("projects")
+      .doc(String(project.id))
+      .update({
+        [`stages.${stageKey}.checklistUpdated`]: false
+      });
+
+    s.checklistUpdated = false;
+
+    if (typeof renderSidebar === "function") {
+      renderSidebar();
+    }
+  } catch (error) {
+    console.error(
+      "[CHECKLIST] Erro ao marcar entregas como vistas:",
+      error
+    );
+  }
+}
+
+if (clientMode && project?.id && stageKey) {
+  try {
+    await db
+      .collection("projects")
+      .doc(String(project.id))
+      .update({
+        [`stages.${stageKey}.checklistUpdated`]: false
+      });
+
+    s.checklistUpdated = false;
+
+    if (typeof renderSidebar === "function") {
+      renderSidebar();
+    }
+  } catch (error) {
+    console.error(
+      "[CHECKLIST] Erro ao marcar entregas como vistas:",
+      error
+    );
+  }
+}
 		
       const completed = checklist.filter(item => item.done).length;
 

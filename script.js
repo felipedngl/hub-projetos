@@ -1760,19 +1760,21 @@ function renderSidebar() {
 				          : "";
 			
           return `
-            <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${
+		  <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${
 			unreadMsg ? "has-unread-message" : ""
-			}" data-stage="${stage.id}">
-              ${(typeof ICONS !== "undefined" && ICONS[stage.id]) || ""}
-              <span class="nav-label">
-			    <span class="stage-number">${index + 1}</span>
-			    ${stage.id === "briefing" ? "Briefing" : stage.label}
-			  </span>
-			  <span
+		  }" data-stage="${stage.id}">
+		
+			<span class="nav-label">
+			  <span class="stage-number">${index + 1}</span>
+			  ${stage.id === "briefing" ? "Briefing" : stage.label}
+			</span>
+		
+			<span
 			  class="nav-dot ${dotClass}"
 			  title="Etapa"
 			></span>
-            </button>`;
+		
+		  </button>`;
         })
         .join("");
 

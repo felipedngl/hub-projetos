@@ -934,6 +934,53 @@ const updatedProject = {
   ...doc.data()
 };
 
+const localProject =
+  projects.find((p) => p.id === projectId);
+
+if (localProject) {
+  Object.keys(updatedProject.stages || {}).forEach((stageId) => {
+    const localMessages =
+      Array.isArray(
+        localProject.stages?.[stageId]?.clientMessages
+      )
+        ? localProject.stages[stageId].clientMessages
+        : [];
+
+    const clientMessages =
+      localMessages.filter(
+        (msg) => msg.author === "client"
+      );
+
+    if (!updatedProject.stages[stageId]) {
+      updatedProject.stages[stageId] = {};
+    }
+
+    const designerMessages =
+      Array.isArray(
+        updatedProject.stages[stageId].clientMessages
+      )
+        ? updatedProject.stages[stageId].clientMessages
+        : [];
+
+    updatedProject.stages[stageId].clientMessages =
+      Array.from(
+        new Map(
+          [
+            ...designerMessages,
+            ...clientMessages
+          ].map((msg) => [
+            String(msg.id),
+            msg
+          ])
+        ).values()
+      ).sort(
+        (a, b) =>
+          Number(a.createdAt || 0) -
+          Number(b.createdAt || 0)
+      );
+  });
+}
+
 console.log(
   "[SYNC] Mensagens detalhadas:",
   Object.entries(updatedProject.stages || {}).map(([stageId, stage]) => ({

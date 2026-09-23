@@ -5059,84 +5059,97 @@ function renderMemorial(project) {
            FILTROS
       ===================================================== -->
 
-      <div class="memorial-filter-panel">
+<div class="memorial-filter-container">
 
-        <div class="memorial-filter-header">
+  <button
+    type="button"
+    id="btnToggleMemorialFilters"
+    class="memorial-filter-toggle"
+  >
+    <span>Filtros</span>
+    <span class="memorial-filter-toggle-icon">⌄</span>
+  </button>
 
-          <div>
-            <h3>Filtros</h3>
+  <div
+    class="memorial-filter-panel"
+    id="memorialFilterPanel"
+  >
 
-            <p>
-              Combine filtros para encontrar rapidamente
-              os itens desejados.
-            </p>
-          </div>
+    <div class="memorial-filter-header">
 
-          <button
-            type="button"
-            id="btnClearMemorialFilters"
-            class="memorial-clear-filters"
-          >
-            Limpar seleção
-          </button>
+      <div>
+        <h3>Filtros</h3>
 
-        </div>
+        <p>
+          Combine filtros para encontrar rapidamente
+          os itens desejados.
+        </p>
+      </div>
 
+      <button
+        type="button"
+        id="btnClearMemorialFilters"
+        class="memorial-clear-filters"
+      >
+        Limpar seleção
+      </button>
 
-        <div class="memorial-filter-group">
+    </div>
 
-          <div class="memorial-filter-label">
-            Categorias
-          </div>
+    <div class="memorial-filter-group">
 
-          <div class="memorial-filter-options">
+      <div class="memorial-filter-label">
+        Categorias
+      </div>
 
-            <button
-              type="button"
-              class="memorial-filter-btn memorial-filter-all selected"
-              data-filter-group="category"
-              data-filter-value="all"
-            >
-              Todos
-            </button>
+      <div class="memorial-filter-options">
 
-            ${categoryFilters}
+        <button
+          type="button"
+          class="memorial-filter-btn memorial-filter-all selected"
+          data-filter-group="category"
+          data-filter-value="all"
+        >
+          Todos
+        </button>
 
-          </div>
-
-        </div>
-
-
-        <div class="memorial-filter-group">
-
-          <div class="memorial-filter-label">
-            Ambientes
-          </div>
-
-          <div class="memorial-filter-options">
-
-            ${environmentFilters}
-
-          </div>
-
-        </div>
-
-
-        <div class="memorial-filter-group">
-
-          <div class="memorial-filter-label">
-            Fornecedores / Lojas
-          </div>
-
-          <div class="memorial-filter-options">
-
-            ${supplierFilters}
-
-          </div>
-
-        </div>
+        ${categoryFilters}
 
       </div>
+
+    </div>
+
+    <div class="memorial-filter-group">
+
+      <div class="memorial-filter-label">
+        Ambientes
+      </div>
+
+      <div class="memorial-filter-options">
+
+        ${environmentFilters}
+
+      </div>
+
+    </div>
+
+    <div class="memorial-filter-group">
+
+      <div class="memorial-filter-label">
+        Fornecedores / Lojas
+      </div>
+
+      <div class="memorial-filter-options">
+
+        ${supplierFilters}
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
 
 
       <!-- ====================================================

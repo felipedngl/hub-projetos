@@ -4635,9 +4635,160 @@ document.addEventListener("mousemove", (event) => {
   th.style.minWidth = `${newWidth}px`;
 });
 
+// ==========================================================
+// REDIMENSIONAR E GUARDAR COLUNAS DO MEMORIAL
+// ==========================================================
+
+let memorialResizeState = null;
+
+function memorialColumnStorageKey() {
+  const project = currentProject();
+  return project?.id
+    ? `memorialColumnWidths_${project.id}`
+    : "memorialColumnWidths";
+}
+
+function loadMemorialColumnWidths(table) {
+  if (!table) return;
+
+  try {
+    const saved =
+      JSON.parse(
+        localStorage.getItem(
+          memorialColumnStorageKey()
+        ) || "{}"
+      );
+
+    table
+      .querySelectorAll(".memorial-resizable-th")
+      .forEach((th) => {
+
+        const key =
+          th.dataset.columnKey;
+
+        if (
+          key &&
+          saved[key] &&
+          Number(saved[key]) >= 80
+        ) {
+          const width =
+            Number(saved[key]);
+
+          th.style.width = `${width}px`;
+          th.style.minWidth = `${width}px`;
+        }
+      });
+
+  } catch (error) {
+    console.warn(
+      "[MEMORIAL] Não foi possível carregar tamanhos das colunas:",
+      error
+    );
+  }
+}
+
+function saveMemorialColumnWidth(th) {
+  const key =
+    th?.dataset.columnKey;
+
+  if (!key) return;
+
+  try {
+    const saved =
+      JSON.parse(
+        localStorage.getItem(
+          memorialColumnStorageKey()
+        ) || "{}"
+      );
+
+    saved[key] =
+      th.offsetWidth;
+
+    localStorage.setItem(
+      memorialColumnStorageKey(),
+      JSON.stringify(saved)
+    );
+
+  } catch (error) {
+    console.warn(
+      "[MEMORIAL] Não foi possível salvar tamanho da coluna:",
+      error
+    );
+  }
+}
+
+document.addEventListener("mousedown", (event) => {
+
+  const resizer =
+    event.target.closest(
+      ".memorial-column-resizer"
+    );
+
+  if (!resizer) return;
+
+  const th =
+    resizer.closest(
+      ".memorial-resizable-th"
+    );
+
+  const table =
+    resizer.closest(
+      ".memorial-table"
+    );
+
+  if (!th || !table) return;
+
+  event.preventDefault();
+
+  memorialResizeState = {
+    th,
+    table,
+    startX: event.clientX,
+    startWidth: th.offsetWidth
+  };
+
+  document.body.style.cursor =
+    "col-resize";
+
+  document.body.style.userSelect =
+    "none";
+});
+
+document.addEventListener("mousemove", (event) => {
+
+  if (!memorialResizeState) return;
+
+  const {
+    th,
+    startX,
+    startWidth
+  } = memorialResizeState;
+
+  const diff =
+    event.clientX - startX;
+
+  const newWidth =
+    Math.max(
+      80,
+      startWidth + diff
+    );
+
+  th.style.width =
+    `${newWidth}px`;
+
+  th.style.minWidth =
+    `${newWidth}px`;
+});
+
 document.addEventListener("mouseup", () => {
 
   if (!memorialResizeState) return;
+
+  const {
+    th
+  } = memorialResizeState;
+
+  saveMemorialColumnWidth(th);
 
   memorialResizeState = null;
 
@@ -5175,6 +5326,13 @@ if (btnExpandMemorial && memorialContainer) {
   );
 }
 
+// Carrega os tamanhos personalizados das colunas
+document
+  .querySelectorAll(".memorial-table")
+  .forEach((table) => {
+    loadMemorialColumnWidths(table);
+  });
+	
   // ==========================================================
   // ESTADO DOS FILTROS
   // ==========================================================

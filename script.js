@@ -6329,107 +6329,622 @@ function changeScheduleMonth(delta) {
 window.changeScheduleMonth = changeScheduleMonth;
 
 function renderScheduleClientHTML(project) {
-  const schedule = project && project.schedule ? project.schedule : [];
+  const schedule =
+    project && Array.isArray(project.schedule)
+      ? project.schedule
+      : [];
+
   const year = currentScheduleDate.getFullYear();
   const month = currentScheduleDate.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const monthName = currentScheduleDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
+  const daysInMonth =
+    new Date(year, month + 1, 0).getDate();
+
+  const today = new Date();
+
+  const isCurrentMonth =
+    today.getFullYear() === year &&
+    today.getMonth() === month;
+
+  const todayDay =
+    isCurrentMonth
+      ? today.getDate()
+      : null;
+
+  const monthName =
+    currentScheduleDate.toLocaleDateString(
+      "pt-BR",
+      {
+        month: "long",
+        year: "numeric"
+      }
+    );
+
+  const monthLabel =
+    monthName.charAt(0).toUpperCase() +
+    monthName.slice(1);
+
+  const dayWidth = 34;
+  const labelWidth = 230;
+  const timelineWidth = daysInMonth * dayWidth;
+
+  /*
+   * Cabeçalho dos dias
+   */
   let daysHeaderHTML = "";
+
   for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(
+      year,
+      month,
+      day
+    );
+
+    const dayOfWeek = date.getDay();
+
+    const isWeekend =
+      dayOfWeek === 0 ||
+      dayOfWeek === 6;
+
+    const isToday =
+      todayDay === day;
+
     daysHeaderHTML += `
-      <div style="flex: 1; min-width: 24px; text-align: center; font-size: 0.7rem; color: #888; border-left: 1px solid #2a2a2a; padding: 4px 0;">
-        ${day}
+      <div
+        style="
+          position: relative;
+          width: ${dayWidth}px;
+          min-width: ${dayWidth}px;
+          height: 48px;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 2px;
+          border-left: 1px solid rgba(255,255,255,.055);
+          background: ${
+            isToday
+              ? "rgba(224,169,109,.14)"
+              : isWeekend
+                ? "rgba(255,255,255,.025)"
+                : "transparent"
+          };
+        "
+      >
+        ${
+          isToday
+            ? `
+              <span
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 4px;
+                  right: 4px;
+                  height: 2px;
+                  background: #e0a96d;
+                  border-radius: 0 0 3px 3px;
+                "
+              ></span>
+            `
+            : ""
+        }
+
+        <span
+          style="
+            font-size: 10px;
+            color: ${
+              isToday
+                ? "#e0a96d"
+                : isWeekend
+                  ? "#777"
+                  : "#999"
+            };
+            font-weight: ${
+              isToday ? "700" : "500"
+            };
+          "
+        >
+          ${day}
+        </span>
       </div>
     `;
   }
 
+  /*
+   * Linhas do Gantt
+   */
   let rowsHTML = "";
-  if (schedule.length === 0) {
-    rowsHTML = `<div style="padding: 20px; color: #888; font-size: 0.9rem; text-align: center;">Nenhum evento cadastrado no cronograma.</div>`;
+
+  if (!schedule.length) {
+    rowsHTML = `
+      <div
+        style="
+          min-height: 150px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #777;
+          font-size: 13px;
+          background: #151515;
+        "
+      >
+        Nenhuma atividade cadastrada no cronograma.
+      </div>
+    `;
   } else {
-    rowsHTML = schedule.map((item) => {
-      const itemTitle = item.task || item.title || item.activity || item.name || "Sem título";
-      const rawStart = item.start || item.inicio || item.startDate;
-      const rawEnd = item.end || item.termino || item.endDate;
+    rowsHTML = schedule
+      .map((item) => {
 
-      const startDate = rawStart ? new Date(`${rawStart}T00:00:00`) : null;
-      const endDate = rawEnd ? new Date(`${rawEnd}T00:00:00`) : null;
+        const itemTitle =
+          item.task ||
+          item.title ||
+          item.activity ||
+          item.name ||
+          "Sem título";
 
-      let barHTML = "";
-      if (startDate && endDate) {
-        const monthStart = new Date(year, month, 1);
-        const monthEnd = new Date(year, month, daysInMonth);
+        const rawStart =
+          item.start ||
+          item.inicio ||
+          item.startDate;
 
-        if (endDate >= monthStart && startDate <= monthEnd) {
-          let startDay = (startDate.getFullYear() === year && startDate.getMonth() === month) ? startDate.getDate() : 1;
-          let endDay = (endDate.getFullYear() === year && endDate.getMonth() === month) ? endDate.getDate() : daysInMonth;
+        const rawEnd =
+          item.end ||
+          item.termino ||
+          item.endDate;
 
-          const leftPercent = ((startDay - 1) / daysInMonth) * 100;
-          const widthPercent = ((endDay - startDay + 1) / daysInMonth) * 100;
+        const startDate =
+          rawStart
+            ? new Date(`${rawStart}T00:00:00`)
+            : null;
 
-          const startText = startDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-          const endText = endDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+        const endDate =
+          rawEnd
+            ? new Date(`${rawEnd}T00:00:00`)
+            : null;
 
-          barHTML = `
-            <div title="${itemTitle}: ${startText} a ${endText}"
-                 style="position: absolute; left: ${leftPercent}%; width: ${widthPercent}%; top: 6px; bottom: 6px; background: linear-gradient(90deg, #e0a96d, #c48b4d); border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; overflow: hidden;">
-              <span style="font-size: 0.65rem; color: #111; font-weight: bold; white-space: nowrap; padding: 0 4px;">
-                ${startText} - ${endText}
-              </span>
-            </div>
+        const status =
+          item.status || "A Fazer";
+
+        let barHTML = "";
+
+        if (
+          startDate &&
+          endDate &&
+          !Number.isNaN(startDate.getTime()) &&
+          !Number.isNaN(endDate.getTime())
+        ) {
+
+          const monthStart =
+            new Date(year, month, 1);
+
+          const monthEnd =
+            new Date(
+              year,
+              month,
+              daysInMonth
+            );
+
+          if (
+            endDate >= monthStart &&
+            startDate <= monthEnd
+          ) {
+
+            let startDay =
+              startDate.getFullYear() === year &&
+              startDate.getMonth() === month
+                ? startDate.getDate()
+                : 1;
+
+            let endDay =
+              endDate.getFullYear() === year &&
+              endDate.getMonth() === month
+                ? endDate.getDate()
+                : daysInMonth;
+
+            startDay =
+              Math.max(1, Math.min(daysInMonth, startDay));
+
+            endDay =
+              Math.max(1, Math.min(daysInMonth, endDay));
+
+            const left =
+              (startDay - 1) * dayWidth;
+
+            const width =
+              (endDay - startDay + 1) * dayWidth;
+
+            const startText =
+              startDate.toLocaleDateString(
+                "pt-BR",
+                {
+                  day: "2-digit",
+                  month: "2-digit"
+                }
+              );
+
+            const endText =
+              endDate.toLocaleDateString(
+                "pt-BR",
+                {
+                  day: "2-digit",
+                  month: "2-digit"
+                }
+              );
+
+            let barBackground =
+              "linear-gradient(90deg, #e0a96d, #c48b4d)";
+
+            let barTextColor = "#17120d";
+
+            if (status === "Concluído") {
+              barBackground =
+                "linear-gradient(90deg, #5c9b72, #3f7d58)";
+              barTextColor = "#f4fff7";
+            }
+
+            if (status === "Em Andamento") {
+              barBackground =
+                "linear-gradient(90deg, #e0a96d, #d18c4e)";
+              barTextColor = "#17120d";
+            }
+
+            if (status === "A Fazer") {
+              barBackground =
+                "linear-gradient(90deg, #777, #5f5f5f)";
+              barTextColor = "#fff";
+            }
+
+            barHTML = `
+              <div
+                title="${escapeHTML(
+                  itemTitle
+                )}: ${startText} a ${endText}"
+                style="
+                  position: absolute;
+                  left: ${left}px;
+                  width: ${width}px;
+                  min-width: 12px;
+                  top: 9px;
+                  height: 26px;
+                  box-sizing: border-box;
+                  border-radius: 6px;
+                  background: ${barBackground};
+                  box-shadow:
+                    0 2px 6px rgba(0,0,0,.25);
+                  display: flex;
+                  align-items: center;
+                  padding: 0 9px;
+                  overflow: hidden;
+                  z-index: 2;
+                "
+              >
+                <span
+                  style="
+                    color: ${barTextColor};
+                    font-size: 10px;
+                    font-weight: 700;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  "
+                >
+                  ${startText} – ${endText}
+                </span>
+              </div>
+            `;
+          }
+        }
+
+        /*
+         * Grade vertical dos dias
+         */
+        let gridHTML = "";
+
+        for (
+          let day = 1;
+          day <= daysInMonth;
+          day++
+        ) {
+
+          const date =
+            new Date(year, month, day);
+
+          const dayOfWeek =
+            date.getDay();
+
+          const isWeekend =
+            dayOfWeek === 0 ||
+            dayOfWeek === 6;
+
+          const isToday =
+            todayDay === day;
+
+          gridHTML += `
+            <div
+              style="
+                width: ${dayWidth}px;
+                min-width: ${dayWidth}px;
+                height: 100%;
+                box-sizing: border-box;
+                border-left: 1px solid rgba(255,255,255,.045);
+                background: ${
+                  isToday
+                    ? "rgba(224,169,109,.08)"
+                    : isWeekend
+                      ? "rgba(255,255,255,.018)"
+                      : "transparent"
+                };
+              "
+            ></div>
           `;
         }
-      }
 
-      let gridCols = "";
-      for (let d = 1; d <= daysInMonth; d++) {
-        gridCols += `<div style="flex: 1; min-width: 24px; border-left: 1px solid #222; height: 100%;"></div>`;
-      }
+        return `
+          <div
+            style="
+              display: flex;
+              min-height: 54px;
+              border-bottom: 1px solid rgba(255,255,255,.055);
+              background: #151515;
+            "
+          >
 
-      return `
-        <div style="display: flex; align-items: center; border-bottom: 1px solid #222; min-height: 44px; background: #161616;">
-          <div style="width: 200px; min-width: 200px; padding: 8px 12px; color: #fff; font-size: 0.85rem; font-weight: 500; border-right: 1px solid #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            ${itemTitle}
+            <div
+              style="
+                width: ${labelWidth}px;
+                min-width: ${labelWidth}px;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 7px 14px;
+                border-right: 1px solid rgba(255,255,255,.08);
+                background: #181818;
+              "
+            >
+              <div
+                style="
+                  color: #f2f2f2;
+                  font-size: 12px;
+                  font-weight: 600;
+                  line-height: 1.3;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                "
+              >
+                ${escapeHTML(itemTitle)}
+              </div>
+
+              <div
+                style="
+                  margin-top: 3px;
+                  color: #777;
+                  font-size: 10px;
+                "
+              >
+                ${escapeHTML(status)}
+              </div>
+            </div>
+
+            <div
+              style="
+                position: relative;
+                width: ${timelineWidth}px;
+                min-width: ${timelineWidth}px;
+                height: 54px;
+                overflow: hidden;
+              "
+            >
+
+              <div
+                style="
+                  position: absolute;
+                  inset: 0;
+                  display: flex;
+                  z-index: 0;
+                "
+              >
+                ${gridHTML}
+              </div>
+
+              ${barHTML}
+
+            </div>
+
           </div>
-          <div style="position: relative; flex: 1; display: flex; height: 44px; align-items: center; background: #1a1a1a;">
-            ${gridCols}
-            ${barHTML}
-          </div>
-        </div>
-      `;
-    }).join("");
+        `;
+      })
+      .join("");
   }
 
   return `
-    <div id="scheduleGanttBox" class="panel" style="padding: 0; border-radius: 12px; overflow: hidden; border: 1px solid #333; background: #141414; margin-top: 24px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #1a1a1a; border-bottom: 1px solid #333;">
+    <div
+      id="scheduleGanttBox"
+      class="panel"
+      style="
+        padding: 0;
+        margin-top: 24px;
+        overflow: hidden;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,.08);
+        background: #121212;
+      "
+    >
+
+      <!-- CABEÇALHO -->
+
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          padding: 18px 20px;
+          background: #191919;
+          border-bottom: 1px solid rgba(255,255,255,.08);
+        "
+      >
+
         <div>
-          <h3 style="margin: 0; color: #fff; font-size: 1.1rem;">📅 Visão do Cronograma (Gantt)</h3>
-          <p style="margin: 4px 0 0 0; color: #888; font-size: 0.8rem;">Gráfico de barras e prazos mensais</p>
+          <h3
+            style="
+              margin: 0;
+              color: #f5f5f5;
+              font-size: 15px;
+              font-weight: 650;
+              letter-spacing: -.01em;
+            "
+          >
+            📅 Visão do Cronograma
+          </h3>
+
+          <p
+            style="
+              margin: 5px 0 0;
+              color: #777;
+              font-size: 11px;
+            "
+          >
+            Acompanhamento das etapas e prazos da obra
+          </p>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px; background: #222; padding: 6px 12px; border-radius: 8px; border: 1px solid #333;">
-          <button type="button" onclick="changeScheduleMonth(-1)" style="background: none; border: none; color: #e0a96d; font-size: 1.1rem; cursor: pointer; padding: 0 4px;">◄</button>
-          <span style="color: #fff; font-weight: 600; font-size: 0.9rem; text-transform: capitalize; min-width: 120px; text-align: center;">
-            ${monthName}
-          </span>
-          <button type="button" onclick="changeScheduleMonth(1)" style="background: none; border: none; color: #e0a96d; font-size: 1.1rem; cursor: pointer; padding: 0 4px;">►</button>
+
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            border-radius: 9px;
+            border: 1px solid rgba(255,255,255,.08);
+            background: #222;
+          "
+        >
+
+          <button
+            type="button"
+            onclick="changeScheduleMonth(-1)"
+            aria-label="Mês anterior"
+            style="
+              width: 34px;
+              height: 32px;
+              border: 0;
+              border-radius: 6px;
+              background: transparent;
+              color: #aaa;
+              font-size: 16px;
+              cursor: pointer;
+            "
+          >
+            ‹
+          </button>
+
+          <div
+            style="
+              min-width: 145px;
+              padding: 0 8px;
+              text-align: center;
+              color: #f1f1f1;
+              font-size: 12px;
+              font-weight: 650;
+              text-transform: capitalize;
+            "
+          >
+            ${monthLabel}
+          </div>
+
+          <button
+            type="button"
+            onclick="changeScheduleMonth(1)"
+            aria-label="Próximo mês"
+            style="
+              width: 34px;
+              height: 32px;
+              border: 0;
+              border-radius: 6px;
+              background: transparent;
+              color: #aaa;
+              font-size: 16px;
+              cursor: pointer;
+            "
+          >
+            ›
+          </button>
+
         </div>
+
       </div>
-      <div style="overflow-x: auto;">
-        <div style="min-width: 800px;">
-          <div style="display: flex; align-items: center; background: #222; border-bottom: 1px solid #333;">
-            <div style="width: 200px; min-width: 200px; padding: 8px 12px; color: #aaa; font-size: 0.75rem; font-weight: bold; border-right: 1px solid #333;">
+
+      <!-- GANTT -->
+
+      <div
+        style="
+          overflow-x: auto;
+          overflow-y: hidden;
+          background: #121212;
+        "
+      >
+
+        <div
+          style="
+            width: max-content;
+            min-width: 100%;
+          "
+        >
+
+          <!-- CABEÇALHO DOS DIAS -->
+
+          <div
+            style="
+              display: flex;
+              height: 48px;
+              background: #202020;
+              border-bottom: 1px solid rgba(255,255,255,.08);
+            "
+          >
+
+            <div
+              style="
+                width: ${labelWidth}px;
+                min-width: ${labelWidth}px;
+                box-sizing: border-box;
+                display: flex;
+                align-items: center;
+                padding: 0 14px;
+                color: #999;
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: .06em;
+                border-right: 1px solid rgba(255,255,255,.08);
+              "
+            >
               SERVIÇOS / ETAPAS
             </div>
-            <div style="flex: 1; display: flex;">${daysHeaderHTML}</div>
+
+            <div
+              style="
+                display: flex;
+                width: ${timelineWidth}px;
+                min-width: ${timelineWidth}px;
+              "
+            >
+              ${daysHeaderHTML}
+            </div>
+
           </div>
+
           ${rowsHTML}
+
         </div>
+
       </div>
+
     </div>
   `;
 }
+
 
 function setupNewProjectModal() {
   const btnNew = $("#btnNewProject");

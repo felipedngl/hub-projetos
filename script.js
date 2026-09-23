@@ -6492,9 +6492,19 @@ function renderScheduleClientHTML(project) {
           item.termino ||
           item.endDate;
 
-        const status =
-          item.status ||
-          "A Fazer";
+			let status =
+			  item.status ||
+			  "A Fazer";
+			
+			const today =
+			  new Date();
+			
+			today.setHours(
+			  0,
+			  0,
+			  0,
+			  0
+			);
 
         const startDate =
           rawStart
@@ -6509,6 +6519,31 @@ function renderScheduleClientHTML(project) {
                 `${rawEnd}T00:00:00`
               )
             : null;
+
+		if (status !== "Concluído") {
+
+  if (
+    endDate &&
+    !Number.isNaN(endDate.getTime()) &&
+    today > endDate
+  ) {
+
+    status = "Em Atraso!";
+
+  } else if (
+    startDate &&
+    !Number.isNaN(startDate.getTime()) &&
+    today >= startDate
+  ) {
+
+    status = "Em Andamento";
+
+  } else {
+
+    status = "A Fazer";
+
+  }
+}
 
         let barHTML = "";
 

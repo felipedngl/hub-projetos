@@ -3023,29 +3023,54 @@ if (stage.special === "contracts") {
 
 $$("#stageConversation .btn-message-delete").forEach((button) => {
   button.addEventListener("click", async () => {
-    const messageId = button.dataset.messageId;
 
-    const index = s.clientMessages?.findIndex(
-      (m) => String(m.id) === String(messageId)
-    );
+    const messageId =
+      String(button.dataset.messageId || "").trim();
 
-    if (index === -1 || index === undefined) return;
+    if (!messageId) return;
 
-    const message = s.clientMessages[index];
+    const index =
+      Array.isArray(s.clientMessages)
+        ? s.clientMessages.findIndex(
+            (m) => String(m.id) === messageId
+          )
+        : -1;
 
-    if (!message || message.author !== "client") return;
+    if (index < 0) return;
 
-    if (!confirm("Apagar esta mensagem?")) return;
+    const message =
+      s.clientMessages[index];
+
+    if (
+      !message ||
+      message.author !== "client"
+    ) {
+      return;
+    }
+
+    if (!confirm("Apagar esta mensagem?")) {
+      return;
+    }
 
     try {
-      await db
-        .collection("projects")
-        .doc(String(project.id))
-        .collection("clientMessages")
-        .doc(String(messageId))
-        .delete();
 
-      s.clientMessages.splice(index, 1);
+      const messageRef =
+        db
+          .collection("projects")
+          .doc(String(project.id))
+          .collection("clientMessages")
+          .doc(messageId);
+
+      await messageRef.delete();
+
+      /*
+       * Remove somente a mensagem que acabou
+       * de ser excluída da memória local.
+       */
+      s.clientMessages =
+        s.clientMessages.filter(
+          (m) => String(m.id) !== messageId
+        );
 
       renderStageClient(project, stage);
 
@@ -3054,10 +3079,17 @@ $$("#stageConversation .btn-message-delete").forEach((button) => {
       }
 
     } catch (error) {
-      console.error("[CHAT] Erro ao apagar mensagem:", error);
+
+      console.error(
+        "[CHAT] Erro ao apagar mensagem:",
+        error
+      );
 
       if (typeof showToast === "function") {
-        showToast("Não foi possível apagar a mensagem.", true);
+        showToast(
+          "Não foi possível apagar a mensagem.",
+          true
+        );
       }
     }
   });

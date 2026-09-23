@@ -4578,6 +4578,73 @@ if (col.key === "foto" || col.key === "imagem") {
   `;
 }
 
+// ==========================================================
+// REDIMENSIONAR COLUNAS DO MEMORIAL
+// ==========================================================
+
+let memorialResizeState = null;
+
+document.addEventListener("mousedown", (event) => {
+
+  const resizer =
+    event.target.closest(".memorial-column-resizer");
+
+  if (!resizer) return;
+
+  const th =
+    resizer.closest(".memorial-resizable-th");
+
+  const table =
+    resizer.closest(".memorial-table");
+
+  if (!th || !table) return;
+
+  event.preventDefault();
+
+  memorialResizeState = {
+    th,
+    table,
+    startX: event.clientX,
+    startWidth: th.offsetWidth
+  };
+
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+});
+
+document.addEventListener("mousemove", (event) => {
+
+  if (!memorialResizeState) return;
+
+  const {
+    th,
+    startX,
+    startWidth
+  } = memorialResizeState;
+
+  const diff =
+    event.clientX - startX;
+
+  const newWidth =
+    Math.max(
+      80,
+      startWidth + diff
+    );
+
+  th.style.width = `${newWidth}px`;
+  th.style.minWidth = `${newWidth}px`;
+});
+
+document.addEventListener("mouseup", () => {
+
+  if (!memorialResizeState) return;
+
+  memorialResizeState = null;
+
+  document.body.style.cursor = "";
+  document.body.style.userSelect = "";
+});
+	
 document.addEventListener("click", async (event) => {
 
   const btn = event.target.closest(".btn-open-obs-modal");

@@ -6326,6 +6326,8 @@ function changeScheduleMonth(delta) {
   }
 }
 
+window.changeScheduleMonth = changeScheduleMonth;
+
 function renderScheduleClientHTML(project) {
   const schedule = project && project.schedule ? project.schedule : [];
   const year = currentScheduleDate.getFullYear();

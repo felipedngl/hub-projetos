@@ -3498,7 +3498,29 @@ function memorialClientHTML(project) {
                     `;
                   }
 
-                  return `
+				if (
+				  col.key === "foto" ||
+				  col.key === "imagem"
+				) {
+				
+				  const imageUrl =
+					r[col.key];
+				
+				  return imageUrl
+					? `
+					  <td class="memorial-client-photo-cell">
+						<img
+						  src="${escapeHTML(imageUrl)}"
+						  alt="Foto do item"
+						  class="memorial-client-item-photo"
+						  loading="lazy"
+						>
+					  </td>
+					`
+					: "<td>—</td>";
+				}
+
+					return `
                     <td>
                       ${escapeHTML(r[col.key] || "")}
                     </td>

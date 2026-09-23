@@ -3390,66 +3390,258 @@ function openClientFile(dataUrl, fileName, download = false) {
 function memorialClientHTML(project) {
   return (
     Object.keys(MEMORIAL_TABLES)
-      .map((key) => {
+      .map((key, index) => {
+
         const table = MEMORIAL_TABLES[key];
-        const rows = project.memorial ? project.memorial[key] || [] : [];
+
+        const rows =
+          project.memorial
+            ? project.memorial[key] || []
+            : [];
+
         const qtyTotal = rows.reduce((total, r) => {
-          return total + (parseFloat(String(r.qty || "").replace(",", ".")) || 0);
+          return total +
+            (parseFloat(
+              String(r.qty || "").replace(",", ".")
+            ) || 0);
         }, 0);
 
         const priceTotal = rows.reduce((total, r) => {
-          const qty = parseFloat(String(r.qty || "").replace(",", ".")) || 0;
-          const price = typeof parsePrice === "function" ? parsePrice(r.preco) : 0;
+
+          const qty =
+            parseFloat(
+              String(r.qty || "").replace(",", ".")
+            ) || 0;
+
+          const price =
+            typeof parsePrice === "function"
+              ? parsePrice(r.preco)
+              : 0;
+
           return total + qty * price;
+
         }, 0);
-        
-        const head = `<tr>${table.cols.map((c) => `<th>${escapeHTML(c.label)}</th>`).join("")}</tr>`;
+
+        const head = `
+          <tr>
+            ${table.cols
+              .map(
+                (c) =>
+                  `<th>${escapeHTML(c.label)}</th>`
+              )
+              .join("")}
+          </tr>
+        `;
+
         let body;
+
         if (!rows.length) {
-          body = `<tr class="row-empty"><td colspan="${table.cols.length}">Nenhum item cadastrado.</td></tr>`;
+
+          body = `
+            <tr class="row-empty">
+              <td colspan="${table.cols.length}">
+                Nenhum item cadastrado.
+              </td>
+            </tr>
+          `;
+
         } else {
+
           body = rows
             .map((r) => {
-              const cells = table.cols.map((col) => {
-                if (col.key === "link") {
-                  const urlFormatted = typeof normalizeUrl === "function" ? normalizeUrl(r[col.key]) : r[col.key];
-                  return r[col.key]
-                    ? `<td><a class="memorial-link" href="${escapeHTML(urlFormatted)}" target="_blank" rel="noopener">${escapeHTML(r[col.key])}</a></td>`
-                    : "<td>—</td>";
-                }
-                if (col.key === "preco") {
-                  const valor = typeof parsePrice === "function" ? parsePrice(r[col.key]) : 0;
-                  return `<td>${valor > 0 ? (typeof formatCurrency === "function" ? formatCurrency(valor) : valor) : ""}</td>`;
-                }
 
-                return `<td>${escapeHTML(r[col.key] || "")}</td>`;
-              });
-              return `<tr>${cells.join("")}</tr>`;
+              const cells =
+                table.cols.map((col) => {
+
+                  if (col.key === "link") {
+
+                    const urlFormatted =
+                      typeof normalizeUrl === "function"
+                        ? normalizeUrl(r[col.key])
+                        : r[col.key];
+
+                    return r[col.key]
+                      ? `
+                        <td>
+                          <a
+                            class="memorial-link"
+                            href="${escapeHTML(urlFormatted)}"
+                            target="_blank"
+                            rel="noopener"
+                          >
+                            ${escapeHTML(r[col.key])}
+                          </a>
+                        </td>
+                      `
+                      : "<td>—</td>";
+                  }
+
+                  if (col.key === "preco") {
+
+                    const valor =
+                      typeof parsePrice === "function"
+                        ? parsePrice(r[col.key])
+                        : 0;
+
+                    return `
+                      <td>
+                        ${
+                          valor > 0
+                            ? (
+                                typeof formatCurrency === "function"
+                                  ? formatCurrency(valor)
+                                  : valor
+                              )
+                            : ""
+                        }
+                      </td>
+                    `;
+                  }
+
+                  return `
+                    <td>
+                      ${escapeHTML(r[col.key] || "")}
+                    </td>
+                  `;
+
+                });
+
+              return `
+                <tr>
+                  ${cells.join("")}
+                </tr>
+              `;
+
             })
             .join("");
         }
+
         return `
-          <div class="memorial-section">
-            <div class="memorial-head"><h3>${ICONS.table} ${table.title}</h3></div>
-            <div class="table-wrap">
-              <table class="memorial-table"><thead>${head}</thead><tbody>${body}</tbody></table>
+          <div class="memorial-client-section">
+
+            <button
+              type="button"
+              class="memorial-client-section-toggle"
+              aria-expanded="false"
+              data-memorial-client-section="${escapeHTML(key)}"
+            >
+
+              <span class="memorial-client-section-number">
+                ${String(index + 1).padStart(2, "0")}
+              </span>
+
+              <span class="memorial-client-section-info">
+
+                <strong>
+                  ${escapeHTML(table.title)}
+                </strong>
+
+                <span>
+                  ${rows.length} item${rows.length === 1 ? "" : "s"}
+                  ${
+                    priceTotal > 0
+                      ? ` · ${
+                          typeof formatCurrency === "function"
+                            ? formatCurrency(priceTotal)
+                            : priceTotal
+                        }`
+                      : ""
+                  }
+                </span>
+
+              </span>
+
+              <span class="memorial-client-section-arrow">
+                ›
+              </span>
+
+            </button>
+
+            <div
+              class="memorial-client-section-content"
+              data-memorial-client-content="${escapeHTML(key)}"
+              hidden
+            >
+
+              <div class="table-wrap">
+
+                <table class="memorial-table">
+
+                  <thead>
+                    ${head}
+                  </thead>
+
+                  <tbody>
+                    ${body}
+                  </tbody>
+
+                </table>
+
+              </div>
+
+              ${
+                qtyTotal > 0 || priceTotal > 0
+                  ? `
+                    <div class="memorial-summary">
+
+                      <strong>
+                        ${escapeHTML(table.title)}:
+                      </strong>
+
+                      ${rows.length} item(ns)
+
+                      ${
+                        qtyTotal > 0
+                          ? " · Qtd. total " +
+                            (
+                              typeof formatArea === "function"
+                                ? formatArea(qtyTotal)
+                                : qtyTotal
+                            )
+                          : ""
+                      }
+
+                      ${
+                        priceTotal > 0
+                          ? " · " +
+                            (
+                              typeof formatCurrency === "function"
+                                ? formatCurrency(priceTotal)
+                                : priceTotal
+                            )
+                          : ""
+                      }
+
+                    </div>
+                  `
+                  : ""
+              }
+
             </div>
 
-            ${qtyTotal > 0 || priceTotal > 0
-              ? `<div class="memorial-summary">
-                  <strong>${table.title}:</strong>
-                  ${rows.length} item(ns)
-                  ${qtyTotal > 0 ? " · Qtd. total " + (typeof formatArea === "function" ? formatArea(qtyTotal) : qtyTotal) : ""}
-                  ${priceTotal > 0 ? " · " + (typeof formatCurrency === "function" ? formatCurrency(priceTotal) : priceTotal) : ""}
-                </div>`
-              : ""}
-          </div>`;
+          </div>
+        `;
+
       })
       .join("") +
+
     memorialGrandTotalHTML(project) +
-    (project.memorialFiles && project.memorialFiles.length
-      ? `<div class="panel"><h3>${ICONS.upload} Arquivos do memorial</h3>${clientFilesHTML(project.memorialFiles)}</div>`
-      : "")
+
+    (
+      project.memorialFiles &&
+      project.memorialFiles.length
+        ? `
+          <div class="panel">
+            <h3>
+              ${ICONS.upload}
+              Arquivos do memorial
+            </h3>
+
+            ${clientFilesHTML(project.memorialFiles)}
+          </div>
+        `
+        : ""
+    )
   );
 }
 

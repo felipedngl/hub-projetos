@@ -4312,3 +4312,39 @@ table.memorial-table td:nth-child(1) {
   border-radius: 12px;
   box-sizing: border-box;
 }
+
+.memorial-table {
+  table-layout: auto;
+  min-width: max-content;
+}
+
+.memorial-resizable-th {
+  position: relative;
+  min-width: 100px;
+  white-space: nowrap;
+}
+
+.memorial-th-label {
+  display: inline-block;
+  padding-right: 14px;
+}
+
+.memorial-column-resizer {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 7px;
+  height: 100%;
+
+  cursor: col-resize;
+
+  z-index: 5;
+}
+
+.memorial-column-resizer:hover {
+  background: rgba(242, 140, 40, 0.45);
+}
+
+.memorial-actions-th {
+  min-width: 70px;
+}

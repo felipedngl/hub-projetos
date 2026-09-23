@@ -4129,8 +4129,8 @@ table.memorial-table td:nth-child(1) {
 }
 
 .obs-modal {
-  width: min(700px, 100%);
-  max-height: 85vh;
+  width: min(560px, 100%);
+  max-height: 70vh;
 
   display: flex;
   flex-direction: column;
@@ -4194,7 +4194,7 @@ table.memorial-table td:nth-child(1) {
 
 .obs-modal-textarea {
   width: 100%;
-  min-height: 220px;
+  min-height: 160px;
 
   box-sizing: border-box;
 

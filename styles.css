@@ -846,6 +846,11 @@ body.client-mode.project-restricted .btn-back {
   box-shadow: 0 0 8px rgba(234, 179, 8, 0.7);
 }
 
+.nav-dot.checklist-seen {
+  background: #f28c28;
+  box-shadow: 0 0 0 3px rgba(242, 140, 40, 0.12);
+}
+
 .stage-nav .nav-dot.approved {
   background: #22C55E;
   box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);

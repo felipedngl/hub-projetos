@@ -2087,14 +2087,19 @@ if (clientMode && typeof setupClientNotificationPrompt === "function") {
             </select>
           </div>
 
-          <div>
-            <label for="stageDeadline">Entrega prevista</label>
-            <input
-              type="date"
-              id="stageDeadline"
-              value="${s.deadline || ""}"
-            />
-          </div>
+			<div class="stage-deadline-block">
+			  <label for="stageDeadline">Entrega prevista</label>
+			
+			  <div class="stage-deadline-row">
+			    <input
+			      type="date"
+			      id="stageDeadline"
+			      value="${s.deadline || ""}"
+			    />
+			
+			    <div id="stageDeadlineStatus" class="stage-deadline-status"></div>
+			  </div>
+			</div>
         </div>
 
         <button type="button" class="btn-primary" id="btnSaveStageProgress">
@@ -2250,6 +2255,74 @@ if (clientMode && typeof setupClientNotificationPrompt === "function") {
     const stageStatus = $("#stageStatus");
     const stageDeadline = $("#stageDeadline");
     const btnSaveStageProgress = $("#btnSaveStageProgress");
+
+	function updateStageDeadlineStatus() {
+  const statusEl = $("#stageDeadlineStatus");
+  const deadlineInput = $("#stageDeadline");
+
+  if (!statusEl || !deadlineInput) return;
+
+  const deadline = deadlineInput.value;
+
+  if (!deadline) {
+    statusEl.innerHTML = "";
+    statusEl.className = "stage-deadline-status";
+    return;
+  }
+
+  const [year, month, day] = deadline.split("-").map(Number);
+
+  const today = new Date();
+  const todayUTC = Date.UTC(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+
+  const deadlineUTC = Date.UTC(
+    year,
+    month - 1,
+    day
+  );
+
+  const diffDays = Math.round(
+    (deadlineUTC - todayUTC) / 86400000
+  );
+
+  statusEl.className = "stage-deadline-status";
+
+  if (diffDays < 0) {
+    const daysLate = Math.abs(diffDays);
+
+    statusEl.classList.add("deadline-overdue");
+    statusEl.textContent =
+      `Passou da data da entrega em ${daysLate} ${daysLate === 1 ? "dia" : "dias"}.`;
+
+  } else if (diffDays === 0) {
+
+    statusEl.classList.add("deadline-today");
+    statusEl.textContent = "Entrega hoje.";
+
+  } else if (diffDays <= 7) {
+
+    statusEl.classList.add("deadline-near");
+    statusEl.textContent =
+      `Falta${diffDays === 1 ? "" : "m"} ${diffDays} ${diffDays === 1 ? "dia" : "dias"} para a entrega.`;
+
+  } else {
+
+    statusEl.classList.add("deadline-ok");
+    statusEl.textContent =
+      `Dentro do prazo · faltam ${diffDays} dias.`;
+  }
+}
+
+updateStageDeadlineStatus();
+
+stageDeadline?.addEventListener(
+  "change",
+  updateStageDeadlineStatus
+);
 
     if (btnSaveStageProgress) {
       btnSaveStageProgress.addEventListener("click", async () => {

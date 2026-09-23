@@ -868,12 +868,39 @@ if (
 Object.keys(project.stages || {}).forEach((stageId) => {
   if (!project.stages[stageId]) return;
 
-project.stages[stageId].clientMessages = [
-  ...(messagesByStage[stageId] || [])
-].sort(
-  (a, b) =>
-    Number(a.createdAt || 0) - Number(b.createdAt || 0)
+  const existingMessages =
+    Array.isArray(project.stages[stageId].clientMessages)
+      ? project.stages[stageId].clientMessages
+      : [];
+
+  const designerMessages =
+    existingMessages.filter(
+      (msg) => msg.author === "designer"
+    );
+
+  const clientMessages =
+    messagesByStage[stageId] || [];
+
+  const mergedMessages = [
+    ...designerMessages,
+    ...clientMessages
+  ];
+
+  const uniqueMessages = Array.from(
+    new Map(
+      mergedMessages.map((msg) => [
+        String(msg.id),
+        msg
+      ])
+    ).values()
   );
+
+  project.stages[stageId].clientMessages =
+    uniqueMessages.sort(
+      (a, b) =>
+        Number(a.createdAt || 0) -
+        Number(b.createdAt || 0)
+    );
 });
 
       if (currentProject()?.id === projectId) {

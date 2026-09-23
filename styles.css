@@ -4228,3 +4228,25 @@ table.memorial-table td:nth-child(1) {
 
   border-top: 1px solid rgba(255,255,255,.08);
 }
+
+.obs-modal-cancel {
+  height: 40px;
+  padding: 0 16px;
+
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 8px;
+
+  background: #2f2f2f !important;
+  color: #f2f2f2 !important;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.obs-modal-cancel:hover {
+  background: #3a3a3a !important;
+}
+

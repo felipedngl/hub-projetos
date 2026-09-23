@@ -5302,6 +5302,44 @@ document
     supplier: new Set()
   };
 
+// ==========================================================
+// ABRIR / FECHAR FILTROS DO MEMORIAL
+// ==========================================================
+
+const btnToggleMemorialFilters =
+  document.getElementById("btnToggleMemorialFilters");
+
+const memorialFilterPanel =
+  document.getElementById("memorialFilterPanel");
+
+if (
+  btnToggleMemorialFilters &&
+  memorialFilterPanel
+) {
+
+  btnToggleMemorialFilters.addEventListener(
+    "click",
+    () => {
+
+      const isOpen =
+        memorialFilterPanel.classList.contains(
+          "is-open"
+        );
+
+      memorialFilterPanel.classList.toggle(
+        "is-open",
+        !isOpen
+      );
+
+      btnToggleMemorialFilters.classList.toggle(
+        "is-open",
+        !isOpen
+      );
+
+    }
+  );
+
+}
 
   function applyMemorialFilters() {
 

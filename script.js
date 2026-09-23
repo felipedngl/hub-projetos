@@ -2048,29 +2048,26 @@ if (clientMode && typeof setupClientNotificationPrompt === "function") {
         <p class="stage-hint">${stage.hint}</p>
       </div>
 
-      <div class="panel stage-progress-panel">
-        <h3>📊 Status da Etapa</h3>
-        <div class="stage-checklist">
-          <h4>Entregas da etapa</h4>
-          <button type="button" class="btn-secondary" id="btnAddChecklistItem">
-            Adicionar entrega
-          </button>
+<div class="panel stage-progress-panel">
+  <h3>📊 Status da Etapa</h3>
 
-          ${
-            (s.checklist || []).length
-              ? s.checklist.map((item, index) => `
-                  <label class="stage-checklist-item">
-                    <input
-                      type="checkbox"
-                      data-checklist-index="${index}"
-                      ${item.done ? "checked" : ""}
-                    />
-                    <span>${item.label}</span>
-                  </label>
-                `).join("")
-              : `<p class="stage-checklist-empty">Nenhuma entrega adicionada ainda.</p>`
-          }
-        </div>
+  <div class="stage-checklist-compact">
+    <button
+      type="button"
+      class="stage-checklist-open-btn"
+      id="btnOpenStageChecklist"
+    >
+      <span>
+        ✓ Entregas da etapa
+      </span>
+
+      <strong>
+        ${(s.checklist || []).filter(item => item.done).length}/${(s.checklist || []).length}
+      </strong>
+
+      <span class="stage-checklist-chevron">▾</span>
+    </button>
+  </div>
         <div class="stage-progress-grid">
           <div>
             <label for="stageStatus">Situação</label>
@@ -2271,61 +2268,208 @@ if (clientMode && typeof setupClientNotificationPrompt === "function") {
       });
     }
 
-    const btnAddChecklistItem = $("#btnAddChecklistItem");
-    if (btnAddChecklistItem) {
-      btnAddChecklistItem.addEventListener("click", async () => {
-        const label = prompt("Nome da entrega:");
-        if (!label || !label.trim()) return;
+const btnOpenStageChecklist = $("#btnOpenStageChecklist");
 
-        s.checklist = Array.isArray(s.checklist) ? s.checklist : [];
-        s.checklist.push({
-          label: label.trim(),
-          done: false
-        });
+if (btnOpenStageChecklist) {
+  btnOpenStageChecklist.addEventListener("click", () => {
+    const checklist = Array.isArray(s.checklist)
+      ? s.checklist
+      : [];
 
-        if (await saveProjects([project])) {
-          showToast("Entrega adicionada.");
-          renderStage();
-        }
-      });
-    }
+    const modal = document.createElement("div");
 
-    const checklistInputs = $$("[data-checklist-index]", container);
-    checklistInputs.forEach((input) => {
-      input.addEventListener("change", async () => {
-        const index = Number(input.dataset.checklistIndex);
+    modal.className = "checklist-modal-overlay";
 
-        if (!Array.isArray(s.checklist) || !s.checklist[index]) return;
+    modal.innerHTML = `
+      <div class="checklist-modal">
 
-        s.checklist[index].done = input.checked;
+        <div class="checklist-modal-header">
+          <div>
+            <span class="checklist-modal-label">
+              Entregas da etapa
+            </span>
 
-		s.approved = false;
-		s.approvedAt = "";
-		
-		// Marca a etapa como tendo uma atualização nova
-		s.checklistUpdated = true;
-		
-		const progress = getStageProgress(s);
+            <h3>
+              ${checklist.filter(item => item.done).length}/${checklist.length}
+              concluídas
+            </h3>
+          </div>
 
-        if (progress === 0) {
-          s.status = "nao-iniciado";
-        } else if (progress === 100) {
-          s.status = "concluida";
-        } else if (
-          s.status === "nao-iniciado" ||
-          s.status === "concluida"
-        ) {
-          s.status = "em-producao";
-        }
+          <button
+            type="button"
+            class="checklist-modal-close"
+            aria-label="Fechar"
+          >
+            ×
+          </button>
+        </div>
 
-        s.progress = progress;
+        <div class="checklist-modal-body">
 
-        if (await saveProjects([project])) {
-          renderStage();
-        }
-      });
+          ${
+            checklist.length
+              ? checklist.map((item, index) => `
+                  <label class="stage-checklist-item">
+                    <input
+                      type="checkbox"
+                      data-modal-checklist-index="${index}"
+                      ${item.done ? "checked" : ""}
+                    />
+
+                    <span>${item.label}</span>
+                  </label>
+                `).join("")
+              : `
+                <p class="stage-checklist-empty">
+                  Nenhuma entrega adicionada ainda.
+                </p>
+              `
+          }
+
+        </div>
+
+        <div class="checklist-modal-footer">
+
+          <button
+            type="button"
+            class="btn-secondary"
+            id="btnAddChecklistItemModal"
+          >
+            + Adicionar entrega
+          </button>
+
+          <button
+            type="button"
+            class="btn-primary"
+            id="btnCloseChecklistModal"
+          >
+            Concluir
+          </button>
+
+        </div>
+
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeModal = () => {
+      modal.remove();
+    };
+
+    modal
+      .querySelector(".checklist-modal-close")
+      ?.addEventListener("click", closeModal);
+
+    modal
+      .querySelector("#btnCloseChecklistModal")
+      ?.addEventListener("click", closeModal);
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeModal();
+      }
     });
-      
+
+    modal
+      .querySelectorAll("[data-modal-checklist-index]")
+      .forEach((input) => {
+
+        input.addEventListener("change", async () => {
+
+          const index = Number(
+            input.dataset.modalChecklistIndex
+          );
+
+          if (!s.checklist || !s.checklist[index]) {
+            return;
+          }
+
+          s.checklist[index].done = input.checked;
+
+          s.approved = false;
+          s.approvedAt = "";
+
+          s.checklistUpdated = true;
+
+          const progress = getStageProgress(s);
+
+          if (progress === 0) {
+            s.status = "nao-iniciado";
+          } else if (progress === 100) {
+            s.status = "concluida";
+          } else if (
+            s.status === "nao-iniciado" ||
+            s.status === "concluida"
+          ) {
+            s.status = "em-producao";
+          }
+
+          s.progress = progress;
+
+          await saveProjects([project]);
+
+          const completed = s.checklist.filter(
+            item => item.done
+          ).length;
+
+          const counter = modal.querySelector(
+            ".checklist-modal-header h3"
+          );
+
+          if (counter) {
+            counter.textContent =
+              `${completed}/${s.checklist.length} concluídas`;
+          }
+
+          btnOpenStageChecklist.querySelector("strong").textContent =
+            `${completed}/${s.checklist.length}`;
+
+          renderStage();
+        });
+      });
+
+    const btnAddChecklistItemModal =
+      modal.querySelector("#btnAddChecklistItemModal");
+
+    if (btnAddChecklistItemModal) {
+
+      btnAddChecklistItemModal.addEventListener(
+        "click",
+        async () => {
+
+          const label = prompt("Nome da entrega:");
+
+          if (!label || !label.trim()) {
+            return;
+          }
+
+          s.checklist = Array.isArray(s.checklist)
+            ? s.checklist
+            : [];
+
+          s.checklist.push({
+            label: label.trim(),
+            done: false
+          });
+
+          if (await saveProjects([project])) {
+            showToast("Entrega adicionada.");
+
+            closeModal();
+
+            renderStage();
+
+            setTimeout(() => {
+              $("#btnOpenStageChecklist")?.click();
+            }, 50);
+          }
+        }
+      );
+    }
+  });
+}
+
     $$("#stageFiles .file-remove").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = btn.closest(".file-item").dataset.fileId;

@@ -5042,30 +5042,49 @@ function renderMemorial(project) {
 const btnExpandMemorial =
   document.getElementById("btnExpandMemorial");
 
-if (btnExpandMemorial) {
+const memorialContainer =
+  document.querySelector(".memorial-container");
+
+if (btnExpandMemorial && memorialContainer) {
+
+  const setMemorialExpanded = (expanded) => {
+
+    memorialContainer.classList.toggle(
+      "memorial-expanded",
+      expanded
+    );
+
+    btnExpandMemorial.textContent =
+      expanded
+        ? "⛶ Recolher"
+        : "⛶ Expandir";
+  };
 
   btnExpandMemorial.addEventListener(
     "click",
     () => {
-
-      const memorialContainer =
-        document.querySelector(".memorial-container");
-
-      if (!memorialContainer) return;
-
-      memorialContainer.classList.toggle(
-        "memorial-expanded"
-      );
-
       const expanded =
         memorialContainer.classList.contains(
           "memorial-expanded"
         );
 
-      btnExpandMemorial.textContent =
-        expanded
-          ? "⛶ Recolher"
-          : "⛶ Expandir";
+      setMemorialExpanded(!expanded);
+    }
+  );
+
+  document.addEventListener(
+    "keydown",
+    (event) => {
+
+      if (
+        event.key === "Escape" &&
+        memorialContainer.classList.contains(
+          "memorial-expanded"
+        )
+      ) {
+        setMemorialExpanded(false);
+      }
+
     }
   );
 }

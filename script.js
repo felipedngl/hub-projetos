@@ -4638,9 +4638,18 @@ document.addEventListener("click", async (event) => {
 
   textarea?.focus();
 
-  const closeModal = () => {
-    modal.remove();
-  };
+const handleEscape = (event) => {
+  if (event.key === "Escape") {
+    closeModal();
+  }
+};
+
+const closeModal = () => {
+  modal.remove();
+  document.removeEventListener("keydown", handleEscape);
+};
+
+document.addEventListener("keydown", handleEscape);
 
   modal
     .querySelector(".obs-modal-close")

@@ -4554,37 +4554,41 @@ if (col.key === "foto" || col.key === "imagem") {
   `;
 }
 
-document.querySelectorAll(".btn-open-obs-modal").forEach((btn) => {
-  btn.onclick = async () => {
+document.addEventListener("click", async (event) => {
 
-    const key = btn.dataset.key;
-    const rowIndex = Number(btn.dataset.row);
+  const btn = event.target.closest(".btn-open-obs-modal");
 
-    const project = currentProject();
+  if (!btn) {
+    return;
+  }
 
-    if (!project?.memorial?.[key]?.[rowIndex]) {
-      return;
-    }
+  const key = btn.dataset.key;
+  const rowIndex = Number(btn.dataset.row);
 
-    const row = project.memorial[key][rowIndex];
+  const project = currentProject();
 
-    const obs = prompt(
-      `Observação para: ${row.item || "Item"}`,
-      row.obs || ""
-    );
+  if (!project?.memorial?.[key]?.[rowIndex]) {
+    return;
+  }
 
-    if (obs === null) {
-      return;
-    }
+  const row = project.memorial[key][rowIndex];
 
-    row.obs = obs.trim();
+  const obs = prompt(
+    `Observação para: ${row.item || "Item"}`,
+    row.obs || ""
+  );
 
-    await saveProjects([project]);
+  if (obs === null) {
+    return;
+  }
 
-    renderMemorial(project);
+  row.obs = obs.trim();
 
-    showToast("Observação salva.");
-  };
+  await saveProjects([project]);
+
+  renderMemorial(project);
+
+  showToast("Observação salva.");
 });
 	
 function memorialGrandTotalHTML(project) {

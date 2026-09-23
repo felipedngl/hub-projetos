@@ -4493,9 +4493,22 @@ if (col.key === "foto" || col.key === "imagem") {
       </tr>
     `;
 
-  const headers = table.cols
-    .map((col) => `<th>${escapeHTML(col.label)}</th>`)
-    .join("");
+	const headers = table.cols
+	  .map((col) => `
+	    <th
+	      class="memorial-resizable-th"
+	      data-column-key="${escapeHTML(col.key)}"
+	    >
+	      <span class="memorial-th-label">
+	        ${escapeHTML(col.label)}
+	      </span>
+	      <span
+	        class="memorial-column-resizer"
+	        aria-hidden="true"
+	      ></span>
+	    </th>
+	  `)
+	  .join("");
 
   return `
     <section
@@ -4543,7 +4556,13 @@ if (col.key === "foto" || col.key === "imagem") {
           <thead>
             <tr>
               ${headers}
-              <th>Ações</th>
+			<th class="memorial-resizable-th memorial-actions-th">
+			  <span class="memorial-th-label">Ações</span>
+			  <span
+			    class="memorial-column-resizer"
+			    aria-hidden="true"
+			  ></span>
+			</th>
             </tr>
           </thead>
 

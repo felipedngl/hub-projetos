@@ -3126,16 +3126,36 @@ $$("#stageConversation .btn-message-delete").forEach((button) => {
       return;
     }
 
-    try {
+try {
 
-      const messageRef =
-        db
-          .collection("projects")
-          .doc(String(project.id))
-          .collection("clientMessages")
-          .doc(messageId);
+  const currentUser = getFirebaseUser();
 
-      await messageRef.delete();
+  console.log("[CHAT DELETE] Diagnóstico:", {
+    projectId: project.id,
+    messageId: messageId,
+    messageAuthor: message.author,
+    currentUserUid: currentUser?.uid || null,
+    projectClientUid: project.clientUid || null,
+    currentUserEmail: currentUser?.email || null
+  });
+
+  const messageRef =
+    db
+      .collection("projects")
+      .doc(String(project.id))
+      .collection("clientMessages")
+      .doc(messageId);
+
+  const messageSnapshot = await messageRef.get();
+
+  console.log(
+    "[CHAT DELETE] Documento no Firestore:",
+    messageSnapshot.exists
+      ? messageSnapshot.data()
+      : "DOCUMENTO NÃO EXISTE"
+  );
+
+  await messageRef.delete();
 
       /*
        * Remove somente a mensagem que acabou

@@ -4573,22 +4573,103 @@ document.addEventListener("click", async (event) => {
 
   const row = project.memorial[key][rowIndex];
 
-  const obs = prompt(
-    `Observação para: ${row.item || "Item"}`,
-    row.obs || ""
-  );
+  const modal = document.createElement("div");
 
-  if (obs === null) {
-    return;
-  }
+  modal.className = "obs-modal-overlay";
 
-  row.obs = obs.trim();
+  modal.innerHTML = `
+    <div class="obs-modal">
 
-  await saveProjects([project]);
+      <div class="obs-modal-header">
 
-  renderMemorial(project);
+        <div>
+          <span class="obs-modal-label">
+            Observação
+          </span>
 
-  showToast("Observação salva.");
+          <h3>
+            ${escapeHTML(row.item || "Item")}
+          </h3>
+        </div>
+
+        <button
+          type="button"
+          class="obs-modal-close"
+          aria-label="Fechar"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <div class="obs-modal-body">
+
+        <textarea
+          class="obs-modal-textarea"
+          placeholder="Digite uma observação..."
+        >${escapeHTML(row.obs || "")}</textarea>
+
+      </div>
+
+      <div class="obs-modal-footer">
+
+        <button
+          type="button"
+          class="btn-secondary obs-modal-cancel"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="btn-primary obs-modal-save"
+        >
+          Salvar observação
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const textarea = modal.querySelector(".obs-modal-textarea");
+
+  textarea?.focus();
+
+  const closeModal = () => {
+    modal.remove();
+  };
+
+  modal
+    .querySelector(".obs-modal-close")
+    ?.addEventListener("click", closeModal);
+
+  modal
+    .querySelector(".obs-modal-cancel")
+    ?.addEventListener("click", closeModal);
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  modal
+    .querySelector(".obs-modal-save")
+    ?.addEventListener("click", async () => {
+
+      row.obs = textarea.value.trim();
+
+      await saveProjects([project]);
+
+      closeModal();
+
+      renderMemorial(project);
+
+      showToast("Observação salva.");
+    });
 });
 	
 function memorialGrandTotalHTML(project) {

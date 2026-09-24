@@ -5304,32 +5304,48 @@ table.memorial-table td:nth-child(1) {
   margin-top: 0 !important;
 }
 
-/* ===== AJUSTE FINAL DO TÍTULO SOBRE A CAPA ===== */
+/* ===== FAIXA SOMENTE NOS TEXTOS ===== */
 
-.sidebar-project-info {
-  padding-left: 18px !important;
-  padding-right: 18px !important;
-}
-
-/* Fundo integrado na área do texto */
 .sidebar-title-row {
-  background: rgba(31, 31, 31, 0.88) !important;
-  padding: 8px 10px !important;
-  border-radius: 7px !important;
-  box-sizing: border-box !important;
+  background: transparent !important;
+  padding: 0 !important;
 }
 
-/* Título maior */
 .sidebar-title-row h2 {
+  display: inline-block !important;
+  flex: none !important;
+  width: fit-content !important;
+  max-width: calc(100% - 120px);
+  margin: 0 !important;
+  padding: 7px 11px !important;
+
+  background: rgba(31, 31, 31, 0.88) !important;
+  border-radius: 6px !important;
+
   font-size: 25px !important;
   font-weight: 600 !important;
-  line-height: 1.15 !important;
 }
 
-/* Linha de informações também ganha fundo */
 .sidebar-meta-row {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.sidebar-meta-row .proj-meta {
+  flex: none !important;
+  width: fit-content !important;
+  max-width: calc(100% - 220px);
+  margin: 0 !important;
+  padding: 6px 10px !important;
+
   background: rgba(31, 31, 31, 0.88) !important;
-  padding: 7px 10px !important;
-  border-radius: 7px !important;
-  box-sizing: border-box !important;
+  border-radius: 6px !important;
+}
+
+/* Botões ficam sem faixa/fundo adicional */
+.sidebar-title-row .btn-share,
+.sidebar-meta-row .btn-delete,
+.sidebar-project-status select {
+  position: relative;
+  z-index: 7;
 }

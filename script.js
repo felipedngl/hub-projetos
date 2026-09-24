@@ -2011,7 +2011,8 @@ const dotClass = unreadMsg
     });
   }
 }
-	  
+
+	
 function openProject(id) {
   currentProjectId = id;
 

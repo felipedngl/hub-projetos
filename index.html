@@ -142,38 +142,28 @@
 <!-- ============ VISÃO INTERNA DO PROJETO ============ -->
 <section class="view" id="view-project" hidden>
 
-  <!-- Cabeçalho do projeto -->
-  <div class="project-header">
+<!-- Cabeçalho do projeto -->
+<div class="project-header">
 
-    <div class="sidebar-project">
+  <div class="sidebar-project">
 
-      <div class="sidebar-cover">
-        <img id="projCover" alt="Capa do projeto" />
-      </div>
+    <div class="sidebar-cover">
+      <img id="projCover" alt="Capa do projeto" />
+    </div>
 
-      <div class="sidebar-project-info">
+    <div class="sidebar-project-info">
 
-        <div class="sidebar-project-main">
+      <div class="sidebar-project-main">
+
+        <div class="sidebar-title-row">
           <h2 id="projTitle"></h2>
-          <p id="projMeta" class="proj-meta"></p>
-        </div>
 
-        <div class="sidebar-project-status">
-          <span class="status-tag" id="projStatusTag" hidden></span>
-
-          <label class="status-select">
-            <span>Status</span>
-            <select id="projStatus">
-              <option value="em andamento">Em Andamento</option>
-              <option value="concluido">Concluído</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="sidebar-actions">
-
-          <button class="btn-share" id="btnShareProject">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <button
+            type="button"
+            class="btn-share"
+            id="btnShareProject"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="18" cy="5" r="3" />
               <circle cx="6" cy="12" r="3" />
               <circle cx="18" cy="19" r="3" />
@@ -182,8 +172,37 @@
             Compartilhar
           </button>
 
-          <button class="btn-delete" id="btnDeleteProject">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        </div>
+
+        <div class="sidebar-meta-row">
+
+          <p id="projMeta" class="proj-meta"></p>
+
+          <div class="sidebar-project-status">
+
+            <span
+              class="status-tag"
+              id="projStatusTag"
+              hidden
+            ></span>
+
+            <label class="status-select">
+
+              <select id="projStatus">
+                <option value="em andamento">Em Andamento</option>
+                <option value="concluido">Concluído</option>
+              </select>
+
+            </label>
+
+          </div>
+
+          <button
+            class="btn-delete"
+            id="btnDeleteProject"
+            type="button"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 6h18" />
               <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
@@ -198,6 +217,8 @@
     </div>
 
   </div>
+
+</div>
 
   <!-- Etapas + conteúdo -->
   <div class="project-layout">

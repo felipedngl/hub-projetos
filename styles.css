@@ -4847,3 +4847,114 @@ table.memorial-table td:nth-child(1) {
   border: 1px solid rgba(255,255,255,.10);
   background: #2b2b2b;
 }
+
+.project-header {
+  margin-bottom: 14px;
+}
+
+.sidebar-project {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sidebar-cover {
+  width: 100%;
+  height: 150px;
+  overflow: hidden;
+  border-radius: 10px 10px 0 0;
+  background: #242424;
+}
+
+.sidebar-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sidebar-project-info {
+  padding: 10px 12px;
+  background: var(--surface, #1f1f1f);
+  border-radius: 0 0 10px 10px;
+}
+
+.sidebar-project-main {
+  width: 100%;
+}
+
+.sidebar-title-row,
+.sidebar-meta-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.sidebar-title-row {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sidebar-title-row h2 {
+  margin: 0;
+  min-width: 0;
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.sidebar-meta-row {
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.sidebar-meta-row .proj-meta {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 12px;
+}
+
+.sidebar-project-status {
+  flex: none;
+}
+
+.sidebar-project-status .status-select {
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-project-status .status-select span {
+  display: none;
+}
+
+.sidebar-project-status select {
+  height: 28px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+.sidebar-title-row .btn-share,
+.sidebar-meta-row .btn-delete {
+  flex: none;
+  height: 28px;
+  padding: 0 9px;
+  font-size: 11px;
+  border-radius: 6px;
+}
+
+@media (max-width: 700px) {
+  .sidebar-cover {
+    height: 120px;
+  }
+
+  .sidebar-title-row,
+  .sidebar-meta-row {
+    flex-wrap: wrap;
+  }
+
+  .sidebar-meta-row .proj-meta {
+    width: 100%;
+    flex-basis: 100%;
+  }
+}

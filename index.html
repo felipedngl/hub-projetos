@@ -526,6 +526,76 @@ if ("serviceWorker" in navigator) {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<!-- Modal: escolher capa do projeto -->
+<div class="modal-overlay" id="coverChoiceModal" hidden>
+  <div class="modal-card cover-choice-modal">
+
+    <div class="modal-header">
+      <div>
+        <h3>Escolher capa</h3>
+        <p>Selecione como deseja definir a capa deste projeto.</p>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        id="btnCloseCoverChoice"
+        aria-label="Fechar"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="cover-choice-options">
+
+      <button
+        type="button"
+        class="cover-choice-btn"
+        id="btnCoverFromComputer"
+      >
+        <span class="cover-choice-icon">📁</span>
+        <span>
+          <strong>Suas fotos</strong>
+          <small>Escolher uma imagem do computador</small>
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="cover-choice-btn"
+        id="btnCoverFromUnsplash"
+      >
+        <span class="cover-choice-icon">🔎</span>
+        <span>
+          <strong>Pesquisar no Unsplash</strong>
+          <small>Buscar uma imagem por tema</small>
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="cover-choice-btn"
+        id="btnCoverRandom"
+      >
+        <span class="cover-choice-icon">✨</span>
+        <span>
+          <strong>Imagem aleatória</strong>
+          <small>Escolher uma imagem automaticamente</small>
+        </span>
+      </button>
+
+    </div>
+
+    <input
+      type="file"
+      id="coverComputerInput"
+      accept="image/*"
+      hidden
+    />
+
+  </div>
+</div>
   
 <!-- Seu script original -->
 <script src="script.js"></script>

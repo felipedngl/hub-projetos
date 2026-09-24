@@ -9263,69 +9263,35 @@ coverComputerInput?.addEventListener("change", async () => {
   if (!project) return;
 
   try {
-    if (file.size > 10 * 1024 * 1024) {
-      showToast("A imagem deve ter no máximo 10 MB.", true);
-      return;
+    showToast("Enviando capa...", false);
+
+    const imageUrl = await uploadMemorialImageToStorage(file);
+
+    project.image = imageUrl;
+
+    await saveProjects([project]);
+
+    closeCoverChoiceModal();
+
+    if (typeof renderSidebar === "function") {
+      renderSidebar();
     }
-
-    const reader = new FileReader();
-
-    reader.onload = async () => {
-      try {
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            fileName: file.name,
-            fileType: file.type,
-            fileBase64: reader.result
-          })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success || !data.url) {
-          throw new Error(
-            data?.error || "Não foi possível enviar a imagem."
-          );
-        }
-
-        project.image = data.url;
-
-        await saveProjects([project]);
-
-        closeCoverChoiceModal();
-
-        if (typeof renderSidebar === "function") {
-          renderSidebar();
-        }
-
-        if (typeof showToast === "function") {
-          showToast("Capa atualizada.");
-        }
-
-      } catch (error) {
-        console.error("[CAPA] Erro no upload:", error);
-
-        if (typeof showToast === "function") {
-          showToast("Não foi possível enviar a capa.", true);
-        }
-      } finally {
-        coverComputerInput.value = "";
-      }
-    };
-
-    reader.readAsDataURL(file);
-
-  } catch (error) {
-    console.error("[CAPA] Erro ao preparar upload:", error);
 
     if (typeof showToast === "function") {
-      showToast("Não foi possível carregar a imagem.", true);
+      showToast("Capa atualizada.");
     }
 
+  } catch (error) {
+    console.error("[CAPA] Erro no upload:", error);
+
+    if (typeof showToast === "function") {
+      showToast(
+        error?.message || "Não foi possível enviar a capa.",
+        true
+      );
+    }
+
+  } finally {
     coverComputerInput.value = "";
   }
 });

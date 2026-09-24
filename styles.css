@@ -5524,3 +5524,36 @@ body.client-mode #btnCoverFromComputer {
 .cover-actions .btn-change-cover {
   position: static;
 }
+
+.cover-adjust-modal {
+  width: min(420px, calc(100vw - 32px));
+}
+
+.cover-adjust-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.cover-adjust-btn {
+  flex: 1;
+  height: 42px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 7px;
+  background: rgba(255,255,255,.04);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.cover-adjust-btn:hover {
+  background: rgba(255,255,255,.08);
+}
+
+.cover-adjust-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}

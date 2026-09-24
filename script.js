@@ -9221,6 +9221,48 @@ async function uploadMemorialImageToStorage(file) {
 
   return `${cleanBaseUrl}/storage/v1/object/public/${bucketName}/${encodeURIComponent(uniqueName)}`;
 }
+
+const btnChangeCover = document.getElementById("btnChangeCover");
+const coverChoiceModal = document.getElementById("coverChoiceModal");
+const btnCloseCoverChoice = document.getElementById("btnCloseCoverChoice");
+const btnCoverFromComputer = document.getElementById("btnCoverFromComputer");
+const btnCoverFromUnsplash = document.getElementById("btnCoverFromUnsplash");
+const btnCoverRandom = document.getElementById("btnCoverRandom");
+const coverComputerInput = document.getElementById("coverComputerInput");
+
+function openCoverChoiceModal() {
+  if (!coverChoiceModal) return;
+  coverChoiceModal.hidden = false;
+}
+
+function closeCoverChoiceModal() {
+  if (!coverChoiceModal) return;
+  coverChoiceModal.hidden = true;
+}
+
+btnChangeCover?.addEventListener("click", openCoverChoiceModal);
+
+btnCloseCoverChoice?.addEventListener("click", closeCoverChoiceModal);
+
+coverChoiceModal?.addEventListener("click", (event) => {
+  if (event.target === coverChoiceModal) {
+    closeCoverChoiceModal();
+  }
+});
+
+btnCoverFromComputer?.addEventListener("click", () => {
+  if (clientMode) return;
+
+  coverComputerInput?.click();
+});
+
+btnCoverFromUnsplash?.addEventListener("click", () => {
+  console.log("[CAPA] Abrir pesquisa Unsplash");
+});
+
+btnCoverRandom?.addEventListener("click", () => {
+  console.log("[CAPA] Escolher capa aleatória");
+});
 	
 // ==========================================================
 // CONTROLE DA TELA DE INTRODUÇÃO (LOGO PULSANTO)

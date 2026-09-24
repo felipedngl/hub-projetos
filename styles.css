@@ -5303,3 +5303,33 @@ table.memorial-table td:nth-child(1) {
   z-index: 10 !important;
   margin-top: 0 !important;
 }
+
+/* ===== AJUSTE FINAL DO TÍTULO SOBRE A CAPA ===== */
+
+.sidebar-project-info {
+  padding-left: 18px !important;
+  padding-right: 18px !important;
+}
+
+/* Fundo integrado na área do texto */
+.sidebar-title-row {
+  background: rgba(31, 31, 31, 0.88) !important;
+  padding: 8px 10px !important;
+  border-radius: 7px !important;
+  box-sizing: border-box !important;
+}
+
+/* Título maior */
+.sidebar-title-row h2 {
+  font-size: 25px !important;
+  font-weight: 600 !important;
+  line-height: 1.15 !important;
+}
+
+/* Linha de informações também ganha fundo */
+.sidebar-meta-row {
+  background: rgba(31, 31, 31, 0.88) !important;
+  padding: 7px 10px !important;
+  border-radius: 7px !important;
+  box-sizing: border-box !important;
+}

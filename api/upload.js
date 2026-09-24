@@ -53,7 +53,7 @@ export default async function handler(req, res) {
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9.-]/g, "_");
 
-    const cleanFileName = `covers/${Date.now()}_${rawFileName}`;
+      const cleanFileName = `${Date.now()}_${rawFileName}`;
 
     // Upload direto pelo SDK oficial (trata o caminho do bucket e encoding automaticamente)
     const { data, error } = await supabase.storage

@@ -9252,12 +9252,48 @@ coverChoiceModal?.addEventListener("click", (event) => {
 
 btnCoverFromComputer?.addEventListener("click", () => {
   if (clientMode) return;
-
   coverComputerInput?.click();
 });
 
-btnCoverFromUnsplash?.addEventListener("click", () => {
-  console.log("[CAPA] Abrir pesquisa Unsplash");
+coverComputerInput?.addEventListener("change", async () => {
+  const file = coverComputerInput.files?.[0];
+  if (!file) return;
+
+  const project = currentProject();
+  if (!project) return;
+
+  try {
+    const reader = new FileReader();
+
+    reader.onload = async () => {
+      project.image = reader.result;
+
+      closeCoverChoiceModal();
+
+      if (typeof saveProjects === "function") {
+        await saveProjects([project]);
+      }
+
+      if (typeof renderSidebar === "function") {
+        renderSidebar();
+      }
+
+      if (typeof showToast === "function") {
+        showToast("Capa atualizada.");
+      }
+
+      coverComputerInput.value = "";
+    };
+
+    reader.readAsDataURL(file);
+
+  } catch (error) {
+    console.error("[CAPA] Erro ao carregar imagem:", error);
+
+    if (typeof showToast === "function") {
+      showToast("Não foi possível carregar a imagem.", true);
+    }
+  }
 });
 
 btnCoverRandom?.addEventListener("click", () => {

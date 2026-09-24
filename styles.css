@@ -5444,3 +5444,7 @@ table.memorial-table td:nth-child(1) {
   color: #999;
   font-size: 11px;
 }
+
+body.client-mode #btnCoverFromComputer {
+  display: none !important;
+}

@@ -474,67 +474,161 @@ if ("serviceWorker" in navigator) {
   <div class="pwd-modal-card">
     <h3>🔐 Acesso Restrito</h3>
     <p>Digite a senha para desbloquear o painel:</p>
-    <input type="password" id="pwdInput" placeholder="Sua senha..." autocomplete="off" />
+    <input
+      type="password"
+      id="pwdInput"
+      placeholder="Sua senha..."
+      autocomplete="off"
+    />
+
     <div class="pwd-modal-actions">
-      <button type="button" class="btn-secondary" id="btnCancelPwd">Cancelar</button>
-      <button type="button" class="btn-primary" id="btnConfirmPwd">Entrar</button>
+      <button type="button" class="btn-secondary" id="btnCancelPwd">
+        Cancelar
+      </button>
+
+      <button type="button" class="btn-primary" id="btnConfirmPwd">
+        Entrar
+      </button>
     </div>
   </div>
 </div>
 
-<!-- Modal de Compartilhamento (Inserido no final para cobrir a tela inteira) -->
+<!-- Modal de Compartilhamento -->
 <div class="modal-overlay" id="shareModal" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+  <div
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="shareTitle"
+  >
+
     <div class="modal-header">
       <h2 id="shareTitle">Compartilhar projeto</h2>
-      <button class="btn-close" id="btnCloseShare" onclick="closeShareModal()" aria-label="Fechar">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+
+      <button
+        class="btn-close"
+        id="btnCloseShare"
+        onclick="closeShareModal()"
+        aria-label="Fechar"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
           <path d="M18 6 6 18M6 6l12 12"></path>
         </svg>
       </button>
     </div>
+
     <div class="share-body">
-      <p class="share-name" id="shareProjectName">Projeto: --</p>
+
+      <p class="share-name" id="shareProjectName">
+        Projeto: --
+      </p>
+
       <p class="share-hint">
-        O cliente verá apenas este projeto, em modo de leitura: poderá baixar os
-        arquivos (renders, plantas e PDFs) e consultar o memorial descritivo com
-        os links dos produtos. Contratos ficam ocultos.
+        O cliente verá apenas este projeto, em modo de leitura:
+        poderá baixar os arquivos (renders, plantas e PDFs) e consultar
+        o memorial descritivo com os links dos produtos. Contratos ficam ocultos.
       </p>
 
       <!-- CAMPO DE SENHA DO CLIENTE -->
       <div class="field" style="margin-bottom: 16px;">
-        <label for="shareClientPasswordInput">DEFINIR SENHA DO CLIENTE</label>
+
+        <label for="shareClientPasswordInput">
+          DEFINIR SENHA DO CLIENTE
+        </label>
+
         <div style="display: flex; gap: 8px;">
-          <input type="text" id="shareClientPasswordInput" placeholder="Digite a senha (ex: 1234)" style="flex: 1;">
-          <button type="button" class="btn-primary" id="btnSaveClientPassword">Salvar Senha</button>
+
+          <input
+            type="text"
+            id="shareClientPasswordInput"
+            placeholder="Digite a senha (ex: 1234)"
+            style="flex: 1;"
+          />
+
+          <button
+            type="button"
+            class="btn-primary"
+            id="btnSaveClientPassword"
+          >
+            Salvar Senha
+          </button>
+
         </div>
-        <p id="savePasswordFeedback" style="display: none; color: #4CAF50; font-size: 0.85rem; margin-top: 6px;">
+
+        <p
+          id="savePasswordFeedback"
+          style="
+            display: none;
+            color: #4CAF50;
+            font-size: 0.85rem;
+            margin-top: 6px;
+          "
+        >
           ✓ Senha atualizada com sucesso!
         </p>
+
       </div>
 
       <!-- LINK DO PROJETO -->
       <div class="field">
-        <label for="shareLinkInput">LINK DE ACESSO DO CLIENTE</label>
-        <div class="share-link-row" style="display: flex; gap: 8px;">
-          <input type="text" id="shareLinkInput" readonly style="flex: 1;">
-          <button class="btn-small" id="btnCopyLink">Copiar Link</button>
+
+        <label for="shareLinkInput">
+          LINK DE ACESSO DO CLIENTE
+        </label>
+
+        <div
+          class="share-link-row"
+          style="display: flex; gap: 8px;"
+        >
+
+          <input
+            type="text"
+            id="shareLinkInput"
+            readonly
+            style="flex: 1;"
+          />
+
+          <button
+            class="btn-small"
+            id="btnCopyLink"
+            type="button"
+          >
+            Copiar Link
+          </button>
+
         </div>
+
       </div>
+
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
-<!-- Modal: escolher capa do projeto -->
+<!-- ==========================================================
+     MODAL: ESCOLHER CAPA
+     ========================================================== -->
+
 <div class="modal-overlay" id="coverChoiceModal" hidden>
+
   <div class="modal-card cover-choice-modal">
 
     <div class="modal-header">
+
       <div>
         <h3>Escolher capa</h3>
-        <p>Selecione como deseja definir a capa deste projeto.</p>
+        <p>
+          Selecione como deseja definir a capa deste projeto.
+        </p>
       </div>
 
       <button
@@ -545,10 +639,12 @@ if ("serviceWorker" in navigator) {
       >
         ×
       </button>
+
     </div>
 
     <div class="cover-choice-options">
 
+      <!-- SOMENTE DESIGNER -->
       <button
         type="button"
         class="cover-choice-btn"
@@ -556,38 +652,50 @@ if ("serviceWorker" in navigator) {
         data-designer-only
       >
         <span class="cover-choice-icon">📁</span>
+
         <span>
           <strong>Suas fotos</strong>
-          <small>Escolher uma imagem do computador</small>
+          <small>
+            Escolher uma imagem do computador
+          </small>
         </span>
       </button>
 
+      <!-- DESIGNER E CLIENTE -->
       <button
         type="button"
         class="cover-choice-btn"
         id="btnCoverFromUnsplash"
       >
         <span class="cover-choice-icon">🔎</span>
+
         <span>
           <strong>Pesquisar no Unsplash</strong>
-          <small>Buscar uma imagem por tema</small>
+          <small>
+            Buscar uma imagem por tema
+          </small>
         </span>
       </button>
 
+      <!-- DESIGNER E CLIENTE -->
       <button
         type="button"
         class="cover-choice-btn"
         id="btnCoverRandom"
       >
         <span class="cover-choice-icon">✨</span>
+
         <span>
           <strong>Imagem aleatória</strong>
-          <small>Escolher uma imagem automaticamente</small>
+          <small>
+            Escolher uma imagem automaticamente
+          </small>
         </span>
       </button>
 
     </div>
 
+    <!-- Upload do computador -->
     <input
       type="file"
       id="coverComputerInput"
@@ -596,9 +704,70 @@ if ("serviceWorker" in navigator) {
     />
 
   </div>
+
 </div>
-  
+
+
+<!-- ==========================================================
+     MODAL: PESQUISAR NO UNSPLASH
+     ========================================================== -->
+
+<div class="modal-overlay" id="unsplashModal" hidden>
+
+  <div class="modal-card unsplash-modal">
+
+    <div class="modal-header">
+
+      <div>
+        <h3>Pesquisar no Unsplash</h3>
+
+        <p>
+          Busque uma imagem para usar como capa.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        id="btnCloseUnsplash"
+        aria-label="Fechar"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <div class="unsplash-search-row">
+
+      <input
+        type="text"
+        id="unsplashSearchInput"
+        placeholder="Ex.: Paris, natureza, café, arquitetura..."
+        autocomplete="off"
+      />
+
+      <button
+        type="button"
+        id="btnUnsplashSearch"
+        class="btn-primary"
+      >
+        Pesquisar
+      </button>
+
+    </div>
+
+    <div
+      id="unsplashResults"
+      class="unsplash-results"
+    ></div>
+
+  </div>
+
+</div>
+
+
 <!-- Seu script original -->
 <script src="script.js"></script>
+
 </body>
 </html>

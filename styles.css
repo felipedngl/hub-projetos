@@ -5511,3 +5511,16 @@ body.client-mode #btnCoverFromComputer {
     flex-direction: column;
   }
 }
+
+.cover-actions {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 10;
+  display: flex;
+  gap: 6px;
+}
+
+.cover-actions .btn-change-cover {
+  position: static;
+}

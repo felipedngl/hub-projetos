@@ -1786,10 +1786,18 @@ function renderSidebar() {
   const fullAccess = designerUnlocked && !clientMode && !localPreview;
 
   const projCover = $("#projCover");
-  if (projCover) {
-    projCover.src = p.image || PLACEHOLDER;
-    projCover.onerror = () => (projCover.src = PLACEHOLDER);
-  }
+if (projCover) {
+  projCover.src = p.image || PLACEHOLDER;
+
+  const coverPosition = Number(p.coverPosition ?? 50);
+
+  projCover.style.objectPosition =
+    `center ${Number.isFinite(coverPosition) ? coverPosition : 50}%`;
+
+  projCover.onerror = () => {
+    projCover.src = PLACEHOLDER;
+  };
+}
 
   const projTitle = $("#projTitle");
   if (projTitle) projTitle.textContent = p.title || "Projeto";
@@ -9229,12 +9237,132 @@ const btnCoverFromComputer = document.getElementById("btnCoverFromComputer");
 const btnCoverFromUnsplash = document.getElementById("btnCoverFromUnsplash");
 const btnCoverRandom = document.getElementById("btnCoverRandom");
 const coverComputerInput = document.getElementById("coverComputerInput");
+const btnAdjustCover = document.getElementById("btnAdjustCover");
+const coverAdjustModal = document.getElementById("coverAdjustModal");
+const btnCloseCoverAdjust = document.getElementById("btnCloseCoverAdjust");
+const btnMoveCoverUp = document.getElementById("btnMoveCoverUp");
+const btnMoveCoverDown = document.getElementById("btnMoveCoverDown");
+const btnCancelCoverAdjust = document.getElementById("btnCancelCoverAdjust");
+const btnSaveCoverAdjust = document.getElementById("btnSaveCoverAdjust");
 const unsplashModal = document.getElementById("unsplashModal");
 const btnCloseUnsplash = document.getElementById("btnCloseUnsplash");
 const unsplashSearchInput = document.getElementById("unsplashSearchInput");
 const btnUnsplashSearch = document.getElementById("btnUnsplashSearch");
 const unsplashResults = document.getElementById("unsplashResults");
 
+let temporaryCoverPosition = 50;
+let originalCoverPosition = 50;
+
+function applyCoverPosition(position) {
+  const cover = document.getElementById("projCover");
+
+  if (!cover) return;
+
+  cover.style.objectPosition = `center ${position}%`;
+}
+
+function openCoverAdjustModal() {
+  const project = currentProject();
+
+  if (!project || !coverAdjustModal) return;
+
+  originalCoverPosition = Number(project.coverPosition ?? 50);
+
+  if (!Number.isFinite(originalCoverPosition)) {
+    originalCoverPosition = 50;
+  }
+
+  temporaryCoverPosition = originalCoverPosition;
+
+  applyCoverPosition(temporaryCoverPosition);
+
+  coverAdjustModal.hidden = false;
+}
+
+function closeCoverAdjustModal() {
+  if (!coverAdjustModal) return;
+
+  temporaryCoverPosition = originalCoverPosition;
+
+  applyCoverPosition(originalCoverPosition);
+
+  coverAdjustModal.hidden = true;
+}
+
+btnAdjustCover?.addEventListener(
+  "click",
+  openCoverAdjustModal
+);
+
+btnCloseCoverAdjust?.addEventListener(
+  "click",
+  closeCoverAdjustModal
+);
+
+btnCancelCoverAdjust?.addEventListener(
+  "click",
+  closeCoverAdjustModal
+);
+
+coverAdjustModal?.addEventListener("click", (event) => {
+  if (event.target === coverAdjustModal) {
+    closeCoverAdjustModal();
+  }
+});
+
+btnMoveCoverUp?.addEventListener("click", () => {
+  temporaryCoverPosition = Math.max(
+    0,
+    temporaryCoverPosition - 5
+  );
+
+  applyCoverPosition(temporaryCoverPosition);
+});
+
+btnMoveCoverDown?.addEventListener("click", () => {
+  temporaryCoverPosition = Math.min(
+    100,
+    temporaryCoverPosition + 5
+  );
+
+  applyCoverPosition(temporaryCoverPosition);
+});
+
+btnSaveCoverAdjust?.addEventListener("click", async () => {
+  const project = currentProject();
+
+  if (!project) return;
+
+  try {
+    project.coverPosition = temporaryCoverPosition;
+
+    await saveProjects([project]);
+
+    originalCoverPosition = temporaryCoverPosition;
+
+    coverAdjustModal.hidden = true;
+
+    applyCoverPosition(temporaryCoverPosition);
+
+    if (typeof showToast === "function") {
+      showToast("Posição da capa salva.");
+    }
+
+  } catch (error) {
+    console.error(
+      "[CAPA] Erro ao salvar posição:",
+      error
+    );
+
+    if (typeof showToast === "function") {
+      showToast(
+        "Não foi possível salvar a posição.",
+        true
+      );
+    }
+  }
+});
+	
 function openCoverChoiceModal() {
   if (!coverChoiceModal) return;
   coverChoiceModal.hidden = false;

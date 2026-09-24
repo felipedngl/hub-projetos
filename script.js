@@ -6242,22 +6242,77 @@ function renderSchedule(project) {
 
   project.schedule = project.schedule || [];
 
-  const rows = project.schedule.map((item, index) => `
+  const rows = project.schedule.map((item, index) => {
+
+  let displayStatus =
+    item.status ||
+    "A Fazer";
+
+  const today =
+    new Date();
+
+  today.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+  const startDate =
+    item.start
+      ? new Date(`${item.start}T00:00:00`)
+      : null;
+
+  const endDate =
+    item.end
+      ? new Date(`${item.end}T00:00:00`)
+      : null;
+
+  if (displayStatus !== "Concluído") {
+
+    if (
+      endDate &&
+      !Number.isNaN(endDate.getTime()) &&
+      today > endDate
+    ) {
+
+      displayStatus =
+        "Em Atraso!";
+
+    } else if (
+      startDate &&
+      !Number.isNaN(startDate.getTime()) &&
+      today >= startDate
+    ) {
+
+      displayStatus =
+        "Em Andamento";
+
+    } else {
+
+      displayStatus =
+        "A Fazer";
+
+    }
+  }
+
+  return `
     <tr>
       <td><input type="text" class="sched-input" data-idx="${index}" data-field="task" value="${escapeHTML(item.task || "")}" /></td>
       <td><input type="date" class="sched-input" data-idx="${index}" data-field="start" value="${item.start || ""}" /></td>
       <td><input type="date" class="sched-input" data-idx="${index}" data-field="end" value="${item.end || ""}" /></td>
       <td>
         <select class="sched-input" data-idx="${index}" data-field="status">
-			<option value="A Fazer" ${item.status === "A Fazer" ? "selected" : ""}>A Fazer</option>
-			<option value="Em Andamento" ${item.status === "Em Andamento" ? "selected" : ""}>Em Andamento</option>
-			<option value="Em Atraso!" ${item.status === "Em Atraso!" ? "selected" : ""}>Em Atraso!</option>
-			<option value="Concluído" ${item.status === "Concluído" ? "selected" : ""}>Concluído</option>
+			<option value="A Fazer" ${displaystatus === "A Fazer" ? "selected" : ""}>A Fazer</option>
+			<option value="Em Andamento" ${displaystatus === "Em Andamento" ? "selected" : ""}>Em Andamento</option>
+			<option value="Em Atraso!" ${displaystatus === "Em Atraso!" ? "selected" : ""}>Em Atraso!</option>
+			<option value="Concluído" ${displaystatus === "Concluído" ? "selected" : ""}>Concluído</option>
         </select>
       </td>
       <td><button type="button" class="file-remove btn-del-sched" data-idx="${index}">✕</button></td>
-    </tr>
-  `).join("");
+	</tr>
+	`;
+	}).join("");
 
   container.innerHTML = `
     <div class="stage-header">

@@ -5557,3 +5557,13 @@ body.client-mode #btnCoverFromComputer {
   gap: 8px;
   margin-top: 20px;
 }
+
+#projCover.cover-adjusting {
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+#projCover.cover-adjusting:active {
+  cursor: grabbing;
+}

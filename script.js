@@ -6249,9 +6249,10 @@ function renderSchedule(project) {
       <td><input type="date" class="sched-input" data-idx="${index}" data-field="end" value="${item.end || ""}" /></td>
       <td>
         <select class="sched-input" data-idx="${index}" data-field="status">
-          <option value="A Fazer" ${item.status === "A Fazer" ? "selected" : ""}>A Fazer</option>
-          <option value="Em Andamento" ${item.status === "Em Andamento" ? "selected" : ""}>Em Andamento</option>
-          <option value="Concluído" ${item.status === "Concluído" ? "selected" : ""}>Concluído</option>
+			<option value="A Fazer" ${item.status === "A Fazer" ? "selected" : ""}>A Fazer</option>
+			<option value="Em Andamento" ${item.status === "Em Andamento" ? "selected" : ""}>Em Andamento</option>
+			<option value="Em Atraso!" ${item.status === "Em Atraso!" ? "selected" : ""}>Em Atraso!</option>
+			<option value="Concluído" ${item.status === "Concluído" ? "selected" : ""}>Concluído</option>
         </select>
       </td>
       <td><button type="button" class="file-remove btn-del-sched" data-idx="${index}">✕</button></td>
@@ -6633,27 +6634,38 @@ function renderScheduleClientHTML(project) {
                 }
               );
 
-            let barColor =
-              "#D99052";
-
-            let barOpacity =
-              "1";
-
-            if (
-              status === "Concluído"
-            ) {
-              barColor =
-                "#5F8F70";
-            }
-
-            if (
-              status === "A Fazer"
-            ) {
-              barColor =
-                "#777";
-              barOpacity =
-                ".75";
-            }
+			let barColor =
+			  "#D99052"; // Em Andamento
+			
+			let barOpacity =
+			  "1";
+			
+			if (
+			  status === "A Fazer"
+			) {
+			
+			  barColor =
+			    "#4F7CAC"; // Azul
+			
+			}
+			
+			if (
+			  status === "Concluído"
+			) {
+			
+			  barColor =
+			    "#B8B8B8"; // Cinza claro
+			
+			}
+			
+			if (
+			  status === "Em Atraso!"
+			) {
+			
+			  barColor =
+			    "#C94A4A"; // Vermelho
+			
+			}
 
             barHTML = `
               <div

@@ -5102,3 +5102,58 @@ table.memorial-table td:nth-child(1) {
 #projStatusTag::before {
   display: none !important;
 }
+
+/* ===== CABEÇALHO CLEAN ===== */
+
+.project-header {
+  margin-bottom: 14px;
+  border: none !important;
+  background: transparent !important;
+}
+
+.sidebar-project {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.sidebar-cover {
+  height: 190px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.sidebar-cover img {
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.sidebar-project-info {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 10px 0 !important;
+}
+
+/* Mantém os elementos alinhados verticalmente */
+.sidebar-meta-row {
+  align-items: center !important;
+}
+
+.sidebar-project-status {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.sidebar-project-status .status-select,
+.sidebar-project-status select {
+  margin: 0 !important;
+  vertical-align: middle !important;
+}
+
+/* Remove qualquer decoração residual do status */
+#projStatusTag::before {
+  display: none !important;
+}

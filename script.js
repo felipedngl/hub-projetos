@@ -6298,7 +6298,67 @@ function renderSchedule(project) {
 
   return `
     <tr>
-      <td><input type="text" class="sched-input" data-idx="${index}" data-field="task" value="${escapeHTML(item.task || "")}" /></td>
+      <td>
+  <div
+    style="
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-width:0;
+    "
+  >
+
+    <input
+      type="text"
+      class="sched-input"
+      data-idx="${index}"
+      data-field="task"
+      value="${escapeHTML(item.task || "")}"
+      style="flex:1; min-width:0;"
+    />
+
+    ${
+      displayStatus === "Concluído"
+        ? `
+          <span
+            style="
+              flex:none;
+              color:#5F8F70;
+              font-size:11px;
+              font-weight:600;
+              white-space:nowrap;
+            "
+          >
+            ✓ Feito
+          </span>
+        `
+        : `
+          <button
+            type="button"
+            class="btn-conclude-sched"
+            data-idx="${index}"
+            title="Marcar como concluído"
+            style="
+              flex:none;
+              height:30px;
+              padding:0 9px;
+              border:1px solid rgba(95,143,112,.35);
+              border-radius:6px;
+              background:rgba(95,143,112,.10);
+              color:#7FAF8D;
+              font-size:11px;
+              font-weight:600;
+              cursor:pointer;
+              white-space:nowrap;
+            "
+          >
+            ✓ Concluir
+          </button>
+        `
+    }
+
+  </div>
+</td>
       <td><input type="date" class="sched-input" data-idx="${index}" data-field="start" value="${item.start || ""}" /></td>
       <td><input type="date" class="sched-input" data-idx="${index}" data-field="end" value="${item.end || ""}" /></td>
       <td>
@@ -6356,36 +6416,85 @@ function renderSchedule(project) {
     });
   });
 
-  $$(".sched-input").forEach((input) => {
-	input.addEventListener("change", () => {
-	
-	  const idx =
-		Number(input.dataset.idx);
-	
-	  const field =
-		input.dataset.field;
-	
-	  if (!project.schedule[idx]) {
-		return;
-	  }
-	
-	  project.schedule[idx][field] =
-		input.value;
-	
-	  saveProjects()
-		.then(() => {
-	
-		  renderSchedule(project);
-	
-		})
-		.catch((err) => {
-		  console.error(err);
-		});
-	
-	});
+	$$(".btn-conclude-sched").forEach((btn) => {
+
+  btn.addEventListener("click", () => {
+
+    const idx =
+      Number(btn.dataset.idx);
+
+    if (!project.schedule[idx]) {
+      return;
+    }
+
+    project.schedule[idx].status =
+      "Concluído";
+
+    saveProjects()
+      .then(() => {
+        renderSchedule(project);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+
   });
+
+});
+
+$$(".sched-input").forEach((input) => {
+
+  input.addEventListener("change", () => {
+
+    const idx =
+      Number(input.dataset.idx);
+
+    const field =
+      input.dataset.field;
+
+    if (!project.schedule[idx]) {
+      return;
+    }
+
+    project.schedule[idx][field] =
+      input.value;
+
+    /*
+     * Se o serviço estava concluído
+     * e a data foi alterada,
+     * ele volta a poder ser concluído.
+     */
+
+    if (
+      (
+        field === "start" ||
+        field === "end"
+      ) &&
+      project.schedule[idx].status === "Concluído"
+    ) {
+
+      project.schedule[idx].status =
+        "A Fazer";
+    }
+
+    saveProjects()
+      .then(() => {
+
+        renderSchedule(project);
+
+      })
+      .catch((err) => {
+
+        console.error(err);
+
+      });
+
+  });
+
+});
 }
 
+	
 function changeScheduleMonth(delta) {
   currentScheduleDate.setMonth(currentScheduleDate.getMonth() + delta);
   const ganttWrapper = document.querySelector("#scheduleGanttBox");
@@ -6397,6 +6506,7 @@ function changeScheduleMonth(delta) {
 
 window.changeScheduleMonth = changeScheduleMonth;
 
+	
 function renderScheduleClientHTML(project) {
   const schedule =
     project && Array.isArray(project.schedule)

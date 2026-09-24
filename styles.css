@@ -4958,3 +4958,129 @@ table.memorial-table td:nth-child(1) {
     flex-basis: 100%;
   }
 }
+
+/* ===== CABEÇALHO DO PROJETO — AJUSTE ===== */
+
+.project-header {
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.sidebar-project {
+  display: block !important;
+  width: 100% !important;
+}
+
+.sidebar-cover {
+  display: block !important;
+  width: 100% !important;
+  height: 150px !important;
+  overflow: hidden !important;
+  border-radius: 10px 10px 0 0 !important;
+  background: #242424;
+}
+
+.sidebar-cover img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.sidebar-project-info {
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box;
+  padding: 10px 12px !important;
+  background: var(--surface, #1f1f1f);
+  border-radius: 0 0 10px 10px;
+}
+
+.sidebar-project-main {
+  display: block !important;
+  width: 100% !important;
+}
+
+.sidebar-title-row,
+.sidebar-meta-row {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.sidebar-title-row {
+  justify-content: space-between !important;
+  gap: 12px;
+}
+
+.sidebar-title-row h2 {
+  margin: 0 !important;
+  flex: 1;
+  text-align: left !important;
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.sidebar-meta-row {
+  justify-content: flex-start !important;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.sidebar-meta-row .proj-meta {
+  flex: 1 !important;
+  margin: 0 !important;
+  text-align: left !important;
+  font-size: 12px;
+}
+
+.sidebar-project-status {
+  flex: none !important;
+  display: block !important;
+}
+
+.sidebar-project-status .status-select {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.sidebar-project-status .status-select span {
+  display: none !important;
+}
+
+.sidebar-project-status select {
+  height: 28px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+.sidebar-title-row .btn-share,
+.sidebar-meta-row .btn-delete {
+  flex: none !important;
+  width: auto !important;
+  height: 28px !important;
+  padding: 0 9px !important;
+  margin: 0 !important;
+  font-size: 11px !important;
+  border-radius: 6px !important;
+}
+
+.sidebar-actions {
+  display: contents !important;
+}
+
+@media (max-width: 700px) {
+  .sidebar-cover {
+    height: 120px !important;
+  }
+
+  .sidebar-title-row,
+  .sidebar-meta-row {
+    flex-wrap: wrap;
+  }
+
+  .sidebar-meta-row .proj-meta {
+    flex-basis: 100%;
+  }
+}

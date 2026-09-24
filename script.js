@@ -1563,53 +1563,107 @@ function fileListHTML(files) {
     .join("");
 }
 
-  /* ---------------- Render: painel ---------------- */
+/* ---------------- Render: painel ---------------- */
 function cardHTML(p, index) {
   const statusLabel = STATUS_LABELS[p.status] || p.status;
   const statusClass = STATUS_CLASS[p.status] || "";
 
   const unreadMessages = countUnreadClientMessages(p);
 
-console.log("Projeto:", p.title, "Mensagens não lidas:", unreadMessages);
+  console.log("Projeto:", p.title, "Mensagens não lidas:", unreadMessages);
 
-return `
-<article class="card project-card" data-id="${p.id}" data-project-id="${p.id}" tabindex="0" style="animation-delay: ${Math.min(index * 60, 360)}ms">    <div class="card-cover">
-        <span class="card-badge badge-type-${p.type}">${p.type}</span>
+  return `
+    <article
+      class="card project-card"
+      data-id="${p.id}"
+      data-project-id="${p.id}"
+      tabindex="0"
+      style="animation-delay: ${Math.min(index * 60, 360)}ms"
+    >
 
+      <div class="card-cover">
 
-        <img src="${p.image}" alt="Capa do projeto ${escapeHTML(p.title)}" loading="lazy" onerror="this.src='${PLACEHOLDER}'" />
+        <span class="card-badge badge-type-${p.type}">
+          ${p.type}
+        </span>
+
+        <img
+          src="${p.image || PLACEHOLDER}"
+          alt="Capa do projeto ${escapeHTML(p.title)}"
+          loading="lazy"
+          onerror="this.src='${PLACEHOLDER}'"
+        />
+
+        ${
+          designerUnlocked || clientMode
+            ? `
+              <button
+                type="button"
+                class="btn-project-cover"
+                data-cover-project-id="${p.id}"
+                title="Escolher capa"
+              >
+                🖼️ Capa
+              </button>
+            `
+            : ""
+        }
+
       </div>
 
       <div class="card-body">
-        <h3 class="card-title">${escapeHTML(p.title)}</h3>
+
+        <h3 class="card-title">
+          ${escapeHTML(p.title)}
+        </h3>
 
         <div class="card-meta">
-          <span title="Cliente">${ICONS.client} ${escapeHTML(p.client)}</span>
-          <span title="Metragem">${ICONS.area} ${formatArea(p.area)} m²</span>
-        </div>
+          <span title="Cliente">
+            ${ICONS.client} ${escapeHTML(p.client)}
+          </span>
 
-<div class="card-footer">
-  ${
-    unreadMessages > 0
-      ? `
-        <div class="card-message-row">
-          <span class="card-message-notification">
-            <span class="notification-dot"></span>
-            ${unreadMessages === 1 ? "Nova mensagem" : `${unreadMessages} novas mensagens`}
+          <span title="Metragem">
+            ${ICONS.area} ${formatArea(p.area)} m²
           </span>
         </div>
-      `
-      : ""
-  }
 
-  <div class="card-action-row">
-    <span class="status-tag ${statusClass}">${statusLabel}</span>
-    <span class="btn-detail">Ver Detalhes</span>
-  </div>
-</div>
+        <div class="card-footer">
+
+          ${
+            unreadMessages > 0
+              ? `
+                <div class="card-message-row">
+                  <span class="card-message-notification">
+                    <span class="notification-dot"></span>
+                    ${
+                      unreadMessages === 1
+                        ? "Nova mensagem"
+                        : `${unreadMessages} novas mensagens`
+                    }
+                  </span>
+                </div>
+              `
+              : ""
+          }
+
+          <div class="card-action-row">
+            <span class="status-tag ${statusClass}">
+              ${statusLabel}
+            </span>
+
+            <span class="btn-detail">
+              Ver Detalhes
+            </span>
+          </div>
+
+        </div>
+
       </div>
-    </article>`;
+
+    </article>
+  `;
 }
+	
 
 function renderDashboard() {
   // Trava de segurança: se 'projects' não for uma lista (array), transforma em lista vazia

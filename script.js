@@ -6303,10 +6303,10 @@ function renderSchedule(project) {
       <td><input type="date" class="sched-input" data-idx="${index}" data-field="end" value="${item.end || ""}" /></td>
       <td>
         <select class="sched-input" data-idx="${index}" data-field="status">
-			<option value="A Fazer" ${displaystatus === "A Fazer" ? "selected" : ""}>A Fazer</option>
-			<option value="Em Andamento" ${displaystatus === "Em Andamento" ? "selected" : ""}>Em Andamento</option>
-			<option value="Em Atraso!" ${displaystatus === "Em Atraso!" ? "selected" : ""}>Em Atraso!</option>
-			<option value="Concluído" ${displaystatus === "Concluído" ? "selected" : ""}>Concluído</option>
+			<option value="A Fazer" ${displayStatus === "A Fazer" ? "selected" : ""}>A Fazer</option>
+			<option value="Em Andamento" ${displayStatus === "Em Andamento" ? "selected" : ""}>Em Andamento</option>
+			<option value="Em Atraso!" ${displayStatus === "Em Atraso!" ? "selected" : ""}>Em Atraso!</option>
+			<option value="Concluído" ${displayStatus === "Concluído" ? "selected" : ""}>Concluído</option>
         </select>
       </td>
       <td><button type="button" class="file-remove btn-del-sched" data-idx="${index}">✕</button></td>

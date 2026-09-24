@@ -9263,36 +9263,70 @@ coverComputerInput?.addEventListener("change", async () => {
   if (!project) return;
 
   try {
+    if (file.size > 10 * 1024 * 1024) {
+      showToast("A imagem deve ter no máximo 10 MB.", true);
+      return;
+    }
+
     const reader = new FileReader();
 
     reader.onload = async () => {
-      project.image = reader.result;
+      try {
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            fileName: file.name,
+            fileType: file.type,
+            fileBase64: reader.result
+          })
+        });
 
-      closeCoverChoiceModal();
+        const data = await response.json();
 
-      if (typeof saveProjects === "function") {
+        if (!response.ok || !data.success || !data.url) {
+          throw new Error(
+            data?.error || "Não foi possível enviar a imagem."
+          );
+        }
+
+        project.image = data.url;
+
         await saveProjects([project]);
-      }
 
-      if (typeof renderSidebar === "function") {
-        renderSidebar();
-      }
+        closeCoverChoiceModal();
 
-      if (typeof showToast === "function") {
-        showToast("Capa atualizada.");
-      }
+        if (typeof renderSidebar === "function") {
+          renderSidebar();
+        }
 
-      coverComputerInput.value = "";
+        if (typeof showToast === "function") {
+          showToast("Capa atualizada.");
+        }
+
+      } catch (error) {
+        console.error("[CAPA] Erro no upload:", error);
+
+        if (typeof showToast === "function") {
+          showToast("Não foi possível enviar a capa.", true);
+        }
+      } finally {
+        coverComputerInput.value = "";
+      }
     };
 
     reader.readAsDataURL(file);
 
   } catch (error) {
-    console.error("[CAPA] Erro ao carregar imagem:", error);
+    console.error("[CAPA] Erro ao preparar upload:", error);
 
     if (typeof showToast === "function") {
       showToast("Não foi possível carregar a imagem.", true);
     }
+
+    coverComputerInput.value = "";
   }
 });
 

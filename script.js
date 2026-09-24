@@ -6654,7 +6654,7 @@ function renderScheduleClientHTML(project) {
 			) {
 			
 			  barColor =
-			    "#B8B8B8"; // Cinza claro
+			    "#5F8F70"; // Verde
 			
 			}
 			

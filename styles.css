@@ -5084,3 +5084,21 @@ table.memorial-table td:nth-child(1) {
     flex-basis: 100%;
   }
 }
+
+/* Remove a marca "Capa" dos cards */
+.project-card .cover-label,
+.project-card .card-cover-label,
+.project-card .cover-badge,
+.project-card .card-cover-badge {
+  display: none !important;
+}
+
+/* Ajuste da capa do projeto */
+.sidebar-cover {
+  height: 190px !important;
+}
+
+/* Remove a bolinha decorativa do status */
+#projStatusTag::before {
+  display: none !important;
+}

@@ -1594,20 +1594,14 @@ function cardHTML(p, index) {
           onerror="this.src='${PLACEHOLDER}'"
         />
 
-        ${
-          designerUnlocked || clientMode
-            ? `
-              <button
-                type="button"
-                class="btn-project-cover"
-                data-cover-project-id="${p.id}"
-                title="Escolher capa"
-              >
-                🖼️ Capa
-              </button>
-            `
-            : ""
-        }
+		<button
+		  type="button"
+		  class="btn-project-cover"
+		  data-cover-project-id="${p.id}"
+		  title="Escolher capa"
+		>
+		  🖼️ Capa
+		</button>
 
       </div>
 

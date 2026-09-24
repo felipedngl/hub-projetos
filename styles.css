@@ -5448,3 +5448,66 @@ table.memorial-table td:nth-child(1) {
 body.client-mode #btnCoverFromComputer {
   display: none !important;
 }
+
+.unsplash-modal {
+  width: min(760px, calc(100vw - 32px));
+  max-height: 85vh;
+  overflow: auto;
+}
+
+.unsplash-search-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.unsplash-search-row input {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  padding: 0 11px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 6px;
+  background: rgba(255,255,255,.04);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.unsplash-results {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.unsplash-result {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #222;
+}
+
+.unsplash-result img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .2s ease;
+}
+
+.unsplash-result:hover img {
+  transform: scale(1.03);
+}
+
+@media (max-width: 600px) {
+  .unsplash-results {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .unsplash-search-row {
+    flex-direction: column;
+  }
+}

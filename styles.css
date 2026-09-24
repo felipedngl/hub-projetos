@@ -5162,59 +5162,144 @@ table.memorial-table td:nth-child(1) {
 
 .sidebar-project {
   position: relative !important;
-  overflow: hidden !important;
+  display: block !important;
+  width: 100% !important;
+  overflow: visible !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
-/* Capa ocupa mais espaço e se integra ao conteúdo */
+/* CAPA GRANDE */
 .sidebar-cover {
-  height: 230px !important;
   position: relative !important;
+  width: 100% !important;
+  height: 330px !important;
   overflow: hidden !important;
-}
-
-/* Fade da imagem para o fundo */
-.sidebar-cover::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 130px;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(31, 31, 31, 0.25) 30%,
-    rgba(31, 31, 31, 0.85) 75%,
-    rgba(31, 31, 31, 1) 100%
-  );
-  pointer-events: none;
-}
-
-/* Informações sobem e entram na área da capa */
-.sidebar-project-info {
-  position: relative !important;
-  z-index: 2 !important;
-  margin-top: -75px !important;
-  padding: 55px 0 12px !important;
+  border: none !important;
+  border-radius: 0 !important;
   background: transparent !important;
 }
 
-/* Título e informações ficam sobre a parte escura do fade */
-.sidebar-title-row,
-.sidebar-meta-row {
-  position: relative;
-  z-index: 3;
+/* IMAGEM */
+.sidebar-cover img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border: none !important;
+  border-radius: 0 !important;
 }
 
-.sidebar-title-row h2,
-.sidebar-meta-row .proj-meta {
+/* FADE — termina totalmente no final da capa */
+.sidebar-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(31,31,31,0) 45%,
+    rgba(31,31,31,.15) 58%,
+    rgba(31,31,31,.55) 72%,
+    rgba(31,31,31,.88) 88%,
+    rgba(31,31,31,1) 100%
+  );
+}
+
+/* INFORMAÇÕES SOBREPÕEM A CAPA */
+.sidebar-project-info {
+  position: relative !important;
+  z-index: 5 !important;
+
+  width: 100% !important;
+  box-sizing: border-box !important;
+
+  margin-top: -115px !important;
+
+  padding: 0 14px 18px !important;
+
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* TÍTULO */
+.sidebar-title-row {
+  position: relative !important;
+  z-index: 6 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+
+  width: 100% !important;
+  gap: 12px;
+}
+
+.sidebar-title-row h2 {
+  margin: 0 !important;
   color: #fff !important;
-  text-shadow: 0 1px 4px rgba(0,0,0,.45);
+  font-size: 20px !important;
+  line-height: 1.2 !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,.7);
 }
 
-/* Mantém os botões limpos */
+/* META + STATUS + EXCLUIR */
+.sidebar-meta-row {
+  position: relative !important;
+  z-index: 6 !important;
+
+  display: flex !important;
+  align-items: center !important;
+
+  width: 100% !important;
+  gap: 10px;
+  margin-top: 7px !important;
+}
+
+.sidebar-meta-row .proj-meta {
+  flex: 1 !important;
+  margin: 0 !important;
+
+  color: rgba(255,255,255,.88) !important;
+  font-size: 12px !important;
+  text-shadow: 0 1px 5px rgba(0,0,0,.7);
+}
+
+/* STATUS ALINHADO */
+.sidebar-project-status {
+  display: flex !important;
+  align-items: center !important;
+  flex: none !important;
+}
+
+.sidebar-project-status .status-select {
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+}
+
+.sidebar-project-status select {
+  height: 28px !important;
+  margin: 0 !important;
+}
+
+/* BOTÕES */
 .sidebar-title-row .btn-share,
 .sidebar-meta-row .btn-delete {
-  position: relative;
-  z-index: 4;
+  flex: none !important;
+  height: 28px !important;
+  margin: 0 !important;
+  padding: 0 9px !important;
+  border-radius: 6px !important;
+}
+
+/* A ÁREA DAS ETAPAS COMEÇA DEPOIS DO FADE */
+#stageNav {
+  position: relative !important;
+  z-index: 10 !important;
+  margin-top: 0 !important;
 }

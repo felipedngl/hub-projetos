@@ -5157,3 +5157,64 @@ table.memorial-table td:nth-child(1) {
 #projStatusTag::before {
   display: none !important;
 }
+
+/* ===== CAPA INTEGRADA AO CABEÇALHO ===== */
+
+.sidebar-project {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Capa ocupa mais espaço e se integra ao conteúdo */
+.sidebar-cover {
+  height: 230px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Fade da imagem para o fundo */
+.sidebar-cover::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 130px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(31, 31, 31, 0.25) 30%,
+    rgba(31, 31, 31, 0.85) 75%,
+    rgba(31, 31, 31, 1) 100%
+  );
+  pointer-events: none;
+}
+
+/* Informações sobem e entram na área da capa */
+.sidebar-project-info {
+  position: relative !important;
+  z-index: 2 !important;
+  margin-top: -75px !important;
+  padding: 55px 0 12px !important;
+  background: transparent !important;
+}
+
+/* Título e informações ficam sobre a parte escura do fade */
+.sidebar-title-row,
+.sidebar-meta-row {
+  position: relative;
+  z-index: 3;
+}
+
+.sidebar-title-row h2,
+.sidebar-meta-row .proj-meta {
+  color: #fff !important;
+  text-shadow: 0 1px 4px rgba(0,0,0,.45);
+}
+
+/* Mantém os botões limpos */
+.sidebar-title-row .btn-share,
+.sidebar-meta-row .btn-delete {
+  position: relative;
+  z-index: 4;
+}

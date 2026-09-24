@@ -6357,19 +6357,32 @@ function renderSchedule(project) {
   });
 
   $$(".sched-input").forEach((input) => {
-    input.addEventListener("change", () => {
-      const idx = Number(input.dataset.idx);
-      const field = input.dataset.field;
-      if (project.schedule[idx]) {
-        project.schedule[idx][field] = input.value;
-        saveProjects().then(() => {
-          const ganttWrapper = document.querySelector("#scheduleGanttBox");
-          if (ganttWrapper) {
-            ganttWrapper.outerHTML = renderScheduleClientHTML(project);
-          }
-        }).catch((err) => console.error(err));
-      }
-    });
+	input.addEventListener("change", () => {
+	
+	  const idx =
+		Number(input.dataset.idx);
+	
+	  const field =
+		input.dataset.field;
+	
+	  if (!project.schedule[idx]) {
+		return;
+	  }
+	
+	  project.schedule[idx][field] =
+		input.value;
+	
+	  saveProjects()
+		.then(() => {
+	
+		  renderSchedule(project);
+	
+		})
+		.catch((err) => {
+		  console.error(err);
+		});
+	
+	});
   });
 }
 

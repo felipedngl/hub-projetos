@@ -9455,8 +9455,58 @@ unsplashSearchInput?.addEventListener(
   }
 );
 	
-btnCoverRandom?.addEventListener("click", () => {
-  console.log("[CAPA] Escolher capa aleatória");
+btnCoverRandom?.addEventListener("click", async () => {
+  const project = currentProject();
+  if (!project) return;
+
+  try {
+    showToast("Escolhendo uma capa...", false);
+
+    const response = await fetch(
+      `/api/unsplash?type=random&query=architecture interior design`
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error || "Não foi possível buscar uma imagem."
+      );
+    }
+
+    const photoUrl = data?.urls?.regular;
+    const photoLink = data?.links?.html;
+
+    if (!photoUrl) {
+      throw new Error("O Unsplash não retornou uma imagem.");
+    }
+
+    project.image = photoUrl;
+    project.coverSource = "unsplash";
+    project.coverUnsplashUrl = photoLink || "";
+
+    await saveProjects([project]);
+
+    closeCoverChoiceModal();
+
+    if (typeof renderSidebar === "function") {
+      renderSidebar();
+    }
+
+    if (typeof showToast === "function") {
+      showToast("Capa atualizada.");
+    }
+
+  } catch (error) {
+    console.error("[UNSPLASH] Erro na capa aleatória:", error);
+
+    if (typeof showToast === "function") {
+      showToast(
+        "Não foi possível escolher uma capa aleatória.",
+        true
+      );
+    }
+  }
 });
 	
 // ==========================================================

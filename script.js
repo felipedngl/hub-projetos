@@ -1594,16 +1594,6 @@ function cardHTML(p, index) {
           onerror="this.src='${PLACEHOLDER}'"
         />
 
-		<button
-		  type="button"
-		  class="btn-project-cover"
-		  data-cover-project-id="${p.id}"
-		  title="Escolher capa"
-		  style="position:absolute; bottom:12px; right:12px; z-index:20; display:block !important; background:#ffffff; color:#222; border:0; border-radius:6px; padding:8px 12px; cursor:pointer;"
-		>
-		  🖼️ Capa
-		</button>
-
       </div>
 
       <div class="card-body">

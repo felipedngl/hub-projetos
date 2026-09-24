@@ -777,6 +777,68 @@ if ("serviceWorker" in navigator) {
 
 </div>
 
+<!-- Modal: ajustar posição da capa -->
+<div class="modal-overlay" id="coverAdjustModal" hidden>
+  <div class="modal-card cover-adjust-modal">
+
+    <div class="modal-header">
+      <div>
+        <h3>Ajustar capa</h3>
+        <p>Escolha o enquadramento vertical da imagem.</p>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        id="btnCloseCoverAdjust"
+        aria-label="Fechar"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="cover-adjust-controls">
+
+      <button
+        type="button"
+        class="cover-adjust-btn"
+        id="btnMoveCoverUp"
+      >
+        ↑ Subir
+      </button>
+
+      <button
+        type="button"
+        class="cover-adjust-btn"
+        id="btnMoveCoverDown"
+      >
+        ↓ Descer
+      </button>
+
+    </div>
+
+    <div class="cover-adjust-actions">
+
+      <button
+        type="button"
+        class="btn-secondary"
+        id="btnCancelCoverAdjust"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        class="btn-primary"
+        id="btnSaveCoverAdjust"
+      >
+        Salvar posição
+      </button>
+
+    </div>
+
+  </div>
+</div>
 
 <!-- Seu script original -->
 <script src="script.js"></script>

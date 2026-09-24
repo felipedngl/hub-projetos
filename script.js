@@ -9230,6 +9230,7 @@ async function uploadMemorialImageToStorage(file) {
   return `${cleanBaseUrl}/storage/v1/object/public/${bucketName}/${encodeURIComponent(uniqueName)}`;
 }
 
+
 const btnChangeCover = document.getElementById("btnChangeCover");
 const coverChoiceModal = document.getElementById("coverChoiceModal");
 const btnCloseCoverChoice = document.getElementById("btnCloseCoverChoice");
@@ -9237,21 +9238,30 @@ const btnCoverFromComputer = document.getElementById("btnCoverFromComputer");
 const btnCoverFromUnsplash = document.getElementById("btnCoverFromUnsplash");
 const btnCoverRandom = document.getElementById("btnCoverRandom");
 const coverComputerInput = document.getElementById("coverComputerInput");
+
 const btnAdjustCover = document.getElementById("btnAdjustCover");
+
 const coverAdjustModal = document.getElementById("coverAdjustModal");
 const btnCloseCoverAdjust = document.getElementById("btnCloseCoverAdjust");
 const btnMoveCoverUp = document.getElementById("btnMoveCoverUp");
 const btnMoveCoverDown = document.getElementById("btnMoveCoverDown");
 const btnCancelCoverAdjust = document.getElementById("btnCancelCoverAdjust");
 const btnSaveCoverAdjust = document.getElementById("btnSaveCoverAdjust");
+
 const unsplashModal = document.getElementById("unsplashModal");
 const btnCloseUnsplash = document.getElementById("btnCloseUnsplash");
 const unsplashSearchInput = document.getElementById("unsplashSearchInput");
 const btnUnsplashSearch = document.getElementById("btnUnsplashSearch");
 const unsplashResults = document.getElementById("unsplashResults");
 
+
 let temporaryCoverPosition = 50;
 let originalCoverPosition = 50;
+let coverAdjusting = false;
+
+let coverDragStartY = 0;
+let coverDragStartPosition = 50;
+
 
 function applyCoverPosition(position) {
   const cover = document.getElementById("projCover");
@@ -9261,12 +9271,16 @@ function applyCoverPosition(position) {
   cover.style.objectPosition = `center ${position}%`;
 }
 
-function openCoverAdjustModal() {
+
+function startCoverAdjustment() {
   const project = currentProject();
+  const cover = document.getElementById("projCover");
 
-  if (!project || !coverAdjustModal) return;
+  if (!project || !cover) return;
 
-  originalCoverPosition = Number(project.coverPosition ?? 50);
+  originalCoverPosition = Number(
+    project.coverPosition ?? 50
+  );
 
   if (!Number.isFinite(originalCoverPosition)) {
     originalCoverPosition = 50;
@@ -9274,61 +9288,15 @@ function openCoverAdjustModal() {
 
   temporaryCoverPosition = originalCoverPosition;
 
-  applyCoverPosition(temporaryCoverPosition);
+  coverAdjusting = true;
 
-  coverAdjustModal.hidden = false;
+  cover.classList.add("cover-adjusting");
+
+  btnAdjustCover.textContent = "✓ Salvar posição";
 }
 
-function closeCoverAdjustModal() {
-  if (!coverAdjustModal) return;
 
-  temporaryCoverPosition = originalCoverPosition;
-
-  applyCoverPosition(originalCoverPosition);
-
-  coverAdjustModal.hidden = true;
-}
-
-btnAdjustCover?.addEventListener(
-  "click",
-  openCoverAdjustModal
-);
-
-btnCloseCoverAdjust?.addEventListener(
-  "click",
-  closeCoverAdjustModal
-);
-
-btnCancelCoverAdjust?.addEventListener(
-  "click",
-  closeCoverAdjustModal
-);
-
-coverAdjustModal?.addEventListener("click", (event) => {
-  if (event.target === coverAdjustModal) {
-    closeCoverAdjustModal();
-  }
-});
-
-btnMoveCoverUp?.addEventListener("click", () => {
-  temporaryCoverPosition = Math.max(
-    0,
-    temporaryCoverPosition - 5
-  );
-
-  applyCoverPosition(temporaryCoverPosition);
-});
-
-btnMoveCoverDown?.addEventListener("click", () => {
-  temporaryCoverPosition = Math.min(
-    100,
-    temporaryCoverPosition + 5
-  );
-
-  applyCoverPosition(temporaryCoverPosition);
-});
-
-btnSaveCoverAdjust?.addEventListener("click", async () => {
+async function saveCoverAdjustment() {
   const project = currentProject();
 
   if (!project) return;
@@ -9340,9 +9308,15 @@ btnSaveCoverAdjust?.addEventListener("click", async () => {
 
     originalCoverPosition = temporaryCoverPosition;
 
-    coverAdjustModal.hidden = true;
+    coverAdjusting = false;
 
-    applyCoverPosition(temporaryCoverPosition);
+    const cover = document.getElementById("projCover");
+
+    if (cover) {
+      cover.classList.remove("cover-adjusting");
+    }
+
+    btnAdjustCover.textContent = "↕ Ajustar capa";
 
     if (typeof showToast === "function") {
       showToast("Posição da capa salva.");
@@ -9361,7 +9335,117 @@ btnSaveCoverAdjust?.addEventListener("click", async () => {
       );
     }
   }
+}
+
+
+btnAdjustCover?.addEventListener("click", async () => {
+
+  if (coverAdjusting) {
+    await saveCoverAdjustment();
+    return;
+  }
+
+  startCoverAdjustment();
+
 });
+
+
+const projCoverElement =
+  document.getElementById("projCover");
+
+
+projCoverElement?.addEventListener(
+  "pointerdown",
+  (event) => {
+
+    if (!coverAdjusting) return;
+
+    coverDragStartY = event.clientY;
+
+    coverDragStartPosition =
+      temporaryCoverPosition;
+
+    projCoverElement.setPointerCapture(
+      event.pointerId
+    );
+
+    event.preventDefault();
+  }
+);
+
+
+projCoverElement?.addEventListener(
+  "pointermove",
+  (event) => {
+
+    if (!coverAdjusting) return;
+
+    if (
+      !projCoverElement.hasPointerCapture(
+        event.pointerId
+      )
+    ) {
+      return;
+    }
+
+    const deltaY =
+      event.clientY - coverDragStartY;
+
+    const movement =
+      deltaY / 3;
+
+    temporaryCoverPosition =
+      Math.max(
+        0,
+        Math.min(
+          100,
+          coverDragStartPosition - movement
+        )
+      );
+
+    applyCoverPosition(
+      temporaryCoverPosition
+    );
+  }
+);
+
+
+projCoverElement?.addEventListener(
+  "pointerup",
+  (event) => {
+
+    if (!coverAdjusting) return;
+
+    if (
+      projCoverElement.hasPointerCapture(
+        event.pointerId
+      )
+    ) {
+      projCoverElement.releasePointerCapture(
+        event.pointerId
+      );
+    }
+  }
+);
+
+
+projCoverElement?.addEventListener(
+  "pointercancel",
+  (event) => {
+
+    if (!coverAdjusting) return;
+
+    if (
+      projCoverElement.hasPointerCapture(
+        event.pointerId
+      )
+    ) {
+      projCoverElement.releasePointerCapture(
+        event.pointerId
+      );
+    }
+  }
+);
 	
 function openCoverChoiceModal() {
   if (!coverChoiceModal) return;

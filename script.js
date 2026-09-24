@@ -9229,6 +9229,11 @@ const btnCoverFromComputer = document.getElementById("btnCoverFromComputer");
 const btnCoverFromUnsplash = document.getElementById("btnCoverFromUnsplash");
 const btnCoverRandom = document.getElementById("btnCoverRandom");
 const coverComputerInput = document.getElementById("coverComputerInput");
+const unsplashModal = document.getElementById("unsplashModal");
+const btnCloseUnsplash = document.getElementById("btnCloseUnsplash");
+const unsplashSearchInput = document.getElementById("unsplashSearchInput");
+const btnUnsplashSearch = document.getElementById("btnUnsplashSearch");
+const unsplashResults = document.getElementById("unsplashResults");
 
 function openCoverChoiceModal() {
   if (!coverChoiceModal) return;
@@ -9296,6 +9301,160 @@ coverComputerInput?.addEventListener("change", async () => {
   }
 });
 
+function openUnsplashModal() {
+  if (!unsplashModal) return;
+
+  closeCoverChoiceModal();
+
+  unsplashModal.hidden = false;
+
+  setTimeout(() => {
+    unsplashSearchInput?.focus();
+  }, 50);
+}
+
+function closeUnsplashModal() {
+  if (!unsplashModal) return;
+
+  unsplashModal.hidden = true;
+}
+
+btnCoverFromUnsplash?.addEventListener("click", openUnsplashModal);
+
+btnCloseUnsplash?.addEventListener("click", closeUnsplashModal);
+
+unsplashModal?.addEventListener("click", (event) => {
+  if (event.target === unsplashModal) {
+    closeUnsplashModal();
+  }
+});
+
+async function searchUnsplash() {
+  const query = unsplashSearchInput?.value.trim();
+
+  if (!query) {
+    showToast("Digite o que deseja pesquisar.", true);
+    return;
+  }
+
+  if (!unsplashResults) return;
+
+  unsplashResults.innerHTML = "<p>Pesquisando...</p>";
+
+  try {
+    const response = await fetch(
+      `/api/unsplash?type=search&query=${encodeURIComponent(query)}`
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error || "Erro ao pesquisar no Unsplash."
+      );
+    }
+
+    const results = Array.isArray(data.results)
+      ? data.results
+      : [];
+
+    if (!results.length) {
+      unsplashResults.innerHTML =
+        "<p>Nenhuma imagem encontrada.</p>";
+      return;
+    }
+
+    unsplashResults.innerHTML = results.map((photo) => `
+      <button
+        type="button"
+        class="unsplash-result"
+        data-photo-url="${photo.urls.regular}"
+        data-photo-link="${photo.links.html}"
+      >
+        <img
+          src="${photo.urls.regular}"
+          alt="${photo.alt_description || "Imagem do Unsplash"}"
+          loading="lazy"
+        >
+      </button>
+    `).join("");
+
+    unsplashResults
+      .querySelectorAll(".unsplash-result")
+      .forEach((button) => {
+
+        button.addEventListener("click", async () => {
+
+          const project = currentProject();
+
+          if (!project) return;
+
+          const photoUrl = button.dataset.photoUrl;
+          const photoLink = button.dataset.photoLink;
+
+          if (!photoUrl) return;
+
+          try {
+            project.image = photoUrl;
+            project.coverSource = "unsplash";
+            project.coverUnsplashUrl = photoLink || "";
+
+            await saveProjects([project]);
+
+            closeUnsplashModal();
+
+            if (typeof renderSidebar === "function") {
+              renderSidebar();
+            }
+
+            if (typeof showToast === "function") {
+              showToast("Capa atualizada.");
+            }
+
+          } catch (error) {
+            console.error(
+              "[UNSPLASH] Erro ao salvar capa:",
+              error
+            );
+
+            showToast(
+              "Não foi possível salvar a capa.",
+              true
+            );
+          }
+        });
+      });
+
+  } catch (error) {
+    console.error(
+      "[UNSPLASH] Erro na pesquisa:",
+      error
+    );
+
+    unsplashResults.innerHTML =
+      "<p>Não foi possível realizar a pesquisa.</p>";
+
+    showToast(
+      "Erro ao pesquisar no Unsplash.",
+      true
+    );
+  }
+}
+
+btnUnsplashSearch?.addEventListener(
+  "click",
+  searchUnsplash
+);
+
+unsplashSearchInput?.addEventListener(
+  "keydown",
+  (event) => {
+    if (event.key === "Enter") {
+      searchUnsplash();
+    }
+  }
+);
+	
 btnCoverRandom?.addEventListener("click", () => {
   console.log("[CAPA] Escolher capa aleatória");
 });

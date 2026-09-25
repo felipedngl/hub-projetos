@@ -4188,8 +4188,8 @@ function renderContracts(project) {
           }
         }
       });
-    }
-  );
+    });
+  }
 
 }
 

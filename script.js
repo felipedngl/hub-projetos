@@ -1842,23 +1842,6 @@ if (projCover) {
         .map((stage, index) => {
           const done = typeof stageHasContent === "function" ? stageHasContent(p, stage) : false;
           const stageData = p.stages?.[stage.id];
-		const checklist = Array.isArray(stageData?.checklist)
-  ? stageData.checklist
-  : [];
-
-const checklistTotal = checklist.length;
-
-const checklistDone = checklist.filter(
-  item => item?.done === true
-).length;
-
-let checklistStatus = "A iniciar";
-
-if (stageData?.status === "concluida") {
-  checklistStatus = "Concluído";
-} else if (checklistDone > 0) {
-  checklistStatus = "Em andamento";
-}
 
           // Checa não lidos em mensagens
           const unreadMsg = clientMode
@@ -1911,10 +1894,6 @@ const dotClass = unreadMsg
 			<span class="nav-label">
 			  <span class="stage-number">${index + 1}</span>
 			  ${stage.id === "briefing" ? "Briefing" : stage.label}
-			</span>
-
-			<span class="stage-progress">
-			  ${checklistDone}/${checklistTotal} - ${checklistStatus}
 			</span>
 		
 			<span

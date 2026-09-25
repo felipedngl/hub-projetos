@@ -2728,7 +2728,9 @@ $$("#stageConversation .btn-message-edit").forEach((button) => {
 
     const messageId = button.dataset.messageId;
 
-    const message = s.clientMes
+	const message = s.clientMessages?.find(
+	  (m) => m.id === messageId
+	);
 	  
 
 /* ---------------- Render: etapa (cliente, leitura) ---------------- */

@@ -2606,7 +2606,11 @@ if (btnOpenStageChecklist) {
             return;
           }
 
-          s.checklist[index].done = input.checked;
+          s.checklist[index].done = input.checked; 
+			
+		  s.checklist[index].status = input.checked
+			? "concluida"
+			: "nao-iniciado";
 
           s.approved = false;
           s.approvedAt = "";

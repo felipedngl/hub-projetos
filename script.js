@@ -2669,10 +2669,11 @@ if (btnOpenStageChecklist) {
             ? s.checklist
             : [];
 
-          s.checklist.push({
-            label: label.trim(),
-            done: false
-          });
+			s.checklist.push({
+			  label: label.trim(),
+			  done: false,
+			  status: "nao-iniciado"
+			});
 
           if (await saveProjects([project])) {
             showToast("Entrega adicionada.");
@@ -3405,6 +3406,7 @@ if (btnApproveStage) {
 
 } 
 
+	
 function stageConversationHTML(messages) {
 	
   if (!messages || !messages.length) {

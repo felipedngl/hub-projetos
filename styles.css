@@ -5918,3 +5918,29 @@ color: var(--text-dim) !important;
 text-decoration: line-through !important;
 opacity: 0.68 !important;
 }
+
+/* ==========================================================
+CHECKLIST CLIENTE — AJUSTE DE CORES E TEXTO
+========================================================== */
+
+.checklist-modal .checklist-modal-item.done {
+background: rgba(232, 106, 68, 0.07) !important;
+border-color: rgba(232, 106, 68, 0.16) !important;
+}
+
+.checklist-modal .checklist-modal-item.done .checklist-modal-number {
+background: rgba(232, 106, 68, 0.16) !important;
+color: #E86A44 !important;
+}
+
+.checklist-modal .checklist-modal-item.done .checklist-modal-check {
+background: #E86A44 !important;
+border-color: #E86A44 !important;
+color: #fff !important;
+}
+
+.checklist-modal .checklist-modal-item.done .checklist-modal-item-text {
+color: var(--text) !important;
+text-decoration: none !important;
+opacity: 1 !important;
+}

@@ -2977,9 +2977,11 @@ if (stage.special === "contracts") {
          <span>✓ Etapa Aprovada pelo Cliente</span>
          ${s.approvedAt ? `<small style="color:#a0aec0; font-weight:normal;">(${s.approvedAt})</small>` : ""}
        </div>`
-    : `<button type="button" id="btnApproveStageClient" class="btn-primary" style="margin-top:8px; padding:6px 14px; font-size:0.85rem; background:#e56a44; border:none; border-radius:6px; cursor:pointer; color:#fff; font-weight:600;">
-         Aprovar Etapa
-       </button>`;
+	: s.status === "aguardando-aprovacao"
+	  ? `<button type="button" id="btnApproveStageClient" class="btn-primary" style="margin-top:8px; padding:6px 14px; font-size:0.85rem; background:#e56a44; border:none; border-radius:6px; cursor:pointer; color:#fff; font-weight:600;">
+	       Aprovar Etapa
+	     </button>`
+	  : "";
 
   const stageStatusHTML = `
     <div class="panel stage-status-card ${(typeof STATUS_CLASS !== "undefined" && STATUS_CLASS[s.status]) || "status-nao-iniciado"}">

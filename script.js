@@ -2438,27 +2438,27 @@ function updateStageDeadlineStatus() {
     statusEl.classList.add("deadline-today");
     statusEl.textContent = "DIA DE ENTREGA!";
 
-} else if (diffDays <= 3) {
+  } else if (diffDays <= 3) {
 
-  statusEl.classList.add("deadline-urgent");
-  statusEl.textContent =
-    diffDays === 1
-      ? "Falta 1 dia para a entrega."
-      : `Faltam ${diffDays} dias para a entrega.`;
+    statusEl.classList.add("deadline-urgent");
+    statusEl.textContent =
+      diffDays === 1
+        ? "Falta 1 dia para a entrega."
+        : `Faltam ${diffDays} dias para a entrega.`;
 
-} else if (diffDays <= 7) {
+  } else if (diffDays <= 7) {
 
-  statusEl.classList.add("deadline-near");
-  statusEl.textContent =
-    `Faltam ${diffDays} dias para a entrega.`;
+    statusEl.classList.add("deadline-near");
+    statusEl.textContent =
+      `Faltam ${diffDays} dias para a entrega.`;
 
-} else if (diffDays <= 15) {
+  } else if (diffDays <= 15) {
 
-  statusEl.classList.add("deadline-warning");
-  statusEl.textContent =
-    `Faltam ${diffDays} dias para a entrega.`;
+    statusEl.classList.add("deadline-warning");
+    statusEl.textContent =
+      `Faltam ${diffDays} dias para a entrega.`;
 
-} else {
+  } else {
 
     statusEl.classList.add("deadline-ok");
     statusEl.textContent =
@@ -2473,22 +2473,24 @@ stageDeadline?.addEventListener(
   updateStageDeadlineStatus
 );
 
-    if (btnSaveStageProgress) {
-      btnSaveStageProgress.addEventListener("click", async () => {
-        s.status = stageStatus.value;
-		  if (s.status !== "concluida") {
-          s.approved = false;
-          s.approvedAt = "";
-        }
-        s.deadline = stageDeadline.value;
-        s.progress = getStageProgress(s);
-          
-        if (await saveProjects([project])) {
-          showToast("Status da etapa atualizado.");
-          renderStage();
-        }
-      });
+if (btnSaveStageProgress) {
+  btnSaveStageProgress.addEventListener("click", async () => {
+    s.status = stageStatus.value;
+
+    if (s.status !== "concluida") {
+      s.approved = false;
+      s.approvedAt = "";
     }
+
+    s.deadline = stageDeadline.value;
+    s.progress = getStageProgress(s);
+
+    if (await saveProjects([project])) {
+      showToast("Status da etapa atualizado.");
+      renderStage();
+    }
+  });
+}
 
 const btnOpenStageChecklist = $("#btnOpenStageChecklist");
 
@@ -2531,43 +2533,21 @@ if (btnOpenStageChecklist) {
           ${
             checklist.length
               ? checklist.map((item, index) => `
-<label class="stage-checklist-item">
-  <input
-    type="checkbox"
-    data-modal-checklist-index="${index}"
-    ${item.done ? "checked" : ""}
-  />
+                  <label class="stage-checklist-item">
+                    <input
+                      type="checkbox"
+                      data-modal-checklist-index="${index}"
+                      ${item.done ? "checked" : ""}
+                    />
 
-  <span>${item.label}</span>
-</label>
-
-  <select
-    class="stage-checklist-status"
-    data-modal-checklist-status="${index}"
-  >
-    <option value="nao-iniciado" ${(item.status || (item.done ? "concluida" : "nao-iniciado")) === "nao-iniciado" ? "selected" : ""}>
-      A iniciar
-    </option>
-
-    <option value="em-producao" ${(item.status || "") === "em-producao" ? "selected" : ""}>
-      Em andamento
-    </option>
-
-    <option value="aguardando-aprovacao" ${(item.status || "") === "aguardando-aprovacao" ? "selected" : ""}>
-      Aguardando aprovação
-    </option>
-
-    <option value="concluida" ${(item.status || (item.done ? "concluida" : "")) === "concluida" ? "selected" : ""}>
-      Concluído
-    </option>
-  </select>
-</label>
+                    <span>${item.label}</span>
+                  </label>
                 `).join("")
               : `
-                <p class="stage-checklist-empty">
-                  Nenhuma entrega adicionada ainda.
-                </p>
-              `
+                  <p class="stage-checklist-empty">
+                    Nenhuma entrega adicionada ainda.
+                  </p>
+                `
           }
 
         </div>
@@ -2629,9 +2609,8 @@ if (btnOpenStageChecklist) {
             return;
           }
 
-          s.checklist[index].done = input.checked; 
-			
-		  s.checklist[index].status = input.checked
+          s.checklist[index].done = input.checked;
+
           s.approved = false;
           s.approvedAt = "";
 
@@ -2639,13 +2618,13 @@ if (btnOpenStageChecklist) {
 
           const progress = getStageProgress(s);
 
-			if (progress === 0) {
-			  s.status = "nao-iniciado";
-			} else if (progress === 100) {
-			  s.status = "aguardando-aprovacao";
-			} else {
-			  s.status = "em-producao";
-			}
+          if (progress === 0) {
+            s.status = "nao-iniciado";
+          } else if (progress === 100) {
+            s.status = "aguardando-aprovacao";
+          } else {
+            s.status = "em-producao";
+          }
 
           s.progress = progress;
 
@@ -2664,13 +2643,18 @@ if (btnOpenStageChecklist) {
               `${completed}/${s.checklist.length} concluídas`;
           }
 
-          btnOpenStageChecklist.querySelector("strong").textContent =
-            `${completed}/${s.checklist.length}`;
+          const counterButton =
+            btnOpenStageChecklist.querySelector("strong");
+
+          if (counterButton) {
+            counterButton.textContent =
+              `${completed}/${s.checklist.length}`;
+          }
 
           renderStage();
         });
       });
-	  
+
     const btnAddChecklistItemModal =
       modal.querySelector("#btnAddChecklistItemModal");
 
@@ -2690,10 +2674,10 @@ if (btnOpenStageChecklist) {
             ? s.checklist
             : [];
 
-			s.checklist.push({
-			  label: label.trim(),
-			  done: false
-			});
+          s.checklist.push({
+            label: label.trim(),
+            done: false
+          });
 
           if (await saveProjects([project])) {
             showToast("Entrega adicionada.");
@@ -2712,143 +2696,40 @@ if (btnOpenStageChecklist) {
   });
 }
 
-    $$("#stageFiles .file-remove").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const id = btn.closest(".file-item").dataset.fileId;
-        s.files = s.files.filter((f) => f.id !== id);
-        saveProjects().then(() => {
-          renderStage();
-        }).catch((err) => console.error("Erro ao salvar estágio:", err));
-      });
-    });
+$$("#stageFiles .file-remove").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const id = btn.closest(".file-item").dataset.fileId;
 
-    const designerInput = $("#designerMessageInput");
-    const designerButton = $("#btnSendDesignerMessage");
+    s.files = s.files.filter(
+      (f) => f.id !== id
+    );
 
-    // EDIÇÃO DE MENSAGENS (Unificada para Cliente e Designer)
-    $$("#stageConversation .btn-message-edit").forEach((button) => {
-      button.addEventListener("click", async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const messageId = button.dataset.messageId;
-        const message = s.clientMessages?.find((m) => m.id === messageId);
-
-        if (!message) return;
-
-        if (!designerUnlocked && message.author !== "client") return;
-        if (designerUnlocked && message.author !== "designer") return;
-
-        const newText = await customPrompt("Edite sua mensagem:", message.text);
-        if (newText === null) return;
-
-        const text = newText.trim();
-        if (!text) {
-          if (typeof showToast === "function") showToast("A mensagem não pode ficar vazia.", true);
-          return;
-        }
-
-        message.text = text;
-        message.edited = true;
-
-        if (typeof saveProjects === "function") await saveProjects();
+    saveProjects()
+      .then(() => {
         renderStage();
-      });
-    });
+      })
+      .catch((err) =>
+        console.error(
+          "Erro ao salvar estágio:",
+          err
+        )
+      );
+  });
+});
 
-	$$("#stageConversation .btn-message-delete").forEach((button) => {
+const designerInput = $("#designerMessageInput");
+const designerButton = $("#btnSendDesignerMessage");
+
+// EDIÇÃO DE MENSAGENS
+$$("#stageConversation .btn-message-edit").forEach((button) => {
   button.addEventListener("click", async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
     const messageId = button.dataset.messageId;
 
-    if (!Array.isArray(s.clientMessages)) return;
-
-    const index = s.clientMessages.findIndex(
-      (message) => message.id === messageId
-    );
-
-    if (index === -1) return;
-
-    const message = s.clientMessages[index];
-
-    // No Hub do proprietário, só permite apagar mensagens da Menchë
-    if (message.author !== "designer") return;
-
-    if (!confirm("Apagar esta mensagem?")) return;
-
-    s.clientMessages.splice(index, 1);
-
-    const saved = await saveProjects();
-
-    if (!saved) return;
-
-    renderStage();
-
-    if (typeof showToast === "function") {
-      showToast("Mensagem apagada.");
-    }
-  });
-});
-
-    if (designerButton) {
-      designerButton.addEventListener("click", async () => {
-        const text = designerInput ? designerInput.value.trim() : "";
-
-        if (!text) {
-          showToast("Escreva uma resposta antes de enviar.", true);
-          return;
-        }
-
-        if (!Array.isArray(s.clientMessages)) {
-          s.clientMessages = [];
-        }
-
-        s.clientMessages.push({
-          id: uid(),
-          author: "designer",
-          text,
-          createdAt: Date.now(),
-          readByClient: false,
-        });
-
-        designerButton.disabled = true;
-        designerButton.textContent = "Enviando...";
-
-        const saved = await saveProjects();
-
-        if (saved) {
-          renderStage();
-          showToast("Resposta enviada.");
-        } else {
-          s.clientMessages.pop();
-          designerButton.disabled = false;
-          designerButton.textContent = "Enviar resposta";
-        }
-      });
-    }
-
-    // Permissão individual de download para o cliente
-    $$("#stageFiles .file-download-toggle").forEach((checkbox) => {
-      checkbox.addEventListener("change", async () => {
-        const id = checkbox.dataset.fileId;
-        const file = s.files.find((f) => f.id === id);
-
-        if (!file) return;
-
-        file.allowClientDownload = checkbox.checked;
-
-        if (await saveProjects()) {
-          showToast(
-            checkbox.checked
-              ? "Download liberado para o cliente."
-              : "Download bloqueado para o cliente."
-          );
-        }
-      });
-    });
-  }
+    const message = s.clientMes
+	  
 
 /* ---------------- Render: etapa (cliente, leitura) ---------------- */
 function renderStageClient(project, stage) {

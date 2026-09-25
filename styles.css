@@ -5738,3 +5738,84 @@ min-width: 0 !important;
 
 overflow-wrap: anywhere;
 }
+
+/* ==========================================================
+CHECKLIST DO CLIENTE — VISUAL
+========================================================== */
+
+body.client-mode .checklist-modal .stage-checklist-item {
+display: flex !important;
+align-items: center !important;
+gap: 12px !important;
+min-height: 44px !important;
+padding: 9px 10px !important;
+border: 0 !important;
+border-radius: 8px !important;
+color: var(--text) !important;
+}
+
+body.client-mode .checklist-modal .stage-checklist-item input[type="checkbox"] {
+appearance: none !important;
+-webkit-appearance: none !important;
+
+width: 20px !important;
+height: 20px !important;
+min-width: 20px !important;
+max-width: 20px !important;
+
+margin: 0 !important;
+padding: 0 !important;
+
+border: 1.5px solid rgba(241, 234, 227, 0.30) !important;
+border-radius: 6px !important;
+
+background: rgba(255,255,255,.035) !important;
+
+display: grid !important;
+place-content: center !important;
+flex: 0 0 20px !important;
+
+cursor: pointer !important;
+}
+
+body.client-mode
+.checklist-modal
+.stage-checklist-item
+input[type="checkbox"]::before {
+content: "✓";
+color: #fff;
+font-size: 13px;
+font-weight: 700;
+line-height: 1;
+transform: scale(0);
+}
+
+body.client-mode
+.checklist-modal
+.stage-checklist-item
+input[type="checkbox"]:checked {
+background: var(--accent) !important;
+border-color: var(--accent) !important;
+}
+
+body.client-mode
+.checklist-modal
+.stage-checklist-item
+input[type="checkbox"]:checked::before {
+transform: scale(1);
+}
+
+body.client-mode
+.checklist-modal
+.stage-checklist-item
+input[type="checkbox"]:checked + span {
+color: var(--text-dim) !important;
+text-decoration: line-through;
+opacity: .65;
+}
+
+body.client-mode .checklist-modal .stage-checklist-item span {
+flex: 1 1 auto !important;
+min-width: 0 !important;
+overflow-wrap: anywhere;
+}

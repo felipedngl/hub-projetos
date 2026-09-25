@@ -2086,6 +2086,7 @@ body.client-password-mode .modal--narrow {
   display: block;
   object-fit: contain;
 }
+
 /* ---------- Cabeçalho compacto do projeto ---------- */
 
 .sidebar-project {
@@ -5624,4 +5625,116 @@ body.client-mode #btnCoverFromComputer {
 
 #projCover.cover-adjusting:active {
   cursor: grabbing;
+}
+
+/* ==========================================================
+CHECKLIST MODAL — VISUAL FINAL
+========================================================== */
+
+.checklist-modal .stage-checklist-item {
+display: flex !important;
+align-items: center !important;
+gap: 12px !important;
+
+width: 100% !important;
+min-height: 44px !important;
+box-sizing: border-box !important;
+
+padding: 9px 10px !important;
+margin: 0 !important;
+
+border-radius: 8px !important;
+border-top: 0 !important;
+
+color: var(--text) !important;
+font-size: 0.88rem !important;
+line-height: 1.4 !important;
+
+cursor: pointer !important;
+transition:
+background 0.18s ease,
+color 0.18s ease !important;
+}
+
+.checklist-modal .stage-checklist-item + .stage-checklist-item {
+border-top: 0 !important;
+}
+
+.checklist-modal .stage-checklist-item:hover {
+background: rgba(232, 106, 68, 0.07) !important;
+}
+
+.checklist-modal .stage-checklist-item input[type="checkbox"] {
+appearance: none !important;
+-webkit-appearance: none !important;
+
+width: 20px !important;
+height: 20px !important;
+min-width: 20px !important;
+max-width: 20px !important;
+
+margin: 0 !important;
+padding: 0 !important;
+
+border: 1.5px solid rgba(241, 234, 227, 0.30) !important;
+border-radius: 6px !important;
+
+background: rgba(255, 255, 255, 0.035) !important;
+
+display: grid !important;
+place-content: center !important;
+
+cursor: pointer !important;
+flex: 0 0 20px !important;
+
+transition:
+background 0.18s ease,
+border-color 0.18s ease,
+box-shadow 0.18s ease !important;
+}
+
+.checklist-modal .stage-checklist-item input[type="checkbox"]::before {
+content: "✓";
+
+font-size: 13px;
+font-weight: 700;
+line-height: 1;
+
+color: #fff;
+
+transform: scale(0);
+transition: transform 0.15s ease;
+}
+
+.checklist-modal
+.stage-checklist-item
+input[type="checkbox"]:checked {
+background: var(--accent) !important;
+border-color: var(--accent) !important;
+
+box-shadow: 0 0 0 3px rgba(232, 106, 68, 0.10) !important;
+}
+
+.checklist-modal
+.stage-checklist-item
+input[type="checkbox"]:checked::before {
+transform: scale(1);
+}
+
+.checklist-modal .stage-checklist-item input[type="checkbox"]:focus-visible {
+outline: none !important;
+box-shadow: 0 0 0 3px rgba(232, 106, 68, 0.20) !important;
+}
+
+.checklist-modal .stage-checklist-item input[type="checkbox"]:checked + span {
+color: var(--text-dim) !important;
+text-decoration: line-through;
+opacity: 0.65;
+}
+
+.checklist-modal .stage-checklist-item span {
+flex: 1 1 auto !important;
+min-width: 0 !important;
+
+overflow-wrap: anywhere;
 }

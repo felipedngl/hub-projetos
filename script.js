@@ -2172,15 +2172,7 @@ if (clientMode && typeof setupClientNotificationPrompt === "function") {
       return;
     }
     const s = project.stages[stage.id];
-		if (Array.isArray(s.checklist)) {
-	  s.checklist.forEach((item) => {
-	    if (!item.status) {
-	      item.status = item.done
-	        ? "concluida"
-	        : "nao-iniciado";
-	    }
-	  });
-	}
+	
     const container = $("#stageContainer");
     if (!container) return;
 
@@ -2547,6 +2539,7 @@ if (btnOpenStageChecklist) {
   />
 
   <span>${item.label}</span>
+</label>
 
   <select
     class="stage-checklist-status"
@@ -2639,9 +2632,6 @@ if (btnOpenStageChecklist) {
           s.checklist[index].done = input.checked; 
 			
 		  s.checklist[index].status = input.checked
-			? "concluida"
-			: "nao-iniciado";
-
           s.approved = false;
           s.approvedAt = "";
 
@@ -2683,35 +2673,6 @@ if (btnOpenStageChecklist) {
           renderStage();
         });
       });
-
-modal
-  .querySelectorAll("[data-modal-checklist-status]")
-  .forEach((select) => {
-    select.addEventListener("change", async () => {
-      const index = Number(
-        select.dataset.modalChecklistStatus
-      );
-
-      if (!s.checklist || !s.checklist[index]) {
-        return;
-      }
-
-      s.checklist[index].status = select.value;
-
-      // Mantém compatibilidade com o sistema antigo
-      s.checklist[index].done = select.value === "concluida";
-
-      s.approved = false;
-      s.approvedAt = "";
-      s.checklistUpdated = true;
-
-      s.progress = getStageProgress(s);
-
-      await saveProjects([project]);
-
-      renderStage();
-    });
-  });
 	  
     const btnAddChecklistItemModal =
       modal.querySelector("#btnAddChecklistItemModal");
@@ -2734,8 +2695,7 @@ modal
 
 			s.checklist.push({
 			  label: label.trim(),
-			  done: false,
-			  status: "nao-iniciado"
+			  done: false
 			});
 
           if (await saveProjects([project])) {

@@ -2172,6 +2172,15 @@ if (clientMode && typeof setupClientNotificationPrompt === "function") {
       return;
     }
     const s = project.stages[stage.id];
+		if (Array.isArray(s.checklist)) {
+	  s.checklist.forEach((item) => {
+	    if (!item.status) {
+	      item.status = item.done
+	        ? "concluida"
+	        : "nao-iniciado";
+	    }
+	  });
+	}
     const container = $("#stageContainer");
     if (!container) return;
 

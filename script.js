@@ -2539,15 +2539,36 @@ if (btnOpenStageChecklist) {
           ${
             checklist.length
               ? checklist.map((item, index) => `
-                  <label class="stage-checklist-item">
-                    <input
-                      type="checkbox"
-                      data-modal-checklist-index="${index}"
-                      ${item.done ? "checked" : ""}
-                    />
+<label class="stage-checklist-item">
+  <input
+    type="checkbox"
+    data-modal-checklist-index="${index}"
+    ${item.done ? "checked" : ""}
+  />
 
-                    <span>${item.label}</span>
-                  </label>
+  <span>${item.label}</span>
+
+  <select
+    class="stage-checklist-status"
+    data-modal-checklist-status="${index}"
+  >
+    <option value="nao-iniciado" ${(item.status || (item.done ? "concluida" : "nao-iniciado")) === "nao-iniciado" ? "selected" : ""}>
+      A iniciar
+    </option>
+
+    <option value="em-producao" ${(item.status || "") === "em-producao" ? "selected" : ""}>
+      Em andamento
+    </option>
+
+    <option value="aguardando-aprovacao" ${(item.status || "") === "aguardando-aprovacao" ? "selected" : ""}>
+      Aguardando aprovação
+    </option>
+
+    <option value="concluida" ${(item.status || (item.done ? "concluida" : "")) === "concluida" ? "selected" : ""}>
+      Concluído
+    </option>
+  </select>
+</label>
                 `).join("")
               : `
                 <p class="stage-checklist-empty">

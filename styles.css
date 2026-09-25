@@ -2463,8 +2463,8 @@ body.client-password-mode .modal--narrow {
   transition: width 0.4s ease;
   box-shadow: 0 0 12px rgba(232, 106, 68, 0.25);
 }
-/* ---------- Modal de entregas da etapa ---------- */
 
+/* ---------- Modal de entregas da etapa ---------- */
 .checklist-modal-overlay {
   position: fixed;
   inset: 0;
@@ -2480,9 +2480,9 @@ body.client-password-mode .modal--narrow {
 .checklist-modal {
   width: min(720px, 100%);
   max-height: min(760px, 90vh);
-  overflow: hidden;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   background: var(--panel);
   border: 1px solid rgba(241, 234, 227, 0.12);
   border-radius: 18px;
@@ -2494,6 +2494,7 @@ body.client-password-mode .modal--narrow {
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
+  flex: 0 0 auto;
   padding: 24px 26px 18px;
   border-bottom: 1px solid rgba(241, 234, 227, 0.08);
 }
@@ -2530,59 +2531,108 @@ body.client-password-mode .modal--narrow {
   background: rgba(241, 234, 227, 0.13);
 }
 
-.checklist-modal-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 28px;
-  padding: 22px 26px 26px;
+
+/* ---------- Corpo rolável ---------- */
+
+.checklist-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
+  padding: 18px 26px 22px;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(241, 234, 227, 0.22) transparent;
 }
 
-.checklist-modal-item {
+.checklist-modal-body::-webkit-scrollbar {
+  width: 7px;
+}
+
+.checklist-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.checklist-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(241, 234, 227, 0.22);
+  border-radius: 10px;
+}
+
+.checklist-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(241, 234, 227, 0.34);
+}
+
+
+/* ---------- Cada entrega ---------- */
+
+.stage-checklist-item {
   display: flex;
   align-items: flex-start;
   gap: 11px;
+  width: 100%;
   min-width: 0;
-  padding: 9px 0;
+  box-sizing: border-box;
+  padding: 10px 4px;
   color: var(--text-dim);
   font-size: 0.88rem;
   line-height: 1.45;
+  cursor: pointer;
 }
 
-.checklist-modal-check {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 20px;
+.stage-checklist-item + .stage-checklist-item {
+  border-top: 1px solid rgba(241, 234, 227, 0.05);
+}
+
+.stage-checklist-item span {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.stage-checklist-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin: 1px 0 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+
+/* ---------- Estado vazio ---------- */
+
+.stage-checklist-empty {
+  margin: 0;
+  padding: 20px 4px;
+  color: var(--text-dim);
+  font-size: 0.88rem;
+}
+
+
+/* ---------- Rodapé ---------- */
+
+.checklist-modal-footer {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-top: 1px;
-  border: 1px solid rgba(241, 234, 227, 0.18);
-  border-radius: 6px;
-  color: var(--success);
-  font-size: 0.72rem;
-  font-weight: 700;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: 0 0 auto;
+  padding: 16px 26px 20px;
+  border-top: 1px solid rgba(241, 234, 227, 0.08);
 }
 
-.checklist-modal-item.done {
-  color: var(--text);
-}
 
-.checklist-modal-item.done .checklist-modal-check {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-/* ---------- Modal de entregas — mobile ---------- */
+/* ---------- Mobile ---------- */
 
 @media (max-width: 640px) {
+
   .checklist-modal-overlay {
     align-items: stretch;
     padding: 12px;
   }
 
   .checklist-modal {
+    width: 100%;
     max-height: none;
     height: 100%;
     border-radius: 16px;
@@ -2592,12 +2642,20 @@ body.client-password-mode .modal--narrow {
     padding: 20px 18px 16px;
   }
 
-  .checklist-modal-list {
-    grid-template-columns: 1fr;
-    gap: 2px;
-    padding: 16px 18px 22px;
+  .checklist-modal-body {
+    padding: 16px 18px 20px;
+  }
+
+  .checklist-modal-footer {
+    flex-wrap: wrap;
+    padding: 14px 18px 18px;
+  }
+
+  .checklist-modal-footer button {
+    min-height: 40px;
   }
 }
+
 /* ---------- Resumo das entregas da etapa ---------- */
 
 .stage-checklist-client {

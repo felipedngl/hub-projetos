@@ -2684,6 +2684,35 @@ if (btnOpenStageChecklist) {
         });
       });
 
+modal
+  .querySelectorAll("[data-modal-checklist-status]")
+  .forEach((select) => {
+    select.addEventListener("change", async () => {
+      const index = Number(
+        select.dataset.modalChecklistStatus
+      );
+
+      if (!s.checklist || !s.checklist[index]) {
+        return;
+      }
+
+      s.checklist[index].status = select.value;
+
+      // Mantém compatibilidade com o sistema antigo
+      s.checklist[index].done = select.value === "concluida";
+
+      s.approved = false;
+      s.approvedAt = "";
+      s.checklistUpdated = true;
+
+      s.progress = getStageProgress(s);
+
+      await saveProjects([project]);
+
+      renderStage();
+    });
+  });
+	  
     const btnAddChecklistItemModal =
       modal.querySelector("#btnAddChecklistItemModal");
 

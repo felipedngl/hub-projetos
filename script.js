@@ -3160,20 +3160,27 @@ if (clientMode && project?.id && stageKey) {
             </button>
           </div>
 
-          <div class="checklist-modal-list">
-            ${checklist
-              .map(
-                (item) => `
-                  <div class="checklist-modal-item ${item.done ? "done" : ""}">
-                    <span class="checklist-modal-check">
-                      ${item.done ? "✓" : ""}
-                    </span>
-                    <span>${typeof escapeHTML === "function" ? escapeHTML(item.label) : item.label}</span>
-                  </div>
-                `
-              )
-              .join("")}
-          </div>
+			<div class="checklist-modal-list">
+			  ${checklist
+			    .map(
+			      (item, index) => `
+			        <div class="checklist-modal-item ${item.done ? "done" : ""}">
+			          <span class="checklist-modal-number">
+			            ${index + 1}.
+			          </span>
+			
+			          <span class="checklist-modal-check">
+			            ${item.done ? "✓" : ""}
+			          </span>
+			
+			          <span class="checklist-modal-item-text">
+			            ${typeof escapeHTML === "function" ? escapeHTML(item.label) : item.label}
+			          </span>
+			        </div>
+			      `
+			    )
+			    .join("")}
+			</div>
         </div>
       `;
 

@@ -4343,7 +4343,6 @@ function renderContracts(project) {
         }
       });
     });
-  }
 
   // ==========================================================
   // REMOVER CONTRATO

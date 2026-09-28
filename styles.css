@@ -5974,9 +5974,9 @@ opacity: 1 !important;
   margin: 18px 0 8px;
   padding: 0 12px;
   color: var(--text-dim);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -5996,4 +5996,8 @@ opacity: 1 !important;
 
 .stage-nav .stage-number {
   flex: 0 0 auto;
+}
+
+.stage-nav .stage-progress {
+  font-style: italic;
 }

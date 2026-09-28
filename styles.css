@@ -6001,3 +6001,8 @@ opacity: 1 !important;
 .stage-nav .stage-progress {
   font-style: italic;
 }
+
+/* Tema: botão disponível também no modo cliente */
+body.client-mode #btnThemeToggle {
+  display: inline-flex !important;
+}

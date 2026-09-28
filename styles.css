@@ -6006,3 +6006,8 @@ opacity: 1 !important;
 body.client-mode #btnThemeToggle {
   display: inline-flex !important;
 }
+
+/* Tema disponível no cliente compartilhado */
+body.shared-client #btnThemeToggle {
+  display: inline-flex !important;
+}

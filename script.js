@@ -1908,10 +1908,14 @@ const dotClass = unreadMsg
 		  <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${
 			unreadMsg ? "has-unread-message" : ""
 		  }" data-stage="${stage.id}">
-		
+					
 			<span class="nav-label">
 			  <span class="stage-number">${index + 1}</span>
 			  ${stage.id === "briefing" ? "Briefing" : stage.label}
+			
+			  <span class="stage-progress">
+			    ${checklistDone}/${checklistTotal} - ${checklistStatus}
+			  </span>
 			</span>
 		
 			<span

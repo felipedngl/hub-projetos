@@ -35,13 +35,30 @@ body {
 
 /* MODO CLARO (Quando o modo claro for ativado) */
 body.theme-light {
+  --bg: #F1EAE3;
   --bg-dark: #F1EAE3;
-  --surface: #FFFFFF;
+
+  --surface: #F1EAE3;
   --surface-2: #EAE3DC;
+
+  --primary: #3B4B52;
+  --primary-dark: #4A5B62;
+  --primary-darker: #5A6B72;
+
   --text: #3B4B52;
   --text-dim: #5F737C;
+  --text-dark: #3B4B52;
+
   --border: rgba(59, 75, 82, 0.12);
   --border-strong: rgba(59, 75, 82, 0.25);
+
+  --accent: #E86A44;
+  --accent-soft: rgba(232, 106, 68, 0.12);
+
+  --success: #5F9F78;
+  --warning: #C78F32;
+  --danger: #C94F4F;
+  --danger-soft: rgba(201, 79, 79, 0.10);
 }
 
 /* Textos do Diário de Obra acompanham o tema */

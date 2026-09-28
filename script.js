@@ -1843,13 +1843,13 @@ if (projCover) {
           const done = typeof stageHasContent === "function" ? stageHasContent(p, stage) : false;
           const stageData = p.stages?.[stage.id];
 
-			const checklist = Array.isArray(stageData?.checklist)
+			const stageChecklist = Array.isArray(stageData?.checklist)
 			  ? stageData.checklist
 			  : [];
 			
-			const checklistTotal = checklist.length;
-			
-			const checklistDone = checklist.filter(
+			const checklistTotal = stageChecklist.length;
+
+			const checklistDone = stageChecklist.filter(
 			  item => item?.done === true
 			).length;
 			

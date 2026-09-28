@@ -76,19 +76,62 @@ function rememberClientAccess(projectId) {
   );
 }
 
-  /* ---------------- Configuração de etapas ---------------- */
-  const STAGES = [
-    { id: "briefing", label: "Briefing & Alinhamento", hint: "Coleta de preferências, necessidades, estilo de vida e orçamento." },
-    { id: "levantamento", label: "Levantamento Técnico", hint: "Medição precisa do espaço, registro fotográfico e análise estrutural." },
-    { id: "estudo", label: "Estudo Preliminar", hint: "Primeiras propostas conceituais e distribuição de ambientes." },
-    { id: "anteprojeto", label: "Anteprojeto", hint: "Detalhamento de acabamentos, iluminação, revestimentos e imagens 3D." },
-    { id: "executivo", label: "Projeto Executivo", hint: "Detalhamento técnico para execução, compatibilização e orçamento." },
-    { id: "pos", label: "Pós-projeto", hint: "Acompanhamento de obra, decoração, as-built e entrega final." },
-    { id: "memorial", label: "Memorial Descritivo", hint: "Lista de compras com especificações de produtos, fornecedores e links diretos.", special: "memorial" },
-    { id: "cronograma", label: "Cronograma de Obra", hint: "Planejamento das fases de execução, prazos de fornecedores e datas de entrega.", special: "schedule" },
-	{ id: "contratos", label: "Contratos & Documentos", hint: "Registre e visualize contratos, aditivos, documentos e links.", special: "contracts" },
-    { id: "site_log", label: "Diário de Obra", hint: "Acompanhe relatórios semanais, fotos do canteiro e pendências do cliente.", special: "site_log" },
-  ];
+const STAGES = [
+  {
+    id: "briefing",
+    label: "Briefing & Alinhamento",
+    hint: "Entendimento das suas necessidades, preferências, rotina, estilo e orçamento."
+  },
+  {
+    id: "levantamento",
+    label: "Levantamento Técnico",
+    hint: "Medição do espaço, registro fotográfico e levantamento das condições existentes."
+  },
+  {
+    id: "estudo",
+    label: "Estudo Preliminar",
+    hint: "Desenvolvimento das primeiras propostas de layout, conceito e distribuição dos ambientes."
+  },
+  {
+    id: "anteprojeto",
+    label: "Anteprojeto",
+    hint: "Definição de materiais, acabamentos, iluminação, mobiliário e imagens 3D."
+  },
+  {
+    id: "executivo",
+    label: "Projeto Executivo",
+    hint: "Detalhamento técnico necessário para execução, compatibilização e orçamento da obra."
+  },
+  {
+    id: "pos",
+    label: "Entrega e Finalização",
+    hint: "Organização dos materiais finais do projeto, ajustes de encerramento e preparação para a execução."
+  },
+  {
+    id: "memorial",
+    label: "Memorial Descritivo",
+    hint: "Especificação dos produtos, materiais e fornecedores, com quantidades, valores e links para compra.",
+    special: "memorial"
+  },
+  {
+    id: "cronograma",
+    label: "Cronograma de Obra",
+    hint: "Organização das etapas da obra, prazos, fornecedores e datas previstas para execução e entrega.",
+    special: "schedule"
+  },
+  {
+    id: "contratos",
+    label: "Contratos & Documentos",
+    hint: "Centralização de contratos, aditivos, documentos importantes e arquivos relacionados ao projeto.",
+    special: "contracts"
+  },
+  {
+    id: "site_log",
+    label: "Diário de Obra",
+    hint: "Registro do andamento da obra, fotos, relatórios, ocorrências e pendências.",
+    special: "site_log"
+  }
+];
 
 const MEMORIAL_TABLES = {
     revestimentos: {

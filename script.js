@@ -1954,32 +1954,42 @@ const dotClass = unreadMsg
             ? "done"
             : "";
 			
-          return `
-		  <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${
-			unreadMsg ? "has-unread-message" : ""
-		  }" data-stage="${stage.id}">
-					
-			<span class="nav-label">
-			  <span class="stage-number">${index + 1}</span>
-			  ${stage.id === "briefing" ? "Briefing" : stage.label}
-			
-			${
-			  showChecklistProgress
-				? `
-				  <span class="stage-progress">
-					${checklistDone}/${checklistTotal} - ${checklistStatus}
-				  </span>
-				`
-				: ""
-			}
-			</span>
-		
-			<span
-			  class="nav-dot ${dotClass}"
-			  title="Etapa"
-			></span>
-		
-		  </button>`;
+return `
+  ${
+    stage.id === "memorial"
+      ? `
+        <div class="stage-nav-section-title">
+          Gestão e Acompanhamento
+        </div>
+      `
+      : ""
+  }
+
+  <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${
+    unreadMsg ? "has-unread-message" : ""
+  }" data-stage="${stage.id}">
+
+    <span class="nav-label">
+      <span class="stage-number">${index + 1}</span>
+      ${stage.id === "briefing" ? "Briefing" : stage.label}
+
+      ${
+        showChecklistProgress
+          ? `
+            <span class="stage-progress">
+              ${checklistDone}/${checklistTotal} - ${checklistStatus}
+            </span>
+          `
+          : ""
+      }
+    </span>
+
+    <span
+      class="nav-dot ${dotClass}"
+      title="Etapa"
+    ></span>
+
+  </button>`;
         })
         .join("");
 

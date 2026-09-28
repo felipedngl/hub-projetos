@@ -1879,9 +1879,9 @@ if (projCover) {
   const stageNav = $("#stageNav");
 
   if (stageNav) {
-    stageNav.innerHTML =
-      '<div class="stage-nav-title">Etapas do projeto</div>' +
-      navStages
+		stageNav.innerHTML =
+		  '<div class="stage-nav-title">Etapas do projeto</div>' +
+		  navStages
         .map((stage, index) => {
           const done = typeof stageHasContent === "function" ? stageHasContent(p, stage) : false;
           const stageData = p.stages?.[stage.id];

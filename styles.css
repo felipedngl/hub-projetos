@@ -5989,3 +5989,11 @@ opacity: 1 !important;
   padding-top: 16px;
   border-top: 1px solid rgba(241, 234, 227, 0.08);
 }
+
+.stage-nav .stage-link {
+  position: relative;
+}
+
+.stage-nav .stage-number {
+  flex: 0 0 auto;
+}

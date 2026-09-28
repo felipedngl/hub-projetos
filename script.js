@@ -1920,9 +1920,15 @@ const dotClass = unreadMsg
 			  <span class="stage-number">${index + 1}</span>
 			  ${stage.id === "briefing" ? "Briefing" : stage.label}
 			
-			  <span class="stage-progress">
-			    ${checklistDone}/${checklistTotal} - ${checklistStatus}
-			  </span>
+			${
+			  showChecklistProgress
+				? `
+				  <span class="stage-progress">
+					${checklistDone}/${checklistTotal} - ${checklistStatus}
+				  </span>
+				`
+				: ""
+			}
 			</span>
 		
 			<span

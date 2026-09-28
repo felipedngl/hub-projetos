@@ -3894,9 +3894,9 @@ body.hub-is-locked .btn-back {
 
 /* Estilo dos botões */
 .view-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
   padding: 6px 14px;
   border-radius: 8px;
   cursor: pointer;
@@ -3904,9 +3904,11 @@ body.hub-is-locked .btn-back {
   transition: all 0.2s;
 }
 
-.view-btn.active, .view-btn:hover {
-  background: #e56a44;
-  border-color: #e56a44;
+.view-btn.active,
+.view-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 /* --- MELHORIAS DO MEMORIAL DESCRITIVO --- */

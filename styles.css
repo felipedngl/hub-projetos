@@ -3814,7 +3814,7 @@ body.theme-light .brand-mark .logo-light {
 
 /* Esconde a barra de ferramentas (busca e filtros) e os botões do topo enquanto bloqueado */
 body.hub-is-locked .toolbar,
-body.hub-is-locked .header-actions button:not(#btnDesignerAccess),
+body.hub-is-locked .header-actions button:not(#btnDesignerAccess):not(#btnThemeToggle),
 body.hub-is-locked .header-actions .btn-primary,
 body.hub-is-locked .grid,
 body.hub-is-locked .stats-bar, 
@@ -6000,16 +6000,6 @@ opacity: 1 !important;
 
 .stage-nav .stage-progress {
   font-style: italic;
-}
-
-/* Tema: botão disponível também no modo cliente */
-body.client-mode #btnThemeToggle {
-  display: inline-flex !important;
-}
-
-/* Tema disponível no cliente compartilhado */
-body.shared-client #btnThemeToggle {
-  display: inline-flex !important;
 }
 
 #btnThemeToggle {

@@ -6011,3 +6011,11 @@ body.client-mode #btnThemeToggle {
 body.shared-client #btnThemeToggle {
   display: inline-flex !important;
 }
+
+#btnThemeToggle {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 999999 !important;
+}

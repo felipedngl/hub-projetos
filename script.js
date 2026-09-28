@@ -1860,6 +1860,13 @@ if (projCover) {
 			} else if (checklistDone > 0) {
 			  checklistStatus = "Em andamento";
 			}
+
+			const showChecklistProgress = ![
+			  "memorial",
+			  "cronograma",
+			  "contratos",
+			  "site_log"
+			].includes(stage.id);
 			
           // Checa não lidos em mensagens
           const unreadMsg = clientMode

@@ -6028,3 +6028,42 @@ opacity: 1 !important;
   position: relative !important;
   z-index: 999999 !important;
 }
+
+
+/* ===== AJUSTES DO TEMA CLARO — PAINÉIS E AÇÕES ===== */
+
+body.theme-light {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* Painéis e cartões das etapas */
+body.theme-light .stage-card,
+body.theme-light .panel,
+body.theme-light .card,
+body.theme-light .section,
+body.theme-light .content-card,
+body.theme-light .memorial-section,
+body.theme-light .schedule-section {
+  background-color: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Botões de visualizar e baixar */
+body.theme-light button,
+body.theme-light .btn-view,
+body.theme-light .btn-download,
+body.theme-light .view-btn,
+body.theme-light .download-btn {
+  color: var(--text) !important;
+}
+
+/* Textos dentro dos painéis */
+body.theme-light .stage-card p,
+body.theme-light .stage-card span,
+body.theme-light .stage-card strong,
+body.theme-light .memorial-section p,
+body.theme-light .schedule-section p {
+  color: var(--text) !important;
+}

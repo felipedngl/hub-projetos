@@ -354,11 +354,6 @@ body:not(.designer-unlocked) #btnNewProject {
   display: none !important;
 }
 
-/* Navegação restrita (sem desbloqueio): mantém o botão voltar visível */
-body.client-mode.project-restricted .btn-back {
-  display: inline-flex !important;
-}
-
 .modal--narrow {
   max-width: 440px;
 }

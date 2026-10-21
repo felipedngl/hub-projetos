@@ -1675,15 +1675,33 @@ function cardHTML(p, index) {
               : ""
           }
 
-          <div class="card-action-row">
-            <span class="status-tag ${statusClass}">
-              ${statusLabel}
-            </span>
+<div class="card-action-row">
+  <span class="status-tag ${statusClass}">
+    ${statusLabel}
+  </span>
 
-            <span class="btn-detail">
-              Ver Detalhes
-            </span>
-          </div>
+  <span class="btn-detail">
+    Ver Detalhes
+  </span>
+</div>
+
+${
+  showOwnerOpenButton
+    ? `
+      <div class="card-owner-action">
+        <button
+          type="button"
+          class="btn-owner-open-project"
+          data-project-id="${escapeHTML(String(p.id))}"
+        >
+          Abrir projeto
+        </button>
+      </div>
+    `
+    : ""
+}
+
+</div>
 
         </div>
 

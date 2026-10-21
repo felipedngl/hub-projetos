@@ -7953,9 +7953,14 @@ async function init() {
   initViewModeSwitcher();
   initSearchToggle();
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const projectParam =
-    urlParams.get("project") || urlParams.get("p");
+
+	const urlParams = new URLSearchParams(window.location.search);
+	
+	const projectParam =
+	  urlParams.get("projeto") ||
+	  urlParams.get("project") ||
+	  urlParams.get("p");
+
 
   // ============================================================
   // ACESSO POR LINK DE CLIENTE
@@ -7966,17 +7971,36 @@ async function init() {
     document.body.classList.add("client-view");
 
     try {
-      const accessSnapshot = await db
-        .collection("clientAccess")
-        .where("slug", "==", projectParam)
-        .limit(1)
-        .get();
 
-      if (accessSnapshot.empty) {
-        showToast("Projeto não encontrado.", true);
-        showDashboard();
-        return;
-      }
+let accessDoc = null;
+
+// Primeiro, tenta localizar pelo slug do projeto
+const accessSnapshot = await db
+  .collection("clientAccess")
+  .where("slug", "==", projectParam)
+  .limit(1)
+  .get();
+
+if (!accessSnapshot.empty) {
+  accessDoc = accessSnapshot.docs[0];
+} else {
+  // Se não encontrar pelo slug, tenta pelo ID do documento
+  const directAccessSnapshot = await db
+    .collection("clientAccess")
+    .doc(projectParam)
+    .get();
+
+  if (directAccessSnapshot.exists) {
+    accessDoc = directAccessSnapshot;
+  }
+}
+
+// Se não encontrou de nenhuma das duas formas, encerra
+if (!accessDoc) {
+  showToast("Projeto não encontrado.", true);
+  showDashboard();
+  return;
+}
 
       const accessDoc = accessSnapshot.docs[0];
       const accessData = accessDoc.data();
@@ -8339,24 +8363,28 @@ function openShareModal() {
   closeShareModal();
 
 
-	const projectSlug =
-	  p.slug ||
-	  (typeof slugify === "function" ? slugify(p.title) : p.id) ||
-	  p.id;
-	
-	const shareParams = new URLSearchParams();
-	shareParams.set("p", projectSlug);
-	
-	const validStage = STAGES.some(
-	  (stage) => stage.id === currentStage
-	);
-	
-	if (validStage) {
-	  shareParams.set("pagina", currentStage);
-	}
-	
-	const shareUrl =
-	  `${window.location.origin}${window.location.pathname}?${shareParams.toString()}`;
+const projectSlug =
+  p.slug ||
+  (typeof slugify === "function" ? slugify(p.title) : p.id) ||
+  p.id;
+
+const shareParams = new URLSearchParams();
+
+// Identifica o projeto pelo slug
+shareParams.set("projeto", projectSlug);
+
+// Inclui a etapa atual no link
+const validStage = STAGES.some(
+  (stage) => stage.id === currentStage
+);
+
+if (validStage) {
+  shareParams.set("pagina", currentStage);
+}
+
+const shareUrl =
+  `${window.location.origin}${window.location.pathname}?${shareParams.toString()}`;
+
 
   const clientPwd = p.clientPassword || p.client_password || "";
 
@@ -8515,6 +8543,7 @@ db.collection("clientAccess")
     }
   };
 
+	
   function mostrarCopiadoSucesso(btn) {
     btn.textContent = "Copiado!";
     btn.style.background = "#2b6cb0";

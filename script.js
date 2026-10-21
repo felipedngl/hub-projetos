@@ -2144,10 +2144,14 @@ function openProject(id) {
   currentStage = getStageFromURL() || "briefing";
   $("#view-dashboard").hidden = true;
   $("#view-project").hidden = false;
+
   const btnBack = $("#btnBack");
+
   if (btnBack) {
     btnBack.hidden = clientMode || !designerUnlocked;
+    btnBack.style.display = btnBack.hidden ? "none" : "inline-flex";
   }
+	
   if (clientMode) document.title = `${id ? currentProjectTitle() : "Projeto"} — HUB de Projetos`;
   updateClientButton();
   applyAccessUI();

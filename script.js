@@ -2031,14 +2031,25 @@ return `
 
 $$("#stageNav .stage-link").forEach((btn) => {
   btn.addEventListener("click", () => {
-    currentStage = btn.dataset.stage;
 
-    // Atualiza o link para identificar o projeto e a etapa atual.
-    const url = new URL(window.location.href);
-    url.searchParams.set("projeto", String(currentProjectId));
-    url.searchParams.set("pagina", currentStage);
+currentStage = btn.dataset.stage;
 
-    window.history.replaceState({}, "", url.toString());
+if (designerUnlocked && !clientMode) {
+  const project = currentProject();
+  const projectSlug =
+    project?.slug ||
+    (typeof slugify === "function"
+      ? slugify(project?.title || String(currentProjectId))
+      : String(currentProjectId));
+
+  const newPath = `/${encodeURIComponent(projectSlug)}/${currentStage}`;
+  window.history.replaceState({}, "", newPath);
+} else {
+  const url = new URL(window.location.href);
+  url.searchParams.set("projeto", String(currentProjectId));
+  url.searchParams.set("pagina", currentStage);
+  window.history.replaceState({}, "", url.toString());
+}
 
         $$("#stageNav .stage-link").forEach((item) => {
           item.classList.toggle("active", item === btn);
@@ -2143,104 +2154,185 @@ $$("#stageNav .stage-link").forEach((btn) => {
 	
 function getStageFromURL() {
   const params = new URLSearchParams(window.location.search);
-  const stageId = params.get("pagina");
 
-  if (!stageId) return null;
+  // Mantém compatibilidade com os links antigos
+  const queryStage = params.get("pagina");
+
+  // Novo formato: /nome-do-projeto/briefing
+  const pathParts = window.location.pathname
+    .split("/")
+    .filter(Boolean);
+
+  const pathStage = pathParts[1] || null;
+  const stageId = pathStage || queryStage;
 
   const stage = STAGES.find((item) => item.id === stageId);
 
   return stage ? stage.id : null;
 }
 
+function ensurePanelButton() {
+  let button = document.getElementById("btnBack");
+
+  if (button) return button;
+
+  const header = document.querySelector(".header-inner");
+
+  if (!header) {
+    console.error("Não encontrei .header-inner para inserir o botão Painel.");
+    return null;
+  }
+
+  button = document.createElement("button");
+  button.id = "btnBack";
+  button.type = "button";
+  button.className = "btn-back";
+  button.textContent = "← Painel";
+  button.hidden = true;
+
+  button.addEventListener("click", () => {
+    if (clientMode || !designerUnlocked) return;
+
+    window.history.replaceState({}, "", "/");
+    showDashboard();
+  });
+
+  header.prepend(button);
+
+  return button;
+}
 	
+
+function ensurePanelButton() {
+  let button = document.getElementById("btnBack");
+
+  if (button) return button;
+
+  const header = document.querySelector(".header-inner");
+
+  if (!header) {
+    console.error(
+      "Não encontrei .header-inner para inserir o botão Painel."
+    );
+    return null;
+  }
+
+  button = document.createElement("button");
+  button.id = "btnBack";
+  button.type = "button";
+  button.className = "btn-back";
+  button.textContent = "← Painel";
+  button.hidden = true;
+
+  button.addEventListener("click", () => {
+    if (clientMode || !designerUnlocked) return;
+
+    window.history.replaceState({}, "", "/");
+    showDashboard();
+  });
+
+  header.prepend(button);
+
+  return button;
+}
+
 function openProject(id, fromDashboard = false) {
   currentProjectId = id;
 
   if (clientMode) {
-  const user = getFirebaseUser();
+    const user = getFirebaseUser();
 
-  if (!user) {
-    console.error("[AUTH] Cliente sem usuário autenticado.");
-    showDashboard();
-    return;
+    if (!user) {
+      console.error("[AUTH] Cliente sem usuário autenticado.");
+      showDashboard();
+      return;
+    }
+
+    const project = projects.find((p) => p.id === id);
+
+    if (!project || project.clientUid !== user.uid) {
+      console.error(
+        "[AUTH] Cliente tentou acessar projeto não autorizado:",
+        id
+      );
+      showDashboard();
+      return;
+    }
   }
 
-  const project = projects.find((p) => p.id === id);
+  listenToCurrentProject(id);
 
-  if (!project || project.clientUid !== user.uid) {
-    console.error("[AUTH] Cliente tentou acessar projeto não autorizado:", id);
-    showDashboard();
-    return;
+  currentStage = fromDashboard
+    ? "briefing"
+    : getStageFromURL() || "briefing";
+
+  // Atualiza a URL da proprietária para /projeto/etapa
+  if (designerUnlocked && !clientMode) {
+    const project = projects.find(
+      (p) => String(p.id) === String(id)
+    );
+
+    const projectSlug =
+      project?.slug ||
+      (typeof slugify === "function"
+        ? slugify(project?.title || String(id))
+        : String(id));
+
+    const newPath =
+      `/${encodeURIComponent(projectSlug)}/${currentStage}`;
+
+    window.history.replaceState({}, "", newPath);
   }
-}
-	
-listenToCurrentProject(id);
 
-currentStage = fromDashboard
-  ? "briefing"
-  : getStageFromURL() || "briefing";
-
-// Atualiza a URL somente para a proprietária
-if (designerUnlocked && !clientMode) {
-  const url = new URL(window.location.href);
-
-  url.searchParams.set("projeto", String(id));
-  url.searchParams.set("pagina", currentStage);
-
-  window.history.replaceState({}, "", url.toString());
-}
-
-// Atualiza a URL somente no acesso da proprietária.
-// Não altera os links compartilhados com os clientes.
-if (!clientMode && designerUnlocked) {
-  const url = new URL(window.location.href);
-  url.searchParams.set("projeto", String(id));
-  url.searchParams.set("pagina", currentStage);
-
-  window.history.replaceState({}, "", url.toString());
-}
   $("#view-dashboard").hidden = true;
   $("#view-project").hidden = false;
 
-const btnBack = $("#btnBack");
+  const btnBack = ensurePanelButton();
 
-if (btnBack) {
-  const showBackButton = designerUnlocked && !clientMode;
+  if (btnBack) {
+    const showBackButton = designerUnlocked && !clientMode;
 
-  btnBack.hidden = !showBackButton;
-  btnBack.style.display = showBackButton ? "" : "none";
-}
-	
-  if (clientMode) document.title = `${id ? currentProjectTitle() : "Projeto"} — HUB de Projetos`;
+    btnBack.hidden = !showBackButton;
+    btnBack.style.display = showBackButton ? "inline-flex" : "none";
+  }
+
+  if (clientMode) {
+    document.title =
+      `${id ? currentProjectTitle() : "Projeto"} — HUB de Projetos`;
+  }
+
   updateClientButton();
   applyAccessUI();
   renderSidebar();
   renderStage();
   window.scrollTo({ top: 0 });
 
-if (clientMode && typeof setupClientNotificationPrompt === "function") {
-  setupClientNotificationPrompt();
+  if (
+    clientMode &&
+    typeof setupClientNotificationPrompt === "function"
+  ) {
+    setupClientNotificationPrompt();
   }
 }
 
-  function currentProjectTitle() {
-    const p = currentProject();
-    return p ? p.title : "Projeto";
-  }
+function currentProjectTitle() {
+  const p = currentProject();
+  return p ? p.title : "Projeto";
+}
 
- function showDashboard() {
+function showDashboard() {
   if (!designerUnlocked && !clientMode) {
     showHubLocked();
     return;
   }
 
-  // Limpa a trava visual da tela de cliente para reexibir os cards e a busca
   document.body.classList.remove("client-view");
 
   if (typeof unsubscribeProjectListener === "function") {
     unsubscribeProjectListener();
     unsubscribeProjectListener = null;
   }
+
   projectListenerSnapshot = null;
   currentProjectId = null;
 
@@ -2250,18 +2342,29 @@ if (clientMode && typeof setupClientNotificationPrompt === "function") {
   const viewDashboard = $("#view-dashboard");
 
   if (viewProject) viewProject.hidden = true;
+
   if (viewDashboard) {
     viewDashboard.hidden = false;
     viewDashboard.style.display = "block";
   }
 
-  const btnBack = $("#btnBack");
-  if (btnBack) btnBack.hidden = true;
+  const btnBack = document.getElementById("btnBack");
+
+  if (btnBack) {
+    btnBack.hidden = true;
+    btnBack.style.display = "none";
+  }
+
+  // Limpa a URL ao voltar ao painel da proprietária
+  if (designerUnlocked && !clientMode) {
+    window.history.replaceState({}, "", "/");
+  }
 
   updateClientButton();
   applyAccessUI();
   renderDashboard();
 }
+
 /* ---------- Modo Cliente (visualização) ---------- */
   function setClientMode(active) {
     clientMode = active;
@@ -8024,19 +8127,28 @@ async function init() {
   initSearchToggle();
 
 
-	const urlParams = new URLSearchParams(window.location.search);
-	
-	const projectParam =
-	  urlParams.get("projeto") ||
-	  urlParams.get("project") ||
-	  urlParams.get("p");
+const urlParams = new URLSearchParams(window.location.search);
 
+// Links antigos e compartilhados com clientes
+const queryProjectParam =
+  urlParams.get("projeto") ||
+  urlParams.get("project") ||
+  urlParams.get("p");
+
+// Novo formato: /nome-do-projeto/briefing
+const pathParts = window.location.pathname
+  .split("/")
+  .filter(Boolean);
+
+const pathProjectParam = pathParts[0] || null;
+
+const projectParam = queryProjectParam || pathProjectParam;
 
   // ============================================================
   // ACESSO POR LINK DE CLIENTE
   // ============================================================
 
-  if (projectParam && !designerUnlocked) {
+  if (queryProjectParam && !designerUnlocked) {
     clientMode = true;
     document.body.classList.add("client-view");
 

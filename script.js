@@ -7798,10 +7798,14 @@ async function promptClientPassword(project) {
 function bindEvents() {
   setupNewProjectModal();
 
-  const btnBack = $("#btnBack");
-  if (btnBack) {
-  $("#btnBack")?.addEventListener("click", showDashboard);  
-  }
+	const btnBack = $("#btnBack");
+	
+	if (btnBack) {
+	  btnBack.addEventListener("click", () => {
+	    if (clientMode || !designerUnlocked) return;
+	    showDashboard();
+	  });
+	}
 	  const btnThemeToggle = $("#btnThemeToggle");
 
   if (btnThemeToggle) {

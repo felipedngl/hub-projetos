@@ -1993,9 +1993,17 @@ return `
         })
         .join("");
 
-    $$("#stageNav .stage-link").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        currentStage = btn.dataset.stage;
+
+$$("#stageNav .stage-link").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    currentStage = btn.dataset.stage;
+
+    // Atualiza o link para identificar o projeto e a etapa atual.
+    const url = new URL(window.location.href);
+    url.searchParams.set("projeto", String(currentProjectId));
+    url.searchParams.set("pagina", currentStage);
+
+    window.history.replaceState({}, "", url.toString());
 
         $$("#stageNav .stage-link").forEach((item) => {
           item.classList.toggle("active", item === btn);

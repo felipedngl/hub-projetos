@@ -2097,6 +2097,17 @@ return `
     });
   }
 }
+	
+function getStageFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const stageId = params.get("pagina");
+
+  if (!stageId) return null;
+
+  const stage = STAGES.find((item) => item.id === stageId);
+
+  return stage ? stage.id : null;
+}
 
 	
 function openProject(id) {

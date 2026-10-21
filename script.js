@@ -2145,12 +2145,14 @@ function openProject(id) {
   $("#view-dashboard").hidden = true;
   $("#view-project").hidden = false;
 
-  const btnBack = $("#btnBack");
+const btnBack = $("#btnBack");
 
-  if (btnBack) {
-    btnBack.hidden = clientMode || !designerUnlocked;
-    btnBack.style.display = btnBack.hidden ? "none" : "inline-flex";
-  }
+if (btnBack) {
+  const showBackButton = designerUnlocked && !clientMode;
+
+  btnBack.hidden = !showBackButton;
+  btnBack.style.display = showBackButton ? "" : "none";
+}
 	
   if (clientMode) document.title = `${id ? currentProjectTitle() : "Projeto"} — HUB de Projetos`;
   updateClientButton();

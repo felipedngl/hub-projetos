@@ -1755,6 +1755,22 @@ function renderDashboard() {
       : `<strong>${filtered.length}</strong> de <strong>${projects.length}</strong> projetos · <strong>${formatArea(filteredM2)} m²</strong>`;
   }
 
+// Botão exclusivo da proprietária
+$$(".btn-owner-open-project").forEach((button) => {
+  button.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!designerUnlocked || clientMode) return;
+
+    const projectId = button.dataset.projectId;
+
+    if (projectId) {
+      openProject(projectId, true);
+    }
+  });
+});
+	
   // --- Atribui o evento de clique aos cards ---
   $$(".project-card, .card").forEach((card) => {
     card.style.cursor = "pointer"; // Garante a mãozinha ao passar o mouse
@@ -1765,7 +1781,7 @@ function renderDashboard() {
       const projectId = card.dataset.projectId || card.dataset.id || card.getAttribute("data-id");
       
       if (projectId) {
-        openProject(projectId);
+        openProject(projectId, true);
       } else {
         console.error("ID não encontrado no card:", card);
       }
@@ -2119,7 +2135,7 @@ function getStageFromURL() {
 }
 
 	
-function openProject(id) {
+function openProject(id, fromDashboard = false) {
   currentProjectId = id;
 
   if (clientMode) {
@@ -2142,7 +2158,19 @@ function openProject(id) {
 	
 listenToCurrentProject(id);
 
-currentStage = getStageFromURL() || "briefing";
+currentStage = fromDashboard
+  ? "briefing"
+  : getStageFromURL() || "briefing";
+
+// Atualiza a URL somente para a proprietária
+if (designerUnlocked && !clientMode) {
+  const url = new URL(window.location.href);
+
+  url.searchParams.set("projeto", String(id));
+  url.searchParams.set("pagina", currentStage);
+
+  window.history.replaceState({}, "", url.toString());
+}
 
 // Atualiza a URL somente no acesso da proprietária.
 // Não altera os links compartilhados com os clientes.

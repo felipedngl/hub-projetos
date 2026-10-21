@@ -2141,7 +2141,7 @@ function openProject(id) {
 	
   listenToCurrentProject(id);
   
-  currentStage = "briefing";
+  currentStage = getStageFromURL() || "briefing";
   $("#view-dashboard").hidden = true;
   $("#view-project").hidden = false;
   $("#btnBack").hidden = clientMode;
@@ -8338,8 +8338,26 @@ function openShareModal() {
 
   closeShareModal();
 
-  const projectSlug = p.slug || (typeof slugify === "function" ? slugify(p.title) : p.id) || p.id;
-  const shareUrl = `${window.location.origin}${window.location.pathname}?p=${encodeURIComponent(projectSlug)}`;
+
+	const projectSlug =
+	  p.slug ||
+	  (typeof slugify === "function" ? slugify(p.title) : p.id) ||
+	  p.id;
+	
+	const shareParams = new URLSearchParams();
+	shareParams.set("p", projectSlug);
+	
+	const validStage = STAGES.some(
+	  (stage) => stage.id === currentStage
+	);
+	
+	if (validStage) {
+	  shareParams.set("pagina", currentStage);
+	}
+	
+	const shareUrl =
+	  `${window.location.origin}${window.location.pathname}?${shareParams.toString()}`;
+
   const clientPwd = p.clientPassword || p.client_password || "";
 
   // 2. Fundo Escuro do Modal

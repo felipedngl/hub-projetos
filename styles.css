@@ -6062,3 +6062,25 @@ body.theme-light .memorial-section p,
 body.theme-light .schedule-section p {
   color: var(--text) !important;
 }
+
+.card-owner-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.btn-owner-open-project {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-owner-open-project:hover {
+  opacity: 0.8;
+}

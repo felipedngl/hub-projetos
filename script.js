@@ -1612,6 +1612,7 @@ function cardHTML(p, index) {
   const statusClass = STATUS_CLASS[p.status] || "";
 
   const unreadMessages = countUnreadClientMessages(p);
+  const showOwnerOpenButton = designerUnlocked && !clientMode;
 
   console.log("Projeto:", p.title, "Mensagens não lidas:", unreadMessages);
 
@@ -2139,9 +2140,19 @@ function openProject(id) {
   }
 }
 	
-  listenToCurrentProject(id);
-  
-  currentStage = getStageFromURL() || "briefing";
+listenToCurrentProject(id);
+
+currentStage = getStageFromURL() || "briefing";
+
+// Atualiza a URL somente no acesso da proprietária.
+// Não altera os links compartilhados com os clientes.
+if (!clientMode && designerUnlocked) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("projeto", String(id));
+  url.searchParams.set("pagina", currentStage);
+
+  window.history.replaceState({}, "", url.toString());
+}
   $("#view-dashboard").hidden = true;
   $("#view-project").hidden = false;
 

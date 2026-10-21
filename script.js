@@ -2179,38 +2179,6 @@ function ensurePanelButton() {
   const header = document.querySelector(".header-inner");
 
   if (!header) {
-    console.error("Não encontrei .header-inner para inserir o botão Painel.");
-    return null;
-  }
-
-  button = document.createElement("button");
-  button.id = "btnBack";
-  button.type = "button";
-  button.className = "btn-back";
-  button.textContent = "← Painel";
-  button.hidden = true;
-
-  button.addEventListener("click", () => {
-    if (clientMode || !designerUnlocked) return;
-
-    window.history.replaceState({}, "", "/");
-    showDashboard();
-  });
-
-  header.prepend(button);
-
-  return button;
-}
-	
-
-function ensurePanelButton() {
-  let button = document.getElementById("btnBack");
-
-  if (button) return button;
-
-  const header = document.querySelector(".header-inner");
-
-  if (!header) {
     console.error(
       "Não encontrei .header-inner para inserir o botão Painel."
     );
@@ -2227,7 +2195,7 @@ function ensurePanelButton() {
   button.addEventListener("click", () => {
     if (clientMode || !designerUnlocked) return;
 
-    window.history.replaceState({}, "", "/");
+    window.history.replaceState({}, "", "/painel");
     showDashboard();
   });
 
@@ -2355,10 +2323,10 @@ function showDashboard() {
     btnBack.style.display = "none";
   }
 
-  // Limpa a URL ao voltar ao painel da proprietária
-  if (designerUnlocked && !clientMode) {
-    window.history.replaceState({}, "", "/");
-  }
+// Define a URL do painel da proprietária
+if (designerUnlocked && !clientMode) {
+  window.history.replaceState({}, "", "/painel");
+}
 
   updateClientButton();
   applyAccessUI();
@@ -8140,7 +8108,12 @@ const pathParts = window.location.pathname
   .split("/")
   .filter(Boolean);
 
-const pathProjectParam = pathParts[0] || null;
+const isDashboardPath = pathParts[0] === "painel";
+
+const pathProjectParam =
+  pathParts[0] && !isDashboardPath
+    ? pathParts[0]
+    : null;
 
 const projectParam = queryProjectParam || pathProjectParam;
 
@@ -8262,11 +8235,16 @@ return;
     } else {
       showDashboard();
     }
+} else {
+  document.body.classList.remove("hub-is-locked");
+  document.body.classList.remove("client-view");
+
+  if (designerUnlocked && !clientMode && isDashboardPath) {
+    showDashboard();
   } else {
-    document.body.classList.remove("hub-is-locked");
-    document.body.classList.remove("client-view");
     showDashboard();
   }
+}
 }
 
 // ============================================================

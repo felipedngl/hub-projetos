@@ -8002,7 +8002,6 @@ if (!accessDoc) {
   return;
 }
 
-      const accessDoc = accessSnapshot.docs[0];
       const accessData = accessDoc.data();
 
       const projectId = accessDoc.id;

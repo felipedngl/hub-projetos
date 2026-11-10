@@ -6084,3 +6084,63 @@ body.theme-light .schedule-section p {
 .btn-owner-open-project:hover {
   opacity: 0.8;
 }
+
+/* ========================================= */
+/* ESTILOS DO FINANCEIRO                     */
+/* ========================================= */
+
+/* Botão do Financeiro no header */
+.btn-financeiro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.btn-financeiro:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.btn-financeiro.active {
+  background: #2a9d8f; /* cor verde do financeiro */
+  color: white;
+  border-color: #2a9d8f;
+}
+
+/* Sub-abas do financeiro */
+.financeiro-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.fin-tab {
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: inherit;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.fin-tab:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.fin-tab.active {
+  opacity: 1;
+  background: rgba(42, 157, 143, 0.2);
+  color: #2a9d8f;
+  font-weight: 600;
+}

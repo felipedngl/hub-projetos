@@ -239,7 +239,7 @@
      6. INICIALIZAÇÃO
      --------------------------------------------------------- */
   function init() {
-    // Botão do header
+    // Botão do header (Financeiro)
     const btnFin = document.getElementById("btnFinanceiro");
     if (btnFin) {
       btnFin.addEventListener("click", () => {
@@ -248,15 +248,21 @@
       });
     }
 
+    // Botão Voltar ao Painel (dentro do financeiro)
+    const btnVoltar = document.getElementById("btnVoltarPainel");
+    if (btnVoltar) {
+      btnVoltar.addEventListener("click", () => {
+        mostrarView("view-dashboard");
+        // Remove o destaque verde do botão Financeiro
+        const b = document.getElementById("btnFinanceiro");
+        if (b) b.classList.remove("active");
+      });
+    }
+
     // Sub-abas
     document.querySelectorAll(".fin-tab").forEach(tab => {
       tab.addEventListener("click", () => ativarSubAba(tab.dataset.tab));
     });
-
-    // Se já existe a view no DOM, inicializa o conteúdo de config
-    if (document.getElementById("view-financeiro")) {
-      // Não renderiza automaticamente — só quando o usuário clicar no botão
-    }
   }
 
   // Aguarda o DOM estar pronto

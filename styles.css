@@ -6227,3 +6227,23 @@ body.theme-light .schedule-section p {
   font-size: 0.9rem;
   font-weight: 500;
 }
+
+/* ========================================= */
+/* FINANCEIRO — Calculadora                  */
+/* ========================================= */
+.fin-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.fin-card h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+  color: #2a9d8f;
+}
+.fin-calc .fin-grid {
+  margin-bottom: 0;
+}

@@ -298,16 +298,16 @@
         lista.push({ id: doc.id, ...doc.data() });
       });
       
-      // Ordena pelo nome (ou campo alternativo) no navegador
+      // Ordena alfabeticamente pelo título
       lista.sort((a, b) => {
-        const nomeA = (a.name || a.title || a.nome || a.projectName || a.titulo || "").toLowerCase();
-        const nomeB = (b.name || b.title || b.nome || b.projectName || b.titulo || "").toLowerCase();
+        const nomeA = String(a.title || a.name || a.nome || "").toLowerCase();
+        const nomeB = String(b.title || b.name || b.nome || "").toLowerCase();
         return nomeA.localeCompare(nomeB);
       });
 
       // Preenche o dropdown
       lista.forEach(p => {
-        const nomeProjeto = p.name || p.title || p.nome || p.projectName || p.titulo || "Sem nome";
+        const nomeProjeto = p.title || p.name || p.nome || "Sem nome";
         const cliente = p.client || p.cliente || "Sem cliente";
         const area = p.area || p.m2 || p.metragem || 0;
         
@@ -318,6 +318,48 @@
       });
     } catch (err) {
       console.warn("Erro ao carregar projetos:", err);
+    }
+  }
+
+  async function importarProjetoSelecionado() {
+    const select = document.getElementById("calcProjetoExistente");
+    const feedback = document.getElementById("calcFeedback");
+    const id = select?.value;
+    if (!id) {
+      if (feedback) { feedback.textContent = "Selecione um projeto primeiro."; feedback.style.color = "#f59e0b"; }
+      return;
+    }
+
+    try {
+      const doc = await db.collection("projects").doc(id).get();
+      if (!doc.exists) return;
+      const p = doc.data();
+
+      // === NOME: procura em title, depois name, depois nome ===
+      const nomeProjeto = p.title || p.name || p.nome || p.projectName || p.titulo || "";
+      const nome = document.getElementById("calcNome");
+      if (nome) nome.value = nomeProjeto;
+      
+      // === METRAGEM ===
+      const metragem = p.area || p.m2 || p.metragem || p.areaTotal || 0;
+      const m2 = document.getElementById("calcM2");
+      if (m2) m2.value = metragem;
+
+      // === TIPO ===
+      const tipo = document.getElementById("calcTipo");
+      if (tipo && p.type) {
+        tipo.value = p.type === "comercial" ? "interiores" : "interiores";
+      }
+
+      if (feedback) {
+        feedback.textContent = `✓ Projeto "${nomeProjeto || "Sem nome"}" importado!`;
+        feedback.style.color = "#4CAF50";
+      }
+
+      calcularOrcamento();
+    } catch (err) {
+      console.error(err);
+      if (feedback) { feedback.textContent = "Erro ao importar."; feedback.style.color = "#ef4444"; }
     }
   }
    

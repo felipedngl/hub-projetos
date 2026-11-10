@@ -290,11 +290,9 @@
     if (!select) return;
 
     try {
-      // Pega todos os projetos sem forçar ordem (mais seguro)
       const snapshot = await db.collection("projects").get();
       select.innerHTML = '<option value="">— Selecione um projeto existente —</option>';
       
-      // Converte para array e ordena localmente
       const lista = [];
       snapshot.forEach(doc => {
         lista.push({ id: doc.id, ...doc.data() });
@@ -302,56 +300,24 @@
       
       // Ordena pelo nome (ou campo alternativo) no navegador
       lista.sort((a, b) => {
-        const nomeA = (a.name || a.title || a.titulo || "").toLowerCase();
-        const nomeB = (b.name || b.title || b.titulo || "").toLowerCase();
+        const nomeA = (a.name || a.title || a.nome || a.projectName || a.titulo || "").toLowerCase();
+        const nomeB = (b.name || b.title || b.nome || b.projectName || b.titulo || "").toLowerCase();
         return nomeA.localeCompare(nomeB);
       });
 
       // Preenche o dropdown
       lista.forEach(p => {
+        const nomeProjeto = p.name || p.title || p.nome || p.projectName || p.titulo || "Sem nome";
+        const cliente = p.client || p.cliente || "Sem cliente";
+        const area = p.area || p.m2 || p.metragem || 0;
+        
         const opt = document.createElement("option");
         opt.value = p.id;
-        opt.textContent = `${p.name || p.title || p.titulo || "Sem nome"} — ${p.client || p.cliente || "Sem cliente"} (${p.area || 0}m²)`;
+        opt.textContent = `${nomeProjeto} — ${cliente} (${area}m²)`;
         select.appendChild(opt);
       });
     } catch (err) {
       console.warn("Erro ao carregar projetos:", err);
-    }
-  }
-
-  async function importarProjetoSelecionado() {
-    const select = document.getElementById("calcProjetoExistente");
-    const feedback = document.getElementById("calcFeedback");
-    const id = select?.value;
-    if (!id) {
-      if (feedback) { feedback.textContent = "Selecione um projeto primeiro."; feedback.style.color = "#f59e0b"; }
-      return;
-    }
-
-    try {
-      const doc = await db.collection("projects").doc(id).get();
-      if (!doc.exists) return;
-      const p = doc.data();
-
-      // Preenche os campos automaticamente
-      const nome = document.getElementById("calcNome");
-      if (nome) nome.value = p.name || "";
-      
-      const m2 = document.getElementById("calcM2");
-      if (m2) m2.value = p.area || 0;
-
-      const tipo = document.getElementById("calcTipo");
-      if (tipo && p.type) tipo.value = p.type === "comercial" ? "interiores" : "interiores";
-
-      if (feedback) {
-        feedback.textContent = `✓ Projeto "${p.name}" importado!`;
-        feedback.style.color = "#4CAF50";
-      }
-
-      calcularOrcamento();
-    } catch (err) {
-      console.error(err);
-      if (feedback) { feedback.textContent = "Erro ao importar."; feedback.style.color = "#ef4444"; }
     }
   }
    

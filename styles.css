@@ -6095,8 +6095,9 @@ body.theme-light .schedule-section p {
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: #2a9d8f; 
+  color: white;        
+  border: 1px solid #2a9d8f; 
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
@@ -6104,12 +6105,13 @@ body.theme-light .schedule-section p {
   transition: all 0.2s ease;
 }
 .btn-financeiro:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: #21867a; 
+  border-color: #21867a;
 }
 .btn-financeiro.active {
-  background: #2a9d8f; /* cor verde do financeiro */
+  background: #1a6b61; 
   color: white;
-  border-color: #2a9d8f;
+  border-color: #1a6b61;
 }
 
 /* Sub-abas do financeiro */

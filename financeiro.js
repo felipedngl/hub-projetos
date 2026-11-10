@@ -45,7 +45,8 @@
       ligarEventosConfig();
       carregarConfigDoFirestore();
     } else if (tabId === "calculadora") {
-      container.innerHTML = `<div class="empty-state"><h3>🧮 Calculadora</h3><p>Em construção (próximo pedaço).</p></div>`;
+      container.innerHTML = renderCalculadoraHTML();
+      ligarEventosCalculadora();
     } else if (tabId === "propostas") {
       container.innerHTML = `<div class="empty-state"><h3>📄 Propostas</h3><p>Em construção.</p></div>`;
     } else if (tabId === "contratos") {
@@ -53,6 +54,210 @@
     }
   }
 
+  /* ---------------------------------------------------------
+     3.5. TELA DA CALCULADORA (HTML)
+     --------------------------------------------------------- */
+  function renderCalculadoraHTML() {
+    return `
+      <div class="fin-calc">
+        <h2>🧮 Calculadora de Projeto</h2>
+        <p class="fin-hint">Preencha os dados abaixo. O preço é calculado em tempo real.</p>
+
+        <!-- BLOCO 1: DADOS BÁSICOS -->
+        <div class="fin-card">
+          <h3>1. Dados do Projeto</h3>
+          <div class="fin-grid">
+            <div class="fin-field">
+              <label>Nome do Projeto</label>
+              <input type="text" id="calcNome" placeholder="ex: Apartamento Silva" />
+            </div>
+            <div class="fin-field">
+              <label>Metragem (m²)</label>
+              <input type="number" id="calcM2" placeholder="ex: 120" min="0" step="0.1" />
+            </div>
+            <div class="fin-field">
+              <label>Tipo de Projeto</label>
+              <select id="calcTipo">
+                <option value="interiores">Design de Interiores</option>
+                <option value="reforma">Reforma</option>
+                <option value="consultoria">Consultoria</option>
+                <option value="3d">Modelagem 3D</option>
+              </select>
+            </div>
+            <div class="fin-field">
+              <label>Complexidade</label>
+              <select id="calcComplexidade">
+                <option value="1.0">Média (x1.0)</option>
+                <option value="1.15">Alta (x1.15)</option>
+                <option value="1.25">Complexa (x1.25)</option>
+                <option value="0.95">Simples (x0.95)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOCO 2: HORAS POR ETAPA -->
+        <div class="fin-card">
+          <h3>2. Horas por Etapa</h3>
+          <p class="fin-hint">Distribua as horas que você vai gastar em cada etapa.</p>
+          <div class="fin-grid">
+            <div class="fin-field">
+              <label>Briefing & Alinhamento (h)</label>
+              <input type="number" id="h_briefing" placeholder="ex: 4" min="0" step="1" value="4" />
+            </div>
+            <div class="fin-field">
+              <label>Levantamento Técnico (h)</label>
+              <input type="number" id="h_levantamento" placeholder="ex: 6" min="0" step="1" value="6" />
+            </div>
+            <div class="fin-field">
+              <label>Estudo Preliminar (h)</label>
+              <input type="number" id="h_estudo" placeholder="ex: 12" min="0" step="1" value="12" />
+            </div>
+            <div class="fin-field">
+              <label>Anteprojeto (h)</label>
+              <input type="number" id="h_anteprojeto" placeholder="ex: 16" min="0" step="1" value="16" />
+            </div>
+            <div class="fin-field">
+              <label>Projeto Executivo (h)</label>
+              <input type="number" id="h_executivo" placeholder="ex: 24" min="0" step="1" value="24" />
+            </div>
+            <div class="fin-field">
+              <label>Entrega e Finalização (h)</label>
+              <input type="number" id="h_entrega" placeholder="ex: 4" min="0" step="1" value="4" />
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOCO 3: CUSTOS EXTRAS -->
+        <div class="fin-card">
+          <h3>3. Custos Extras do Projeto</h3>
+          <p class="fin-hint">Deslocamento, impressão, freelancer, etc. (serão somados ao custo final).</p>
+          <div class="fin-grid">
+            <div class="fin-field">
+              <label>Deslocamento / Visitas (R$)</label>
+              <input type="number" id="c_deslocamento" placeholder="ex: 200" min="0" step="10" value="0" />
+            </div>
+            <div class="fin-field">
+              <label>Plotagem / Impressão (R$)</label>
+              <input type="number" id="c_plotagem" placeholder="ex: 150" min="0" step="10" value="0" />
+            </div>
+            <div class="fin-field">
+              <label>Freelancer / Terceirizado (R$)</label>
+              <input type="number" id="c_freelancer" placeholder="ex: 800" min="0" step="50" value="0" />
+            </div>
+            <div class="fin-field">
+              <label>Outros Custos (R$)</label>
+              <input type="number" id="c_outros" placeholder="ex: 0" min="0" step="10" value="0" />
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOCO 4: RESULTADO -->
+        <div class="fin-resultado">
+          <h3>📊 Resumo do Orçamento</h3>
+          <div class="fin-res-linha"><span>Horas Totais:</span> <strong id="calcHorasTotais">0h</strong></div>
+          <div class="fin-res-linha"><span>Custo da Mão de Obra:</span> <strong id="calcCustoMaoObra">R$ 0,00</strong></div>
+          <div class="fin-res-linha"><span>Custos Extras:</span> <strong id="calcCustosExtras">R$ 0,00</strong></div>
+          <div class="fin-res-linha"><span><b>Custo Total:</b></span> <strong id="calcCustoTotal">R$ 0,00</strong></div>
+          <hr style="border-color: rgba(255,255,255,0.1); margin: 8px 0;">
+          <div class="fin-res-linha"><span>Preço Sugerido (com margem):</span> <strong id="calcPrecoSugerido" style="color: #2a9d8f; font-size: 1.3rem;">R$ 0,00</strong></div>
+          <div class="fin-res-linha"><span>Lucro Real:</span> <strong id="calcLucro" style="color: #4CAF50;">R$ 0,00</strong></div>
+        </div>
+
+        <div class="fin-actions" style="margin-top: 20px;">
+          <button type="button" class="btn-primary" id="btnGerarProposta">📄 Gerar Proposta</button>
+          <span id="calcFeedback" class="fin-feedback"></span>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ---------------------------------------------------------
+     3.6. LÓGICA DA CALCULADORA
+     --------------------------------------------------------- */
+  function ligarEventosCalculadora() {
+    // Ao digitar em qualquer campo, recalcula tudo
+    const campos = [
+      "calcM2", "calcComplexidade", "h_briefing", "h_levantamento", 
+      "h_estudo", "h_anteprojeto", "h_executivo", "h_entrega",
+      "c_deslocamento", "c_plotagem", "c_freelancer", "c_outros"
+    ];
+    
+    campos.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("input", calcularOrcamento);
+    });
+    const tipo = document.getElementById("calcTipo");
+    if (tipo) tipo.addEventListener("change", calcularOrcamento);
+
+    // Botão "Gerar Proposta" (por enquanto, só um alerta)
+    const btnGerar = document.getElementById("btnGerarProposta");
+    if (btnGerar) {
+      btnGerar.addEventListener("click", () => {
+        const feedback = document.getElementById("calcFeedback");
+        feedback.textContent = "⚠️ A geração de proposta será implementada no próximo passo!";
+        feedback.style.color = "#f59e0b";
+      });
+    }
+
+    // Calcula ao abrir a tela
+    calcularOrcamento();
+  }
+
+  function calcularOrcamento() {
+    // 1. Pega o custo/hora da configuração
+    let custoHora = 73.40; // valor de fallback
+    let margemPerc = 20;
+    if (configAtual) {
+      const r = calcularCustoHora(configAtual);
+      custoHora = r.custoHora;
+      margemPerc = Number(configAtual.margem) || 20;
+    } else {
+      // Tenta carregar do Firestore se não estiver em memória
+      db.collection("config").doc("financeiro").get().then(doc => {
+        if (doc.exists) {
+          configAtual = doc.data();
+          calcularOrcamento(); // recalcula com os dados reais
+        }
+      });
+    }
+
+    // 2. Horas por etapa
+    const hBriefing = Number(document.getElementById("h_briefing")?.value) || 0;
+    const hLevantamento = Number(document.getElementById("h_levantamento")?.value) || 0;
+    const hEstudo = Number(document.getElementById("h_estudo")?.value) || 0;
+    const hAnteprojeto = Number(document.getElementById("h_anteprojeto")?.value) || 0;
+    const hExecutivo = Number(document.getElementById("h_executivo")?.value) || 0;
+    const hEntrega = Number(document.getElementById("h_entrega")?.value) || 0;
+    
+    const horasTotais = hBriefing + hLevantamento + hEstudo + hAnteprojeto + hExecutivo + hEntrega;
+
+    // 3. Complexidade
+    const complexidade = Number(document.getElementById("calcComplexidade")?.value) || 1.0;
+
+    // 4. Custos extras
+    const cDeslocamento = Number(document.getElementById("c_deslocamento")?.value) || 0;
+    const cPlotagem = Number(document.getElementById("c_plotagem")?.value) || 0;
+    const cFreelancer = Number(document.getElementById("c_freelancer")?.value) || 0;
+    const cOutros = Number(document.getElementById("c_outros")?.value) || 0;
+    
+    const custosExtras = cDeslocamento + cPlotagem + cFreelancer + cOutros;
+
+    // 5. Cálculos matemáticos
+    const custoMaoObra = horasTotais * custoHora * complexidade;
+    const custoTotal = custoMaoObra + custosExtras;
+    const precoSugerido = custoTotal * (1 + margemPerc / 100);
+    const lucroReal = precoSugerido - custoTotal;
+
+    // 6. Atualiza a tela
+    document.getElementById("calcHorasTotais").textContent = `${horasTotais}h`;
+    document.getElementById("calcCustoMaoObra").textContent = formatBRL(custoMaoObra);
+    document.getElementById("calcCustosExtras").textContent = formatBRL(custosExtras);
+    document.getElementById("calcCustoTotal").textContent = formatBRL(custoTotal);
+    document.getElementById("calcPrecoSugerido").textContent = formatBRL(precoSugerido);
+    document.getElementById("calcLucro").textContent = formatBRL(lucroReal);
+  }
+   
   /* ---------------------------------------------------------
      3. TELA DE CONFIGURAÇÃO (HTML)
      --------------------------------------------------------- */

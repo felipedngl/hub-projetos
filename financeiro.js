@@ -67,7 +67,8 @@
         <div class="fin-card">
           <h3>1. Dados do Projeto</h3>
           
-           <div class="fin-field" style="margin-bottom: 16px;">
+          <!-- DROPDOWN DE IMPORTAR (NOVO) -->
+          <div class="fin-field" style="margin-bottom: 16px;">
             <label>Importar do Painel de Projetos (opcional)</label>
             <div style="display: flex; gap: 8px;">
               <select id="calcProjetoExistente" style="flex: 1;">
@@ -77,12 +78,7 @@
             </div>
           </div>
 
-          <div class="fin-grid">
-            <div class="fin-field">
-              <label>Nome do Projeto</label>
-              <input type="text" id="calcNome" placeholder="ex: Apartamento Silva" />
-            </div>
-            
+          <!-- CAMPOS NORMAIS (UMA VEZ SÓ) -->
           <div class="fin-grid">
             <div class="fin-field">
               <label>Nome do Projeto</label>
@@ -113,6 +109,7 @@
           </div>
         </div>
 
+        
         <!-- BLOCO 2: HORAS POR ETAPA -->
         <div class="fin-card">
           <h3>2. Horas por Etapa</h3>

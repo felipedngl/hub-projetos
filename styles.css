@@ -6144,3 +6144,84 @@ body.theme-light .schedule-section p {
   color: #2a9d8f;
   font-weight: 600;
 }
+
+/* ========================================= */
+/* FINANCEIRO — Formulário de Configuração   */
+/* ========================================= */
+
+.fin-config h2 {
+  margin-bottom: 4px;
+}
+.fin-hint {
+  opacity: 0.6;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+.fin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.fin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fin-field label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.fin-field input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font-size: 0.95rem;
+}
+.fin-field input:focus {
+  outline: none;
+  border-color: #2a9d8f;
+}
+
+.fin-resultado {
+  background: rgba(42, 157, 143, 0.1);
+  border: 1px solid rgba(42, 157, 143, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.fin-resultado h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+}
+.fin-res-linha {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.fin-res-linha:last-child {
+  border-bottom: none;
+}
+.fin-res-linha strong {
+  color: #2a9d8f;
+  font-size: 1.05rem;
+}
+
+.fin-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.fin-feedback {
+  font-size: 0.9rem;
+  font-weight: 500;
+}

@@ -6280,3 +6280,74 @@ body.theme-light .schedule-section p {
 .fin-calc .fin-grid {
   margin-bottom: 0;
 }
+
+/* ========================================= */
+/* FINANCEIRO — Modo Claro (usa suas vars)   */
+/* ========================================= */
+
+body.theme-light .fin-field input,
+body.theme-light .fin-field select {
+  background-color: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+body.theme-light .fin-field input::placeholder {
+  color: var(--text-dim);
+  opacity: 0.7;
+}
+
+body.theme-light .fin-field input:focus,
+body.theme-light .fin-field select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(59, 75, 82, 0.15);
+}
+
+body.theme-light .fin-field select option {
+  background-color: var(--surface-2);
+  color: var(--text);
+}
+
+body.theme-light .fin-card {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+body.theme-light .fin-card h3 {
+  color: var(--primary);
+}
+
+body.theme-light .fin-resultado {
+  background: rgba(42, 157, 143, 0.08);
+  border-color: rgba(42, 157, 143, 0.25);
+}
+
+body.theme-light .fin-resultado h3 {
+  color: var(--primary);
+}
+
+body.theme-light .fin-res-linha {
+  border-bottom-color: var(--border);
+}
+
+body.theme-light .fin-res-linha strong {
+  color: #2a9d8f;
+}
+
+body.theme-light .fin-hint {
+  color: var(--text-dim);
+}
+
+body.theme-light .fin-tab {
+  color: var(--text-dim);
+}
+
+body.theme-light .fin-tab:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+body.theme-light .fin-tab.active {
+  background: rgba(42, 157, 143, 0.15);
+  color: #1a6b61;
+}

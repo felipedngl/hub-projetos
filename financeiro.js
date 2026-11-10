@@ -66,6 +66,23 @@
         <!-- BLOCO 1: DADOS BÁSICOS -->
         <div class="fin-card">
           <h3>1. Dados do Projeto</h3>
+          
+           <div class="fin-field" style="margin-bottom: 16px;">
+            <label>Importar do Painel de Projetos (opcional)</label>
+            <div style="display: flex; gap: 8px;">
+              <select id="calcProjetoExistente" style="flex: 1;">
+                <option value="">— Selecione um projeto existente —</option>
+              </select>
+              <button type="button" class="btn-primary" id="btnImportarProjeto" style="white-space: nowrap;">Importar</button>
+            </div>
+          </div>
+
+          <div class="fin-grid">
+            <div class="fin-field">
+              <label>Nome do Projeto</label>
+              <input type="text" id="calcNome" placeholder="ex: Apartamento Silva" />
+            </div>
+            
           <div class="fin-grid">
             <div class="fin-field">
               <label>Nome do Projeto</label>
@@ -176,6 +193,16 @@
      3.6. LÓGICA DA CALCULADORA
      --------------------------------------------------------- */
   function ligarEventosCalculadora() {
+
+       // === CARREGAR PROJETOS EXISTENTES ===
+    carregarProjetosNoDropdown();
+
+    // Botão "Importar Projeto"
+    const btnImportar = document.getElementById("btnImportarProjeto");
+    if (btnImportar) {
+      btnImportar.addEventListener("click", importarProjetoSelecionado);
+    }
+     
     // Ao digitar em qualquer campo, recalcula tudo
     const campos = [
       "calcM2", "calcComplexidade", "h_briefing", "h_levantamento", 
@@ -256,6 +283,79 @@
     document.getElementById("calcCustoTotal").textContent = formatBRL(custoTotal);
     document.getElementById("calcPrecoSugerido").textContent = formatBRL(precoSugerido);
     document.getElementById("calcLucro").textContent = formatBRL(lucroReal);
+  }
+
+  /* ---------------------------------------------------------
+     3.7. INTEGRAÇÃO COM O PAINEL DE PROJETOS
+     --------------------------------------------------------- */
+  async function carregarProjetosNoDropdown() {
+    const select = document.getElementById("calcProjetoExistente");
+    if (!select) return;
+
+    try {
+      // Pega todos os projetos sem forçar ordem (mais seguro)
+      const snapshot = await db.collection("projects").get();
+      select.innerHTML = '<option value="">— Selecione um projeto existente —</option>';
+      
+      // Converte para array e ordena localmente
+      const lista = [];
+      snapshot.forEach(doc => {
+        lista.push({ id: doc.id, ...doc.data() });
+      });
+      
+      // Ordena pelo nome (ou campo alternativo) no navegador
+      lista.sort((a, b) => {
+        const nomeA = (a.name || a.title || a.titulo || "").toLowerCase();
+        const nomeB = (b.name || b.title || b.titulo || "").toLowerCase();
+        return nomeA.localeCompare(nomeB);
+      });
+
+      // Preenche o dropdown
+      lista.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = `${p.name || p.title || p.titulo || "Sem nome"} — ${p.client || p.cliente || "Sem cliente"} (${p.area || 0}m²)`;
+        select.appendChild(opt);
+      });
+    } catch (err) {
+      console.warn("Erro ao carregar projetos:", err);
+    }
+  }
+
+  async function importarProjetoSelecionado() {
+    const select = document.getElementById("calcProjetoExistente");
+    const feedback = document.getElementById("calcFeedback");
+    const id = select?.value;
+    if (!id) {
+      if (feedback) { feedback.textContent = "Selecione um projeto primeiro."; feedback.style.color = "#f59e0b"; }
+      return;
+    }
+
+    try {
+      const doc = await db.collection("projects").doc(id).get();
+      if (!doc.exists) return;
+      const p = doc.data();
+
+      // Preenche os campos automaticamente
+      const nome = document.getElementById("calcNome");
+      if (nome) nome.value = p.name || "";
+      
+      const m2 = document.getElementById("calcM2");
+      if (m2) m2.value = p.area || 0;
+
+      const tipo = document.getElementById("calcTipo");
+      if (tipo && p.type) tipo.value = p.type === "comercial" ? "interiores" : "interiores";
+
+      if (feedback) {
+        feedback.textContent = `✓ Projeto "${p.name}" importado!`;
+        feedback.style.color = "#4CAF50";
+      }
+
+      calcularOrcamento();
+    } catch (err) {
+      console.error(err);
+      if (feedback) { feedback.textContent = "Erro ao importar."; feedback.style.color = "#ef4444"; }
+    }
   }
    
   /* ---------------------------------------------------------
@@ -449,7 +549,7 @@
     if (btnFin) {
       btnFin.addEventListener("click", () => {
         mostrarView("view-financeiro");
-        ativarSubAba("config");
+        ativarSubAba("calculadora");
       });
     }
 

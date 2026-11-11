@@ -61,8 +61,13 @@
   function renderCalculadoraHTML() {
     return `
       <div class="fin-calc">
-        <h2>🧮 Calculadora de Projeto</h2>
-        <p class="fin-hint">Preencha os dados abaixo. O preço é calculado em tempo real.</p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 4px;">
+          <div>
+            <h2>🧮 Orçamento de Projeto</h2>
+            <p class="fin-hint">Preencha os dados abaixo. O preço é calculado em tempo real.</p>
+          </div>
+          <button type="button" class="btn-secondary" id="btnLimparCalculadora" style="background: transparent; border: 1px solid var(--border-strong); color: var(--text-dim); white-space: nowrap;">🗑️ Limpar</button>
+        </div>
 
         <!-- BLOCO 1: DADOS BÁSICOS -->
         <div class="fin-card">
@@ -181,7 +186,6 @@
 
         <div class="fin-actions" style="margin-top: 20px;">
           <button type="button" class="btn-primary" id="btnGerarProposta">📄 Gerar Proposta</button>
-          <button type="button" class="btn-secondary" id="btnLimparCalculadora" style="background: transparent; border: 1px solid var(--border-strong); color: var(--text);">🗑️ Limpar Orçamento</button>
           <span id="calcFeedback" class="fin-feedback"></span>
         </div>
       </div>
@@ -505,6 +509,8 @@ function ligarEventosCalculadora() {
       if (document.getElementById("c_outros")) document.getElementById("c_outros").value = d.cOutros;
       if (document.getElementById("calcComplexidade")) document.getElementById("calcComplexidade").value = d.complexidade;
       if (document.getElementById("calcTipo")) document.getElementById("calcTipo").value = d.tipo;
+
+       atualizarTextoProposta();
     }
 
     // Botão Copiar
@@ -580,7 +586,11 @@ function ligarEventosCalculadora() {
       const adicionalMetragem = metragem > 25 ? (metragem - 25) * 50 : 0;
       precoBase = 1500 + adicionalMetragem;
     } else if (pacote === "reticencias") {
-      // preço por hora (já calculado)
+      // Se o custo total for 0 (dados vazios), usa o valor mínimo do Trema como fallback
+      if (precoBase <= 0) {
+        const adicionalMetragem = metragem > 25 ? (metragem - 25) * 50 : 0;
+        precoBase = 1500 + adicionalMetragem;
+      }
     }
 
     // Adicionais
@@ -977,7 +987,10 @@ ${nomeEscritorio}`;
       // === NOME: procura em title, depois name, depois nome ===
       const nomeProjeto = p.title || p.name || p.nome || p.projectName || p.titulo || "";
       const nome = document.getElementById("calcNome");
-      if (nome) nome.value = nomeProjeto;
+      if (nome) {
+        nome.value = nomeProjeto;
+        nome.dataset.cliente = p.client || p.cliente || "";
+      }
       
       // === METRAGEM ===
       const metragem = p.area || p.m2 || p.metragem || p.areaTotal || 0;

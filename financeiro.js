@@ -48,12 +48,13 @@
       container.innerHTML = renderCalculadoraHTML();
       ligarEventosCalculadora();
     } else if (tabId === "propostas") {
-      container.innerHTML = `<div class="empty-state"><h3>📄 Propostas</h3><p>Em construção.</p></div>`;
+      container.innerHTML = renderPropostaHTML();
+      ligarEventosProposta();
     } else if (tabId === "contratos") {
       container.innerHTML = `<div class="empty-state"><h3>✍️ Contratos</h3><p>Em construção.</p></div>`;
     }
   }
-
+   
   /* ---------------------------------------------------------
      3.5. TELA DA CALCULADORA (HTML)
      --------------------------------------------------------- */
@@ -186,7 +187,7 @@
     `;
   }
 
-  /* ---------------------------------------------------------
+/* ---------------------------------------------------------
      3.6. LÓGICA DA CALCULADORA
      --------------------------------------------------------- */
   function ligarEventosCalculadora() {
@@ -282,6 +283,301 @@
     document.getElementById("calcLucro").textContent = formatBRL(lucroReal);
   }
 
+       
+   /* ---------------------------------------------------------
+     5. TELA DE GERAR PROPOSTA (HTML)
+     --------------------------------------------------------- */
+  function renderPropostaHTML() {
+    return `
+      <div class="fin-proposta">
+        <h2>📄 Gerar Proposta</h2>
+        <p class="fin-hint">Escolha o pacote, o tom e as condições. O texto é gerado automaticamente.</p>
+
+        <!-- BLOCO 1: PACOTE E TOM -->
+        <div class="fin-card">
+          <h3>1. Pacote e Tom</h3>
+          <div class="fin-grid">
+            <div class="fin-field">
+              <label>Pacote</label>
+              <select id="propPacote">
+                <option value="ponto">Ponto (Consultoria)</option>
+                <option value="trema" selected>Trema (1 ambiente)</option>
+                <option value="reticencias">Reticências (Casa toda)</option>
+              </select>
+            </div>
+            <div class="fin-field">
+              <label>Tom da Proposta</label>
+              <select id="propTom">
+                <option value="amigavel" selected>Amigável</option>
+                <option value="formal">Formal</option>
+                <option value="persuasivo">Persuasivo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOCO 2: ADICIONAIS -->
+        <div class="fin-card">
+          <h3>2. Adicionais (opcional)</h3>
+          <div class="fin-grid">
+            <div class="fin-field">
+              <label>Luminotécnico (+15%)</label>
+              <select id="propLuminotecnico">
+                <option value="nao">Não incluir</option>
+                <option value="sim">Sim, incluir</option>
+              </select>
+            </div>
+            <div class="fin-field">
+              <label>Marcenaria (valor do Cortecloud)</label>
+              <input type="number" id="propMarcenaria" placeholder="ex: 1500" min="0" step="50" value="0" />
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOCO 3: CONDIÇÕES DE PAGAMENTO -->
+        <div class="fin-card">
+          <h3>3. Condições de Pagamento</h3>
+          <div class="fin-grid">
+            <div class="fin-field">
+              <label>Entrada (%)</label>
+              <input type="number" id="propEntrada" value="30" min="0" max="100" step="5" />
+            </div>
+            <div class="fin-field">
+              <label>Parcelas no saldo</label>
+              <select id="propParcelas">
+                <option value="3">3x</option>
+                <option value="6" selected>6x</option>
+                <option value="10">10x</option>
+                <option value="12">12x</option>
+              </select>
+            </div>
+            <div class="fin-field">
+              <label>Desconto no Pix (%)</label>
+              <input type="number" id="propDescontoPix" value="5" min="0" max="100" step="1" />
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOCO 4: PRÉVIA -->
+        <div class="fin-card">
+          <h3>4. Prévia da Proposta</h3>
+          <p class="fin-hint">O texto abaixo é gerado automaticamente. Você pode copiar e colar no WhatsApp.</p>
+          <textarea id="propTexto" rows="20" style="width:100%; font-family: inherit; font-size:0.9rem; line-height:1.5; padding:12px; border-radius:8px; border:1px solid var(--border-strong); background: var(--surface-2); color: var(--text); resize: vertical;"></textarea>
+          <div class="fin-actions" style="margin-top: 16px;">
+            <button type="button" class="btn-primary" id="btnCopiarProposta">📋 Copiar para WhatsApp</button>
+            <button type="button" class="btn-primary" id="btnSalvarProposta" style="background:#2a9d8f;">💾 Salvar Proposta</button>
+            <span id="propFeedback" class="fin-feedback"></span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ---------------------------------------------------------
+     5.1. LÓGICA DO GERADOR DE PROPOSTA
+     --------------------------------------------------------- */
+  function ligarEventosProposta() {
+    // Botão Copiar
+    const btnCopiar = document.getElementById("btnCopiarProposta");
+    if (btnCopiar) {
+      btnCopiar.addEventListener("click", () => {
+        const texto = document.getElementById("propTexto")?.value || "";
+        navigator.clipboard.writeText(texto).then(() => {
+          const fb = document.getElementById("propFeedback");
+          fb.textContent = "✓ Texto copiado! Cole no WhatsApp.";
+          fb.style.color = "#4CAF50";
+          setTimeout(() => { fb.textContent = ""; }, 3000);
+        });
+      });
+    }
+
+    // Botão Salvar Proposta
+    const btnSalvar = document.getElementById("btnSalvarProposta");
+    if (btnSalvar) {
+      btnSalvar.addEventListener("click", salvarProposta);
+    }
+
+    // Ao mudar pacote, tom, luminotécnico, parcelas ou entrada, recalcula o texto
+    ["propPacote", "propTom", "propLuminotecnico", "propParcelas", "propEntrada", "propDescontoPix", "propMarcenaria"]
+      .forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("change", atualizarTextoProposta);
+        if (el && el.type === "number") el.addEventListener("input", atualizarTextoProposta);
+      });
+
+    // Calcula o texto ao abrir
+    atualizarTextoProposta();
+  }
+
+  function atualizarTextoProposta() {
+    const pacote = document.getElementById("propPacote")?.value || "trema";
+    const tom = document.getElementById("propTom")?.value || "amigavel";
+    const luminotecnico = document.getElementById("propLuminotecnico")?.value === "sim";
+    const marcenariaValor = Number(document.getElementById("propMarcenaria")?.value) || 0;
+    const entradaPerc = Number(document.getElementById("propEntrada")?.value) || 30;
+    const parcelas = Number(document.getElementById("propParcelas")?.value) || 6;
+    const descontoPix = Number(document.getElementById("propDescontoPix")?.value) || 5;
+
+    // Pega os dados da calculadora (se estiver preenchida)
+    const nomeProjeto = document.getElementById("calcNome")?.value || "[Projeto]";
+    const metragem = Number(document.getElementById("calcM2")?.value) || 0;
+    const cliente = document.getElementById("calcNome")?.dataset?.cliente || "[Cliente]";
+
+    // Pega o custo/hora da configuração
+    const custoHora = configAtual ? calcularCustoHora(configAtual).custoHora : 64;
+    const margemPerc = configAtual ? (Number(configAtual.margem) || 20) : 20;
+
+    // Horas por etapa (da calculadora)
+    const hBriefing = Number(document.getElementById("h_briefing")?.value) || 0;
+    const hLevantamento = Number(document.getElementById("h_levantamento")?.value) || 0;
+    const hEstudo = Number(document.getElementById("h_estudo")?.value) || 0;
+    const hAnteprojeto = Number(document.getElementById("h_anteprojeto")?.value) || 0;
+    const hExecutivo = Number(document.getElementById("h_executivo")?.value) || 0;
+    const hEntrega = Number(document.getElementById("h_entrega")?.value) || 0;
+    const horasTotais = hBriefing + hLevantamento + hEstudo + hAnteprojeto + hExecutivo + hEntrega;
+
+    // Custos extras
+    const cDeslocamento = Number(document.getElementById("c_deslocamento")?.value) || 0;
+    const cPlotagem = Number(document.getElementById("c_plotagem")?.value) || 0;
+    const cFreelancer = Number(document.getElementById("c_freelancer")?.value) || 0;
+    const cOutros = Number(document.getElementById("c_outros")?.value) || 0;
+    const custosExtras = cDeslocamento + cPlotagem + cFreelancer + cOutros;
+
+    // Cálculo base
+    const custoMaoObra = horasTotais * custoHora;
+    const custoTotal = custoMaoObra + custosExtras;
+    let precoBase = custoTotal * (1 + margemPerc / 100);
+
+    // Ajusta pelo pacote
+    if (pacote === "ponto") {
+      precoBase = 400; // valor fixo da consultoria
+    } else if (pacote === "trema") {
+      // Preço fixo de R$ 1.500 + adicional se passar de 25m²
+      const adicionalMetragem = metragem > 25 ? (metragem - 25) * 50 : 0;
+      precoBase = 1500 + adicionalMetragem;
+    } else if (pacote === "reticencias") {
+      // Preço por hora (já calculado em precoBase)
+      // sem alteração
+    }
+
+    // Adicionais
+    let adicionais = 0;
+    if (luminotecnico) adicionais += precoBase * 0.15;
+    adicionais += marcenariaValor;
+
+    const precoFinal = precoBase + adicionais;
+
+    // Condições de pagamento
+    const valorEntrada = precoFinal * (entradaPerc / 100);
+    const valorSaldo = precoFinal - valorEntrada;
+    const valorParcela = valorSaldo / parcelas;
+    const valorPix = precoFinal * (1 - descontoPix / 100);
+
+    // Gera o texto baseado no tom
+    let texto = "";
+    const nomeEscritorio = "Menchë Interiores";
+
+    if (tom === "amigavel") {
+      texto = `Oi, ${cliente}! Tudo bem?
+
+Analisei tudo que você me passou sobre o ${nomeProjeto} (${metragem}m²) e preparei uma proposta especial pra você.
+
+📦 PACOTE: ${pacote === "ponto" ? "Ponto (Consultoria)" : pacote === "trema" ? "Trema (1 ambiente)" : "Reticências (Casa toda)"}
+
+💰 VALOR: ${formatBRL(precoFinal)}
+${adicionais > 0 ? `(inclui adicionais: ${luminotecnico ? "Luminotécnico +15%" : ""} ${marcenariaValor > 0 ? `+ Marcenaria ${formatBRL(marcenariaValor)}` : ""})` : ""}
+
+💳 CONDIÇÕES:
+Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
+Saldo: ${parcelas}x de ${formatBRL(valorParcela)}
+Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
+
+Qualquer dúvida, me chama! Vamos transformar esse espaço juntas. 💛
+
+${nomeEscritorio}`;
+    } else if (tom === "formal") {
+      texto = `Prezado(a) ${cliente},
+
+Segue a proposta para o projeto ${nomeProjeto}, com área de ${metragem}m².
+
+PACOTE CONTRATADO: ${pacote === "ponto" ? "Ponto (Consultoria)" : pacote === "trema" ? "Trema (1 ambiente)" : "Reticências (Casa toda)"}
+
+VALOR TOTAL: ${formatBRL(precoFinal)}
+${adicionais > 0 ? `Adicionais: ${luminotecnico ? "Luminotécnico (+15%)" : ""} ${marcenariaValor > 0 ? `+ Marcenaria (${formatBRL(marcenariaValor)})` : ""}` : ""}
+
+CONDIÇÕES DE PAGAMENTO:
+- Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
+- Saldo: ${parcelas} parcelas de ${formatBRL(valorParcela)}
+- Pagamento à vista no Pix: ${formatBRL(valorPix)} (${descontoPix}% de desconto)
+
+Atenciosamente,
+${nomeEscritorio}`;
+    } else if (tom === "persuasivo") {
+      texto = `${cliente}, analisei tudo que você me passou sobre transformar o ${nomeProjeto}.
+
+Antes do valor, preciso te mostrar uma coisa sobre projetos de ${metragem}m²:
+
+Cada centímetro mal planejado é um móvel que não encaixa, uma porta que atrapalha, um ambiente que sufoca. Projetos compactos exigem mais inteligência, não menos.
+
+É por isso que o ${pacote === "ponto" ? "Ponto" : pacote === "trema" ? "Trema" : "Reticências"} é o pacote ideal para o seu caso:
+
+📦 ${pacote === "ponto" ? "Ponto (Consultoria): orientação completa + plano de ação em PDF" : pacote === "trema" ? "Trema (1 ambiente): layout, 1 render 3D, executivo e guia de execução" : "Reticências (Casa toda): todos os ambientes, renders, memorial e acompanhamento"}
+
+💰 VALOR: ${formatBRL(precoFinal)}
+${adicionais > 0 ? `(inclui ${luminotecnico ? "luminotécnico" : ""} ${marcenariaValor > 0 ? `e marcenaria` : ""})` : ""}
+
+💳 CONDIÇÕES:
+Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
+Saldo: ${parcelas}x de ${formatBRL(valorParcela)}
+Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
+
+Tenho 2 vagas para começar nesta semana. Se fecharmos agora, seu projeto fica pronto no prazo combinado.
+
+Qualquer dúvida, me chama. Vamos tirar esse projeto do papel?
+
+${nomeEscritorio}`;
+    }
+
+    // Atualiza o textarea
+    const textarea = document.getElementById("propTexto");
+    if (textarea) textarea.value = texto;
+  }
+
+  async function salvarProposta() {
+    const feedback = document.getElementById("propFeedback");
+    const user = auth?.currentUser;
+
+    if (!user || user.email !== DESIGNER_EMAIL) {
+      feedback.textContent = "⚠️ Faça login como designer.";
+      feedback.style.color = "#f59e0b";
+      return;
+    }
+
+    const pacote = document.getElementById("propPacote")?.value || "trema";
+    const tom = document.getElementById("propTom")?.value || "amigavel";
+    const texto = document.getElementById("propTexto")?.value || "";
+    const nomeProjeto = document.getElementById("calcNome")?.value || "[Projeto]";
+
+    try {
+      await db.collection("propostas").add({
+        projeto: nomeProjeto,
+        pacote: pacote,
+        tom: tom,
+        texto: texto,
+        status: "rascunho",
+        criadoEm: new Date().toISOString(),
+        designer: user.email
+      });
+      feedback.textContent = "✓ Proposta salva!";
+      feedback.style.color = "#4CAF50";
+      setTimeout(() => { feedback.textContent = ""; }, 3000);
+    } catch (err) {
+      console.error(err);
+      feedback.textContent = "❌ Erro ao salvar.";
+      feedback.style.color = "#ef4444";
+    }
+  }       
+       
   /* ---------------------------------------------------------
      3.7. INTEGRAÇÃO COM O PAINEL DE PROJETOS
      --------------------------------------------------------- */

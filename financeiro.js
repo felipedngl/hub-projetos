@@ -215,13 +215,32 @@
     const tipo = document.getElementById("calcTipo");
     if (tipo) tipo.addEventListener("change", calcularOrcamento);
 
-    // Botão "Gerar Proposta" (por enquanto, só um alerta)
+    // Botão "Gerar Proposta" → vai para a aba de Propostas
     const btnGerar = document.getElementById("btnGerarProposta");
     if (btnGerar) {
       btnGerar.addEventListener("click", () => {
-        const feedback = document.getElementById("calcFeedback");
-        feedback.textContent = "⚠️ A geração de proposta será implementada no próximo passo!";
-        feedback.style.color = "#f59e0b";
+        // Salva os dados da calculadora no sessionStorage (para não perder)
+        const dados = {
+          nome: document.getElementById("calcNome")?.value || "",
+          m2: document.getElementById("calcM2")?.value || "",
+          cliente: document.getElementById("calcNome")?.dataset?.cliente || "",
+          hBriefing: document.getElementById("h_briefing")?.value || "0",
+          hLevantamento: document.getElementById("h_levantamento")?.value || "0",
+          hEstudo: document.getElementById("h_estudo")?.value || "0",
+          hAnteprojeto: document.getElementById("h_anteprojeto")?.value || "0",
+          hExecutivo: document.getElementById("h_executivo")?.value || "0",
+          hEntrega: document.getElementById("h_entrega")?.value || "0",
+          cDeslocamento: document.getElementById("c_deslocamento")?.value || "0",
+          cPlotagem: document.getElementById("c_plotagem")?.value || "0",
+          cFreelancer: document.getElementById("c_freelancer")?.value || "0",
+          cOutros: document.getElementById("c_outros")?.value || "0",
+          complexidade: document.getElementById("calcComplexidade")?.value || "1.0",
+          tipo: document.getElementById("calcTipo")?.value || "interiores"
+        };
+        sessionStorage.setItem("calcDados", JSON.stringify(dados));
+
+        // Troca para a aba de Propostas
+        ativarSubAba("propostas");
       });
     }
 
@@ -345,9 +364,17 @@
             <div class="fin-field">
               <label>Parcelas no saldo</label>
               <select id="propParcelas">
+                <option value="1">À vista</option>
+                <option value="2">2x</option>
                 <option value="3">3x</option>
-                <option value="6" selected>6x</option>
+                <option value="4">4x</option>
+                <option value="5">5x</option>
+                <option value="6">6x</option>
+                <option value="7">7x</option>
+                <option value="8">8x</option>
+                <option value="9">9x</option>
                 <option value="10">10x</option>
+                <option value="11">11x</option>
                 <option value="12">12x</option>
               </select>
             </div>
@@ -377,6 +404,27 @@
      5.1. LÓGICA DO GERADOR DE PROPOSTA
      --------------------------------------------------------- */
   function ligarEventosProposta() {
+    // === CARREGA DADOS DA CALCULADORA (COLE AQUI) ===
+    const dadosSalvos = sessionStorage.getItem("calcDados");
+    if (dadosSalvos) {
+      const d = JSON.parse(dadosSalvos);
+      if (document.getElementById("calcNome")) document.getElementById("calcNome").value = d.nome;
+      if (document.getElementById("calcM2")) document.getElementById("calcM2").value = d.m2;
+      if (document.getElementById("calcNome")) document.getElementById("calcNome").dataset.cliente = d.cliente;
+      if (document.getElementById("h_briefing")) document.getElementById("h_briefing").value = d.hBriefing;
+      if (document.getElementById("h_levantamento")) document.getElementById("h_levantamento").value = d.hLevantamento;
+      if (document.getElementById("h_estudo")) document.getElementById("h_estudo").value = d.hEstudo;
+      if (document.getElementById("h_anteprojeto")) document.getElementById("h_anteprojeto").value = d.hAnteprojeto;
+      if (document.getElementById("h_executivo")) document.getElementById("h_executivo").value = d.hExecutivo;
+      if (document.getElementById("h_entrega")) document.getElementById("h_entrega").value = d.hEntrega;
+      if (document.getElementById("c_deslocamento")) document.getElementById("c_deslocamento").value = d.cDeslocamento;
+      if (document.getElementById("c_plotagem")) document.getElementById("c_plotagem").value = d.cPlotagem;
+      if (document.getElementById("c_freelancer")) document.getElementById("c_freelancer").value = d.cFreelancer;
+      if (document.getElementById("c_outros")) document.getElementById("c_outros").value = d.cOutros;
+      if (document.getElementById("calcComplexidade")) document.getElementById("calcComplexidade").value = d.complexidade;
+      if (document.getElementById("calcTipo")) document.getElementById("calcTipo").value = d.tipo;
+    }
+
     // Botão Copiar
     const btnCopiar = document.getElementById("btnCopiarProposta");
     if (btnCopiar) {
@@ -418,16 +466,13 @@
     const parcelas = Number(document.getElementById("propParcelas")?.value) || 6;
     const descontoPix = Number(document.getElementById("propDescontoPix")?.value) || 5;
 
-    // Pega os dados da calculadora (se estiver preenchida)
     const nomeProjeto = document.getElementById("calcNome")?.value || "[Projeto]";
     const metragem = Number(document.getElementById("calcM2")?.value) || 0;
     const cliente = document.getElementById("calcNome")?.dataset?.cliente || "[Cliente]";
 
-    // Pega o custo/hora da configuração
     const custoHora = configAtual ? calcularCustoHora(configAtual).custoHora : 64;
     const margemPerc = configAtual ? (Number(configAtual.margem) || 20) : 20;
 
-    // Horas por etapa (da calculadora)
     const hBriefing = Number(document.getElementById("h_briefing")?.value) || 0;
     const hLevantamento = Number(document.getElementById("h_levantamento")?.value) || 0;
     const hEstudo = Number(document.getElementById("h_estudo")?.value) || 0;
@@ -436,146 +481,306 @@
     const hEntrega = Number(document.getElementById("h_entrega")?.value) || 0;
     const horasTotais = hBriefing + hLevantamento + hEstudo + hAnteprojeto + hExecutivo + hEntrega;
 
-    // Custos extras
     const cDeslocamento = Number(document.getElementById("c_deslocamento")?.value) || 0;
     const cPlotagem = Number(document.getElementById("c_plotagem")?.value) || 0;
     const cFreelancer = Number(document.getElementById("c_freelancer")?.value) || 0;
     const cOutros = Number(document.getElementById("c_outros")?.value) || 0;
     const custosExtras = cDeslocamento + cPlotagem + cFreelancer + cOutros;
 
-    // Cálculo base
     const custoMaoObra = horasTotais * custoHora;
     const custoTotal = custoMaoObra + custosExtras;
     let precoBase = custoTotal * (1 + margemPerc / 100);
 
     // Ajusta pelo pacote
     if (pacote === "ponto") {
-      precoBase = 400; // valor fixo da consultoria
+      precoBase = 400;
     } else if (pacote === "trema") {
-      // Preço fixo de R$ 1.500 + adicional se passar de 25m²
       const adicionalMetragem = metragem > 25 ? (metragem - 25) * 50 : 0;
       precoBase = 1500 + adicionalMetragem;
     } else if (pacote === "reticencias") {
-      // Preço por hora (já calculado em precoBase)
-      // sem alteração
+      // preço por hora (já calculado)
     }
 
     // Adicionais
     let adicionais = 0;
     if (luminotecnico) adicionais += precoBase * 0.15;
     adicionais += marcenariaValor;
-
     const precoFinal = precoBase + adicionais;
+
+    // === SUGESTÃO AUTOMÁTICA DE PARCELAS (COM MÍNIMO POR PARCELA) ===
+    const selectParcelas = document.getElementById("propParcelas");
+    // Puxa o mínimo da configuração, se existir (senão, usa 200)
+    const VALOR_MINIMO_PARCELA = (configAtual && configAtual.minParcela) ? Number(configAtual.minParcela) : 200;
+    
+    if (selectParcelas && !selectParcelas.dataset.manual) {
+      const saldoParaParcelar = precoFinal * (1 - entradaPerc / 100);
+      let parcelasSugeridas = Math.floor(saldoParaParcelar / VALOR_MINIMO_PARCELA);
+      if (parcelasSugeridas < 1) parcelasSugeridas = 1;
+      if (parcelasSugeridas > 12) parcelasSugeridas = 12;
+      selectParcelas.value = String(parcelasSugeridas);
+    }
+    if (selectParcelas) {
+      selectParcelas.addEventListener("change", () => {
+        selectParcelas.dataset.manual = "true";
+      });
+    }
 
     // Condições de pagamento
     const valorEntrada = precoFinal * (entradaPerc / 100);
     const valorSaldo = precoFinal - valorEntrada;
-    const valorParcela = valorSaldo / parcelas;
+    const parcelasAtual = Number(selectParcelas?.value) || parcelas;
+    const valorParcela = valorSaldo / parcelasAtual;
     const valorPix = precoFinal * (1 - descontoPix / 100);
 
-    // Gera o texto baseado no tom
+    // Textos baseados em PACOTE + TOM
     let texto = "";
     const nomeEscritorio = "Menchë Interiores";
 
-    if (tom === "amigavel") {
-      texto = `Oi, ${cliente}! Tudo bem?
+    // --- TEXTO PONTO ---
+    if (pacote === "ponto") {
+      if (tom === "amigavel") {
+        texto = `Oi, ${cliente}! Tudo bem?
 
-Analisei tudo que você me passou sobre o ${nomeProjeto} (${metragem}m²) e preparei uma proposta especial pra você.
+Analisei o que você me contou sobre o ${nomeProjeto} e preparei a Consultoria Ponto, ideal para quem quer clareza antes de começar.
 
-📦 PACOTE: ${pacote === "ponto" ? "Ponto (Consultoria)" : pacote === "trema" ? "Trema (1 ambiente)" : "Reticências (Casa toda)"}
+📦 O QUE INCLUI:
+• 1 videochamada de 1h (diagnóstico do espaço)
+• Plano de Ação em PDF (o que fazer, em que ordem)
+• Paleta de cores sugerida
+• Mapa do que fica (o que manter, adaptar, trocar)
+• Suporte por 7 dias no WhatsApp
 
 💰 VALOR: ${formatBRL(precoFinal)}
-${adicionais > 0 ? `(inclui adicionais: ${luminotecnico ? "Luminotécnico +15%" : ""} ${marcenariaValor > 0 ? `+ Marcenaria ${formatBRL(marcenariaValor)}` : ""})` : ""}
 
 💳 CONDIÇÕES:
 Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
-Saldo: ${parcelas}x de ${formatBRL(valorParcela)}
+Saldo: ${parcelasAtual}x de ${formatBRL(valorParcela)}
 Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
 
-Qualquer dúvida, me chama! Vamos transformar esse espaço juntas. 💛
+Se fizer sentido, me chama que a gente marca a videochamada. 💛
 
 ${nomeEscritorio}`;
-    } else if (tom === "formal") {
-      texto = `Prezado(a) ${cliente},
+      } else if (tom === "formal") {
+        texto = `Prezado(a) ${cliente},
 
-Segue a proposta para o projeto ${nomeProjeto}, com área de ${metragem}m².
+Segue a proposta para a Consultoria Ponto, referente ao projeto ${nomeProjeto}.
 
-PACOTE CONTRATADO: ${pacote === "ponto" ? "Ponto (Consultoria)" : pacote === "trema" ? "Trema (1 ambiente)" : "Reticências (Casa toda)"}
+ESCOPO:
+- 1 videochamada de 1h (diagnóstico)
+- Plano de Ação em PDF
+- Paleta de cores sugerida
+- Mapa do que fica (manter/adaptar/trocar)
+- Suporte por 7 dias no WhatsApp
+
+VALOR TOTAL: ${formatBRL(precoFinal)}
+
+CONDIÇÕES DE PAGAMENTO:
+- Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
+- Saldo: ${parcelasAtual} parcelas de ${formatBRL(valorParcela)}
+- Pagamento à vista no Pix: ${formatBRL(valorPix)} (${descontoPix}% de desconto)
+
+Atenciosamente,
+${nomeEscritorio}`;
+      } else {
+        texto = `${cliente}, analisei tudo que você me passou sobre o ${nomeProjeto}.
+
+Antes do valor, deixa eu te mostrar por que a Consultoria Ponto é o melhor primeiro passo:
+
+Muitas pessoas começam a reformar sem saber por onde. Compram o móvel errado, escolhem a cor errada, gastam com o que não precisava. A Consultoria Ponto existe para você não cometer esses erros.
+
+📦 O QUE VOCÊ RECEBE:
+• Diagnóstico completo do espaço
+• Plano de Ação em PDF (o passo a passo do que fazer)
+• Paleta de cores
+• Mapa do que fica (o que manter, adaptar, trocar)
+• Suporte por 7 dias
+
+💰 VALOR: ${formatBRL(precoFinal)}
+
+💳 CONDIÇÕES:
+Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
+Saldo: ${parcelasAtual}x de ${formatBRL(valorParcela)}
+Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
+
+Tenho 2 vagas para esta semana. Se fecharmos agora, você já começa a clarear o projeto.
+
+Qualquer dúvida, me chama.
+
+${nomeEscritorio}`;
+      }
+    }
+
+    // --- TEXTO TREMA ---
+    else if (pacote === "trema") {
+      if (tom === "amigavel") {
+        texto = `Oi, ${cliente}! Tudo bem?
+
+Analisei tudo que você me passou sobre o ${nomeProjeto} (${metragem}m²) e preparei o Trema, o projeto ideal para transformar 1 ambiente.
+
+📦 O QUE INCLUI:
+• Briefing e Levantamento
+• Estudo Preliminar (layout)
+• Anteprojeto (materiais + 1 render 3D)
+• Projeto Executivo (planta técnica)
+• Entrega (PDF final + guia de execução)
+• Suporte por 10 dias
+
+💰 VALOR: ${formatBRL(precoFinal)}
+${adicionais > 0 ? `(inclui ${luminotecnico ? "Luminotécnico +15%" : ""} ${marcenariaValor > 0 ? `+ Marcenaria ${formatBRL(marcenariaValor)}` : ""})` : ""}
+
+💳 CONDIÇÕES:
+Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
+Saldo: ${parcelasAtual}x de ${formatBRL(valorParcela)}
+Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
+
+Vamos transformar esse ambiente?
+
+${nomeEscritorio}`;
+      } else if (tom === "formal") {
+        texto = `Prezado(a) ${cliente},
+
+Segue a proposta para o projeto ${nomeProjeto} (${metragem}m²), no pacote Trema (1 ambiente).
+
+ESCOPO:
+- Briefing e Levantamento
+- Estudo Preliminar (layout)
+- Anteprojeto (materiais + 1 render 3D)
+- Projeto Executivo (planta técnica)
+- Entrega (PDF final + guia)
+- Suporte por 10 dias
 
 VALOR TOTAL: ${formatBRL(precoFinal)}
 ${adicionais > 0 ? `Adicionais: ${luminotecnico ? "Luminotécnico (+15%)" : ""} ${marcenariaValor > 0 ? `+ Marcenaria (${formatBRL(marcenariaValor)})` : ""}` : ""}
 
 CONDIÇÕES DE PAGAMENTO:
 - Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
-- Saldo: ${parcelas} parcelas de ${formatBRL(valorParcela)}
+- Saldo: ${parcelasAtual} parcelas de ${formatBRL(valorParcela)}
 - Pagamento à vista no Pix: ${formatBRL(valorPix)} (${descontoPix}% de desconto)
 
 Atenciosamente,
 ${nomeEscritorio}`;
-    } else if (tom === "persuasivo") {
-      texto = `${cliente}, analisei tudo que você me passou sobre transformar o ${nomeProjeto}.
+      } else {
+        texto = `${cliente}, analisei tudo que você me passou sobre transformar o ${nomeProjeto} (${metragem}m²).
 
-Antes do valor, preciso te mostrar uma coisa sobre projetos de ${metragem}m²:
+Antes do valor, preciso te mostrar uma coisa:
 
 Cada centímetro mal planejado é um móvel que não encaixa, uma porta que atrapalha, um ambiente que sufoca. Projetos compactos exigem mais inteligência, não menos.
 
-É por isso que o ${pacote === "ponto" ? "Ponto" : pacote === "trema" ? "Trema" : "Reticências"} é o pacote ideal para o seu caso:
+É por isso que o Trema é o pacote ideal para o seu caso:
 
-📦 ${pacote === "ponto" ? "Ponto (Consultoria): orientação completa + plano de ação em PDF" : pacote === "trema" ? "Trema (1 ambiente): layout, 1 render 3D, executivo e guia de execução" : "Reticências (Casa toda): todos os ambientes, renders, memorial e acompanhamento"}
+📦 O QUE VOCÊ RECEBE:
+• Briefing e Levantamento
+• Estudo Preliminar (layout)
+• Anteprojeto (materiais + 1 render 3D)
+• Projeto Executivo (planta técnica)
+• Entrega (PDF final + guia)
+• Suporte por 10 dias
 
 💰 VALOR: ${formatBRL(precoFinal)}
 ${adicionais > 0 ? `(inclui ${luminotecnico ? "luminotécnico" : ""} ${marcenariaValor > 0 ? `e marcenaria` : ""})` : ""}
 
 💳 CONDIÇÕES:
 Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
-Saldo: ${parcelas}x de ${formatBRL(valorParcela)}
+Saldo: ${parcelasAtual}x de ${formatBRL(valorParcela)}
 Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
 
-Tenho 2 vagas para começar nesta semana. Se fecharmos agora, seu projeto fica pronto no prazo combinado.
+Tenho 2 vagas para começar nesta semana. Se fecharmos agora, seu ambiente fica pronto no prazo.
 
-Qualquer dúvida, me chama. Vamos tirar esse projeto do papel?
+Qualquer dúvida, me chama.
 
 ${nomeEscritorio}`;
+      }
+    }
+
+    // --- TEXTO RETICÊNCIAS ---
+    else if (pacote === "reticencias") {
+      if (tom === "amigavel") {
+        texto = `Oi, ${cliente}! Tudo bem?
+
+Analisei tudo que você me passou sobre o ${nomeProjeto} (${metragem}m²) e preparei o Reticências, o projeto completo para a casa toda.
+
+📦 O QUE INCLUI:
+• Todos os ambientes
+• Briefing, Levantamento, Estudo, Anteprojeto
+• 3 a 5 renders 3D (dependendo do tamanho)
+• Projeto Executivo completo
+• Memorial Descritivo (lista de compras)
+• Cronograma de Obra
+• Acompanhamento de obra
+• Suporte por 30 dias
+
+💰 VALOR: ${formatBRL(precoFinal)}
+${adicionais > 0 ? `(inclui ${luminotecnico ? "Luminotécnico +15%" : ""} ${marcenariaValor > 0 ? `+ Marcenaria ${formatBRL(marcenariaValor)}` : ""})` : ""}
+
+💳 CONDIÇÕES:
+Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
+Saldo: ${parcelasAtual}x de ${formatBRL(valorParcela)}
+Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
+
+Vamos transformar a casa toda?
+
+${nomeEscritorio}`;
+      } else if (tom === "formal") {
+        texto = `Prezado(a) ${cliente},
+
+Segue a proposta para o projeto ${nomeProjeto} (${metragem}m²), no pacote Reticências (casa toda).
+
+ESCOPO:
+- Todos os ambientes
+- Briefing, Levantamento, Estudo, Anteprojeto
+- 3 a 5 renders 3D
+- Projeto Executivo completo
+- Memorial Descritivo
+- Cronograma de Obra
+- Acompanhamento de obra
+- Suporte por 30 dias
+
+VALOR TOTAL: ${formatBRL(precoFinal)}
+${adicionais > 0 ? `Adicionais: ${luminotecnico ? "Luminotécnico (+15%)" : ""} ${marcenariaValor > 0 ? `+ Marcenaria (${formatBRL(marcenariaValor)})` : ""}` : ""}
+
+CONDIÇÕES DE PAGAMENTO:
+- Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
+- Saldo: ${parcelasAtual} parcelas de ${formatBRL(valorParcela)}
+- Pagamento à vista no Pix: ${formatBRL(valorPix)} (${descontoPix}% de desconto)
+
+Atenciosamente,
+${nomeEscritorio}`;
+      } else {
+        texto = `${cliente}, analisei tudo que você me passou sobre o ${nomeProjeto} (${metragem}m²).
+
+Antes do valor, deixa eu te mostrar por que o Reticências é o pacote que resolve de verdade:
+
+Projetar a casa toda não é só desenhar cada ambiente separado. É fazer tudo conversar: a luz da sala com o piso do quarto, o armário da cozinha com a circulação. É por isso que o Reticências existe:
+
+📦 O QUE VOCÊ RECEBE:
+• Todos os ambientes
+• Briefing, Levantamento, Estudo, Anteprojeto
+• 3 a 5 renders 3D
+• Projeto Executivo completo
+• Memorial Descritivo (lista de compras)
+• Cronograma de Obra
+• Acompanhamento de obra
+• Suporte por 30 dias
+
+💰 VALOR: ${formatBRL(precoFinal)}
+${adicionais > 0 ? `(inclui ${luminotecnico ? "luminotécnico" : ""} ${marcenariaValor > 0 ? `e marcenaria` : ""})` : ""}
+
+💳 CONDIÇÕES:
+Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
+Saldo: ${parcelasAtual}x de ${formatBRL(valorParcela)}
+Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
+
+Tenho 2 vagas para começar nesta semana. Se fecharmos agora, sua casa fica pronta no prazo.
+
+Qualquer dúvida, me chama.
+
+${nomeEscritorio}`;
+      }
     }
 
     // Atualiza o textarea
     const textarea = document.getElementById("propTexto");
     if (textarea) textarea.value = texto;
-  }
-
-  async function salvarProposta() {
-    const feedback = document.getElementById("propFeedback");
-    const user = auth?.currentUser;
-
-    if (!user || user.email !== DESIGNER_EMAIL) {
-      feedback.textContent = "⚠️ Faça login como designer.";
-      feedback.style.color = "#f59e0b";
-      return;
-    }
-
-    const pacote = document.getElementById("propPacote")?.value || "trema";
-    const tom = document.getElementById("propTom")?.value || "amigavel";
-    const texto = document.getElementById("propTexto")?.value || "";
-    const nomeProjeto = document.getElementById("calcNome")?.value || "[Projeto]";
-
-    try {
-      await db.collection("propostas").add({
-        projeto: nomeProjeto,
-        pacote: pacote,
-        tom: tom,
-        texto: texto,
-        status: "rascunho",
-        criadoEm: new Date().toISOString(),
-        designer: user.email
-      });
-      feedback.textContent = "✓ Proposta salva!";
-      feedback.style.color = "#4CAF50";
-      setTimeout(() => { feedback.textContent = ""; }, 3000);
-    } catch (err) {
-      console.error(err);
-      feedback.textContent = "❌ Erro ao salvar.";
-      feedback.style.color = "#ef4444";
-    }
   }       
        
   /* ---------------------------------------------------------
@@ -708,6 +913,12 @@ ${nomeEscritorio}`;
             <label>Margem de lucro desejada (%)</label>
             <input type="number" id="cfgMargem" placeholder="ex: 20" min="0" max="200" />
           </div>
+
+          <!-- NOVO CAMPO: VALOR MÍNIMO POR PARCELA -->
+          <div class="fin-field">
+            <label>Valor mínimo por parcela (R$)</label>
+            <input type="number" id="cfgMinParcela" placeholder="ex: 200" min="0" step="50" />
+          </div>
         </div>
 
         <div class="fin-resultado" id="finResultado">
@@ -791,6 +1002,7 @@ ${nomeEscritorio}`;
       diasMes: Number(document.getElementById("cfgDiasMes").value) || 22,
       naoFaturavel: Number(document.getElementById("cfgNaoFaturavel").value) || 30,
       margem: Number(document.getElementById("cfgMargem").value) || 20,
+      minParcela: Number(document.getElementById("cfgMinParcela").value) || 200,
       atualizadoEm: new Date().toISOString(),
     };
 
@@ -821,6 +1033,7 @@ ${nomeEscritorio}`;
           document.getElementById("cfgDiasMes").value = d.diasMes || "";
           document.getElementById("cfgNaoFaturavel").value = d.naoFaturavel || "";
           document.getElementById("cfgMargem").value = d.margem || "";
+          document.getElementById("cfgMinParcela").value = d.minParcela || 200;
           atualizarResultado();
         }
       }

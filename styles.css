@@ -6351,3 +6351,22 @@ body.theme-light .fin-tab.active {
   background: rgba(42, 157, 143, 0.15);
   color: #1a6b61;
 }
+
+/* ========================================= */
+/* FINANCEIRO — Proposta                     */
+/* ========================================= */
+.fin-proposta .fin-card {
+  margin-bottom: 20px;
+}
+.fin-proposta textarea {
+  font-family: "Inter", sans-serif;
+}
+.fin-proposta textarea:focus {
+  outline: none;
+  border-color: #2a9d8f;
+}
+body.theme-light .fin-proposta textarea {
+  background: #ffffff;
+  color: #333;
+  border-color: #d1d5db;
+}

@@ -181,6 +181,7 @@
 
         <div class="fin-actions" style="margin-top: 20px;">
           <button type="button" class="btn-primary" id="btnGerarProposta">📄 Gerar Proposta</button>
+          <button type="button" class="btn-secondary" id="btnLimparCalculadora" style="background: transparent; border: 1px solid var(--border-strong); color: var(--text);">🗑️ Limpar Orçamento</button>
           <span id="calcFeedback" class="fin-feedback"></span>
         </div>
       </div>
@@ -188,66 +189,109 @@
   }
 
 /* ---------------------------------------------------------
-     3.6. LÓGICA DA CALCULADORA
-     --------------------------------------------------------- */
-  function ligarEventosCalculadora() {
+   3.6. LÓGICA DA CALCULADORA
+   --------------------------------------------------------- */
+function ligarEventosCalculadora() {
 
-       // === CARREGAR PROJETOS EXISTENTES ===
-    carregarProjetosNoDropdown();
+  // === CARREGAR PROJETOS EXISTENTES ===
+  carregarProjetosNoDropdown();
 
-    // Botão "Importar Projeto"
-    const btnImportar = document.getElementById("btnImportarProjeto");
-    if (btnImportar) {
-      btnImportar.addEventListener("click", importarProjetoSelecionado);
-    }
-     
-    // Ao digitar em qualquer campo, recalcula tudo
-    const campos = [
-      "calcM2", "calcComplexidade", "h_briefing", "h_levantamento", 
-      "h_estudo", "h_anteprojeto", "h_executivo", "h_entrega",
-      "c_deslocamento", "c_plotagem", "c_freelancer", "c_outros"
-    ];
-    
-    campos.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener("input", calcularOrcamento);
-    });
-    const tipo = document.getElementById("calcTipo");
-    if (tipo) tipo.addEventListener("change", calcularOrcamento);
-
-    // Botão "Gerar Proposta" → vai para a aba de Propostas
-    const btnGerar = document.getElementById("btnGerarProposta");
-    if (btnGerar) {
-      btnGerar.addEventListener("click", () => {
-        // Salva os dados da calculadora no sessionStorage (para não perder)
-        const dados = {
-          nome: document.getElementById("calcNome")?.value || "",
-          m2: document.getElementById("calcM2")?.value || "",
-          cliente: document.getElementById("calcNome")?.dataset?.cliente || "",
-          hBriefing: document.getElementById("h_briefing")?.value || "0",
-          hLevantamento: document.getElementById("h_levantamento")?.value || "0",
-          hEstudo: document.getElementById("h_estudo")?.value || "0",
-          hAnteprojeto: document.getElementById("h_anteprojeto")?.value || "0",
-          hExecutivo: document.getElementById("h_executivo")?.value || "0",
-          hEntrega: document.getElementById("h_entrega")?.value || "0",
-          cDeslocamento: document.getElementById("c_deslocamento")?.value || "0",
-          cPlotagem: document.getElementById("c_plotagem")?.value || "0",
-          cFreelancer: document.getElementById("c_freelancer")?.value || "0",
-          cOutros: document.getElementById("c_outros")?.value || "0",
-          complexidade: document.getElementById("calcComplexidade")?.value || "1.0",
-          tipo: document.getElementById("calcTipo")?.value || "interiores"
-        };
-        sessionStorage.setItem("calcDados", JSON.stringify(dados));
-
-        // Troca para a aba de Propostas
-        ativarSubAba("propostas");
-      });
-    }
-
-    // Calcula ao abrir a tela
-    calcularOrcamento();
+  // Botão "Importar Projeto"
+  const btnImportar = document.getElementById("btnImportarProjeto");
+  if (btnImportar) {
+    btnImportar.addEventListener("click", importarProjetoSelecionado);
   }
 
+  // Ao digitar em qualquer campo, recalcula tudo
+  const campos = [
+    "calcM2", "calcComplexidade", "h_briefing", "h_levantamento",
+    "h_estudo", "h_anteprojeto", "h_executivo", "h_entrega",
+    "c_deslocamento", "c_plotagem", "c_freelancer", "c_outros"
+  ];
+
+  campos.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("input", calcularOrcamento);
+  });
+  const tipo = document.getElementById("calcTipo");
+  if (tipo) tipo.addEventListener("change", calcularOrcamento);
+
+  // === SALVAR AUTOMATICAMENTE AO DIGITAR ===
+  const camposParaSalvar = [
+    "calcNome", "calcM2", "calcTipo", "calcComplexidade",
+    "h_briefing", "h_levantamento", "h_estudo", "h_anteprojeto", "h_executivo", "h_entrega",
+    "c_deslocamento", "c_plotagem", "c_freelancer", "c_outros"
+  ];
+  camposParaSalvar.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("input", salvarDadosCalculadora);
+      el.addEventListener("change", salvarDadosCalculadora);
+    }
+  });
+
+  // === RESTAURAR DADOS AO ABRIR ===
+  restaurarDadosCalculadora();
+
+  // Botão "Gerar Proposta" → vai para a aba de Propostas
+  const btnGerar = document.getElementById("btnGerarProposta");
+  if (btnGerar) {
+    btnGerar.addEventListener("click", () => {
+      // Salva os dados da calculadora no sessionStorage (para não perder)
+      const dados = {
+        nome: document.getElementById("calcNome")?.value || "",
+        m2: document.getElementById("calcM2")?.value || "",
+        cliente: document.getElementById("calcNome")?.dataset?.cliente || "",
+        hBriefing: document.getElementById("h_briefing")?.value || "0",
+        hLevantamento: document.getElementById("h_levantamento")?.value || "0",
+        hEstudo: document.getElementById("h_estudo")?.value || "0",
+        hAnteprojeto: document.getElementById("h_anteprojeto")?.value || "0",
+        hExecutivo: document.getElementById("h_executivo")?.value || "0",
+        hEntrega: document.getElementById("h_entrega")?.value || "0",
+        cDeslocamento: document.getElementById("c_deslocamento")?.value || "0",
+        cPlotagem: document.getElementById("c_plotagem")?.value || "0",
+        cFreelancer: document.getElementById("c_freelancer")?.value || "0",
+        cOutros: document.getElementById("c_outros")?.value || "0",
+        complexidade: document.getElementById("calcComplexidade")?.value || "1.0",
+        tipo: document.getElementById("calcTipo")?.value || "interiores"
+      };
+      sessionStorage.setItem("calcDados", JSON.stringify(dados));
+
+      // Troca para a aba de Propostas
+      ativarSubAba("propostas");
+    });
+  }
+
+  // Botão "Limpar Orçamento"
+  const btnLimpar = document.getElementById("btnLimparCalculadora");
+  if (btnLimpar) {
+    btnLimpar.addEventListener("click", () => {
+      if (confirm("Tem certeza que quer limpar todos os dados do orçamento atual?")) {
+        sessionStorage.removeItem("calcDados");
+        document.getElementById("calcNome").value = "";
+        document.getElementById("calcM2").value = "";
+        document.getElementById("calcTipo").value = "interiores";
+        document.getElementById("calcComplexidade").value = "1.0";
+        document.getElementById("h_briefing").value = "4";
+        document.getElementById("h_levantamento").value = "6";
+        document.getElementById("h_estudo").value = "12";
+        document.getElementById("h_anteprojeto").value = "16";
+        document.getElementById("h_executivo").value = "24";
+        document.getElementById("h_entrega").value = "4";
+        document.getElementById("c_deslocamento").value = "0";
+        document.getElementById("c_plotagem").value = "0";
+        document.getElementById("c_freelancer").value = "0";
+        document.getElementById("c_outros").value = "0";
+        document.getElementById("calcNome").dataset.cliente = "";
+        if (typeof calcularOrcamento === "function") calcularOrcamento();
+      }
+    });
+  }
+
+  // Calcula ao abrir a tela
+  calcularOrcamento();
+}
+   
   function calcularOrcamento() {
     // 1. Pega o custo/hora da configuração
     let custoHora = 73.40; // valor de fallback
@@ -302,6 +346,44 @@
     document.getElementById("calcLucro").textContent = formatBRL(lucroReal);
   }
 
+  function salvarDadosCalculadora() {
+    const dados = {
+      calcNome: document.getElementById("calcNome")?.value || "",
+      calcM2: document.getElementById("calcM2")?.value || "",
+      calcTipo: document.getElementById("calcTipo")?.value || "interiores",
+      calcComplexidade: document.getElementById("calcComplexidade")?.value || "1.0",
+      h_briefing: document.getElementById("h_briefing")?.value || "4",
+      h_levantamento: document.getElementById("h_levantamento")?.value || "6",
+      h_estudo: document.getElementById("h_estudo")?.value || "12",
+      h_anteprojeto: document.getElementById("h_anteprojeto")?.value || "16",
+      h_executivo: document.getElementById("h_executivo")?.value || "24",
+      h_entrega: document.getElementById("h_entrega")?.value || "4",
+      c_deslocamento: document.getElementById("c_deslocamento")?.value || "0",
+      c_plotagem: document.getElementById("c_plotagem")?.value || "0",
+      c_freelancer: document.getElementById("c_freelancer")?.value || "0",
+      c_outros: document.getElementById("c_outros")?.value || "0",
+      cliente: document.getElementById("calcNome")?.dataset?.cliente || ""
+    };
+    sessionStorage.setItem("calcDados", JSON.stringify(dados));
+  }
+
+  function restaurarDadosCalculadora() {
+    const raw = sessionStorage.getItem("calcDados");
+    if (!raw) return;
+    try {
+      const dados = JSON.parse(raw);
+      Object.keys(dados).forEach(id => {
+        if (id === "cliente") return;
+        const el = document.getElementById(id);
+        if (el) el.value = dados[id];
+      });
+      const nomeEl = document.getElementById("calcNome");
+      if (nomeEl && dados.cliente) nomeEl.dataset.cliente = dados.cliente;
+      if (typeof calcularOrcamento === "function") calcularOrcamento();
+    } catch (err) {
+      console.warn("Erro ao restaurar dados da calculadora:", err);
+    }
+  }
        
    /* ---------------------------------------------------------
      5. TELA DE GERAR PROPOSTA (HTML)
@@ -388,10 +470,10 @@
         <!-- BLOCO 4: PRÉVIA -->
         <div class="fin-card">
           <h3>4. Prévia da Proposta</h3>
-          <p class="fin-hint">O texto abaixo é gerado automaticamente. Você pode copiar e colar no WhatsApp.</p>
+          <p class="fin-hint">O texto abaixo é gerado automaticamente. Você pode copiar e colar.</p>
           <textarea id="propTexto" rows="20" style="width:100%; font-family: inherit; font-size:0.9rem; line-height:1.5; padding:12px; border-radius:8px; border:1px solid var(--border-strong); background: var(--surface-2); color: var(--text); resize: vertical;"></textarea>
           <div class="fin-actions" style="margin-top: 16px;">
-            <button type="button" class="btn-primary" id="btnCopiarProposta">📋 Copiar para WhatsApp</button>
+            <button type="button" class="btn-primary" id="btnCopiarProposta">📋 Copiar</button>
             <button type="button" class="btn-primary" id="btnSalvarProposta" style="background:#2a9d8f;">💾 Salvar Proposta</button>
             <span id="propFeedback" class="fin-feedback"></span>
           </div>
@@ -432,7 +514,7 @@
         const texto = document.getElementById("propTexto")?.value || "";
         navigator.clipboard.writeText(texto).then(() => {
           const fb = document.getElementById("propFeedback");
-          fb.textContent = "✓ Texto copiado! Cole no WhatsApp.";
+          fb.textContent = "✓ Texto copiado.";
           fb.style.color = "#4CAF50";
           setTimeout(() => { fb.textContent = ""; }, 3000);
         });
@@ -782,7 +864,63 @@ ${nomeEscritorio}`;
     const textarea = document.getElementById("propTexto");
     if (textarea) textarea.value = texto;
   }       
-       
+
+  async function salvarProposta() {
+    const feedback = document.getElementById("propFeedback");
+    const user = auth?.currentUser;
+
+    if (!user || user.email !== DESIGNER_EMAIL) {
+      if (feedback) {
+        feedback.textContent = "⚠️ Faça login como designer.";
+        feedback.style.color = "#f59e0b";
+      }
+      return;
+    }
+
+    const pacote = document.getElementById("propPacote")?.value || "trema";
+    const tom = document.getElementById("propTom")?.value || "amigavel";
+    const texto = document.getElementById("propTexto")?.value || "";
+    const nomeProjeto = document.getElementById("calcNome")?.value || "[Projeto]";
+    const cliente = document.getElementById("calcNome")?.dataset?.cliente || "";
+
+    if (!texto.trim()) {
+      if (feedback) {
+        feedback.textContent = "⚠️ Gere o texto antes de salvar.";
+        feedback.style.color = "#f59e0b";
+      }
+      return;
+    }
+
+    if (feedback) {
+      feedback.textContent = "Salvando...";
+      feedback.style.color = "#aaa";
+    }
+
+    try {
+      await db.collection("propostas").add({
+        projeto: nomeProjeto,
+        cliente: cliente,
+        pacote: pacote,
+        tom: tom,
+        texto: texto,
+        status: "rascunho",
+        criadoEm: new Date().toISOString(),
+        designer: user.email
+      });
+      if (feedback) {
+        feedback.textContent = "✓ Proposta salva!";
+        feedback.style.color = "#4CAF50";
+      }
+      setTimeout(() => { if (feedback) feedback.textContent = ""; }, 3000);
+    } catch (err) {
+      console.error("Erro ao salvar proposta:", err);
+      if (feedback) {
+        feedback.textContent = "❌ Erro ao salvar: " + (err.message || "desconhecido");
+        feedback.style.color = "#ef4444";
+      }
+    }
+  }
+   
   /* ---------------------------------------------------------
      3.7. INTEGRAÇÃO COM O PAINEL DE PROJETOS
      --------------------------------------------------------- */

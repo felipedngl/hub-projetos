@@ -388,8 +388,12 @@ function ligarEventosCalculadora() {
   }
 
   function salvarDadosCalculadora() {
+    // Só salva se o campo calcNome existir no DOM (para não sobrescrever com vazio)
+    const calcNomeEl = document.getElementById("calcNome");
+    if (!calcNomeEl) return;  // ← NOVO: se não existe, não salva
+    
     const dados = {
-      calcNome: document.getElementById("calcNome")?.value || "",
+      calcNome: calcNomeEl.value || "",
       calcM2: document.getElementById("calcM2")?.value || "",
       calcTipo: document.getElementById("calcTipo")?.value || "interiores",
       calcComplexidade: document.getElementById("calcComplexidade")?.value || "1.0",
@@ -403,7 +407,7 @@ function ligarEventosCalculadora() {
       c_plotagem: document.getElementById("c_plotagem")?.value || "0",
       c_freelancer: document.getElementById("c_freelancer")?.value || "0",
       c_outros: document.getElementById("c_outros")?.value || "0",
-      cliente: document.getElementById("calcNome")?.dataset?.cliente || ""
+      cliente: calcNomeEl.dataset.cliente || ""
     };
     sessionStorage.setItem("calcDados", JSON.stringify(dados));
   }
@@ -1061,11 +1065,14 @@ ${nomeEscritorio}`;
       return;
     }
 
-    const pacote = document.getElementById("propPacote")?.value || "trema";
-    const tom = document.getElementById("propTom")?.value || "amigavel";
+    // Pega o pacote e tom dos botões (não dos selects)
+    const pacote = document.querySelector(".pacote-btn.active")?.dataset.pacote || "trema";
+    const tom = document.querySelector(".tom-btn.active")?.dataset.tom || "amigavel";
     const texto = document.getElementById("propTexto")?.value || "";
-    const nomeProjeto = document.getElementById("calcNome")?.value || "[Projeto]";
-    const cliente = document.getElementById("calcNome")?.dataset?.cliente || "";
+    
+    // Usa os dados da variável global (dadosProposta) ou fallback
+    const nomeProjeto = dadosProposta?.nome || "[Projeto]";
+    const cliente = dadosProposta?.cliente || "";
 
     if (!texto.trim()) {
       if (feedback) {

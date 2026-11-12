@@ -582,7 +582,10 @@ function ligarEventosCalculadora() {
         cliente: document.getElementById("calcNome")?.dataset?.cliente
       });
 
-       atualizarTextoProposta();
+      // Chama o texto DEPOIS de um pequeno delay (para garantir que o DOM está pronto)
+      setTimeout(() => {
+        atualizarTextoProposta();
+      }, 50);
     } else {
       console.warn("[DEBUG] Nenhum dado em propostaDados");
     }

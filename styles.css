@@ -456,8 +456,8 @@ body:not(.designer-unlocked) #btnNewProject {
 /* ---------- Grid ---------- */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
 }
 
 .card {
@@ -6567,6 +6567,30 @@ body.theme-light .fin-proposta textarea {
   background: rgba(42, 157, 143, 0.15);
   color: #2a9d8f;
   border: 1px solid rgba(42, 157, 143, 0.3);
+}
+
+/* Layout dos botões do card */
+.card-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.card-owner-action {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-owner-edit-project:hover {
+  background: var(--surface-2) !important;
+}
+
+.btn-owner-open-project:hover {
+  opacity: 0.9;
 }
 
 /* Cores dos status dos cards */

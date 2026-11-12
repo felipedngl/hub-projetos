@@ -1817,12 +1817,25 @@ $$(".btn-owner-edit-project").forEach((button) => {
     if (!projeto) return;
 
     const modal = $("#modalOverlay");
+    console.log("[DEBUG editar] modal encontrado?", !!modal);
     if (modal) {
+      console.log("[DEBUG editar] ANTES:", {
+        hidden: modal.hidden,
+        display: modal.style.display,
+        classes: modal.className
+      });
+      
       // Reset completo do modal
       modal.hidden = false;
       modal.removeAttribute("hidden");
       modal.style.display = "flex";
       modal.classList.remove("hidden", "active", "open", "show");
+      
+      console.log("[DEBUG editar] DEPOIS:", {
+        hidden: modal.hidden,
+        display: modal.style.display,
+        classes: modal.className
+      });
       
       const fieldName = $("#fieldName");
       const fieldClient = $("#fieldClient");

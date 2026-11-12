@@ -9244,39 +9244,47 @@ function handleImageError(imgElement, linkId, photoIndex) {
 
 // 1. Função que ativa a mágica do arrasto fluido e salva a ordem
 function initSortableGrid() {
-  const gridEl = document.getElementById("projectsGrid");
-  if (!gridEl) return;
+  try {
+    const gridEl = document.getElementById("projectsGrid");
+    if (!gridEl) return;
 
-  // Verifica se o Sortable está disponível
-  if (typeof Sortable === "undefined") {
-    console.warn("[Sortable] Biblioteca não carregada. Drag & drop desabilitado.");
-    return;
-  }
-
-  if (gridEl.sortableInstance) {
-    gridEl.sortableInstance.destroy();
-  }
-
-  gridEl.sortableInstance = Sortable.create(gridEl, {
-    animation: 200,
-    ghostClass: "sortable-ghost",
-    onEnd: async function () {
-      const cardElements = gridEl.querySelectorAll(".project-card, [data-project-id], .grid > *");
-      const newOrderIds = Array.from(cardElements).map(card => card.dataset.projectId || card.id);
-
-      // Salva no navegador para persistir ao atualizar
-      localStorage.setItem("menche_projects_order", JSON.stringify(newOrderIds));
-
-      // Salva no Firebase (se houver conexão ativa)
-      try {
-        if (typeof db !== "undefined" && db) {
-          await db.collection("settings").doc("projectsOrder").set({ order: newOrderIds });
-        }
-      } catch (error) {
-        console.error("Erro ao salvar ordem no banco:", error);
-      }
+    // Verifica se o Sortable está disponível
+    if (typeof Sortable === "undefined") {
+      console.warn("[Sortable] Biblioteca não carregada. Drag & drop desabilitado.");
+      return;
     }
-  });
+
+    if (gridEl.sortableInstance) {
+      gridEl.sortableInstance.destroy();
+    }
+
+    gridEl.sortableInstance = Sortable.create(gridEl, {
+      animation: 200,
+      ghostClass: "sortable-ghost",
+      onEnd: async function () {
+        const cardElements = gridEl.querySelectorAll(".project-card, [data-project-id], .grid > *");
+        const newOrderIds = Array.from(cardElements).map(card => card.dataset.projectId || card.id);
+
+        // Salva no navegador para persistir ao atualizar
+        try {
+          localStorage.setItem("menche_projects_order", JSON.stringify(newOrderIds));
+        } catch (e) {
+          console.warn("Erro ao salvar ordem no localStorage:", e);
+        }
+
+        // Salva no Firebase (se houver conexão ativa)
+        try {
+          if (typeof db !== "undefined" && db) {
+            await db.collection("settings").doc("projectsOrder").set({ order: newOrderIds });
+          }
+        } catch (error) {
+          console.warn("Erro ao salvar ordem no banco (ignorado):", error);
+        }
+      }
+    });
+  } catch (error) {
+    console.warn("[Sortable] Erro ao inicializar (ignorado):", error);
+  }
 }
 
 // 2. Função que lê a ordem salva para os cards não voltarem pro lugar

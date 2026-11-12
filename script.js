@@ -2427,7 +2427,7 @@ if (designerUnlocked && !clientMode) {
       </div>
 
 <div class="panel stage-progress-panel">
-  <h3>📊 Status da Etapa</h3>
+  <h3>Status da Etapa</h3>
 
   <div class="stage-checklist-compact">
     <button
@@ -6738,7 +6738,7 @@ function renderSchedule(project) {
     </div>
     <div class="panel">
       <div class="memorial-head">
-        <h3>📅 Planejamento de Etapas</h3>
+        <h3>Planejamento de Etapas</h3>
         <button type="button" class="btn-secondary" id="btnAddSched">+ Adicionar Atividade</button>
       </div>
       <div class="table-wrap">
@@ -7855,7 +7855,7 @@ function copyShareLink() {
 
   linkInput.select();
   navigator.clipboard.writeText(linkInput.value).then(() => {
-    showToast("📋 Link copiado com sucesso!");
+    showToast("Link copiado com sucesso!");
   }).catch(() => {
     prompt("Copie o link abaixo:", linkInput.value);
   });
@@ -8814,7 +8814,7 @@ function renderSiteLogHTML(project, isDesigner = false) {
                     ✏️ Editar
                   </button>
                   <button type="button" class="btn-delete-sitelog" data-log-id="${log.id}" style="background: none; border: none; color: #e53e3e; cursor: pointer; font-size: 0.85rem; font-weight: 600; padding: 0;">
-                    🗑️ Excluir
+                    Excluir
                   </button>
                 </div>
               ` : ""}

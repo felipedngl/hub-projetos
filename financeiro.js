@@ -61,130 +61,141 @@
   function renderCalculadoraHTML() {
     return `
       <div class="fin-calc">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 4px;">
+        <div class="fin-calc-header">
           <div>
-            <h2>🧮 Orçamento de Projeto</h2>
+            <h2 class="fin-section-title">🧮 Orçamento de Projeto</h2>
             <p class="fin-hint">Preencha os dados abaixo. O preço é calculado em tempo real.</p>
           </div>
-          <button type="button" class="btn-secondary" id="btnLimparCalculadora" style="background: transparent; border: 1px solid var(--border-strong); color: var(--text-dim); white-space: nowrap;">🗑️ Limpar</button>
+          <button type="button" class="btn-fin-limpar" id="btnLimparCalculadora">🗑️ Limpar</button>
         </div>
 
-        <!-- BLOCO 1: DADOS BÁSICOS -->
+        <!-- ========== SEÇÃO 1: DADOS DO PROJETO ========== -->
         <div class="fin-card">
-          <h3>1. Dados do Projeto</h3>
-          
-          <!-- DROPDOWN DE IMPORTAR (NOVO) -->
-          <div class="fin-field" style="margin-bottom: 16px;">
-            <label>Importar do Painel de Projetos (opcional)</label>
-            <div style="display: flex; gap: 8px;">
-              <select id="calcProjetoExistente" style="flex: 1;">
-                <option value="">— Selecione um projeto existente —</option>
-              </select>
-              <button type="button" class="btn-primary" id="btnImportarProjeto" style="white-space: nowrap;">Importar</button>
-            </div>
+          <div class="fin-accordion-header" data-accordion="dados">
+            <h3>1. Dados do Projeto</h3>
+            <span class="fin-accordion-toggle" data-toggle="dados">▾</span>
           </div>
+          <div class="fin-accordion-body" data-body="dados">
+            <div class="fin-field" style="margin-bottom: 12px;">
+              <label>Importar do Painel de Projetos (opcional)</label>
+              <div style="display: flex; gap: 8px;">
+                <select id="calcProjetoExistente" style="flex: 1;">
+                  <option value="">— Selecione um projeto existente —</option>
+                </select>
+                <button type="button" class="btn-primary" id="btnImportarProjeto" style="white-space: nowrap;">Importar</button>
+              </div>
+            </div>
 
-          <!-- CAMPOS NORMAIS (UMA VEZ SÓ) -->
-          <div class="fin-grid">
-            <div class="fin-field">
-              <label>Nome do Projeto</label>
-              <input type="text" id="calcNome" placeholder="ex: Apartamento Silva" />
-            </div>
-            <div class="fin-field">
-              <label>Metragem (m²)</label>
-              <input type="number" id="calcM2" placeholder="ex: 120" min="0" step="0.1" />
-            </div>
-            <div class="fin-field">
-              <label>Tipo de Projeto</label>
-              <select id="calcTipo">
-                <option value="interiores">Design de Interiores</option>
-                <option value="reforma">Reforma</option>
-                <option value="consultoria">Consultoria</option>
-                <option value="3d">Modelagem 3D</option>
-              </select>
-            </div>
-            <div class="fin-field">
-              <label>Complexidade</label>
-              <select id="calcComplexidade">
-                <option value="1.0">Média (x1.0)</option>
-                <option value="1.15">Alta (x1.15)</option>
-                <option value="1.25">Complexa (x1.25)</option>
-                <option value="0.95">Simples (x0.95)</option>
-              </select>
+            <div class="fin-grid">
+              <div class="fin-field">
+                <label>Nome do Projeto</label>
+                <input type="text" id="calcNome" placeholder="ex: Apartamento Silva" />
+              </div>
+              <div class="fin-field">
+                <label>Metragem (m²)</label>
+                <input type="number" id="calcM2" placeholder="ex: 120" min="0" step="0.1" />
+              </div>
+              <div class="fin-field">
+                <label>Tipo de Projeto</label>
+                <select id="calcTipo">
+                  <option value="interiores">Design de Interiores</option>
+                  <option value="reforma">Reforma</option>
+                  <option value="consultoria">Consultoria</option>
+                  <option value="3d">Modelagem 3D</option>
+                </select>
+              </div>
+              <div class="fin-field">
+                <label>Complexidade</label>
+                <select id="calcComplexidade">
+                  <option value="1.0">Média (x1.0)</option>
+                  <option value="1.15">Alta (x1.15)</option>
+                  <option value="1.25">Complexa (x1.25)</option>
+                  <option value="0.95">Simples (x0.95)</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
 
-        
-        <!-- BLOCO 2: HORAS POR ETAPA -->
+        <!-- ========== SEÇÃO 2: HORAS POR ETAPA ========== -->
         <div class="fin-card">
-          <h3>2. Horas por Etapa</h3>
-          <p class="fin-hint">Distribua as horas que você vai gastar em cada etapa.</p>
-          <div class="fin-grid">
-            <div class="fin-field">
-              <label>Briefing & Alinhamento (h)</label>
-              <input type="number" id="h_briefing" placeholder="ex: 4" min="0" step="1" value="4" />
-            </div>
-            <div class="fin-field">
-              <label>Levantamento Técnico (h)</label>
-              <input type="number" id="h_levantamento" placeholder="ex: 6" min="0" step="1" value="6" />
-            </div>
-            <div class="fin-field">
-              <label>Estudo Preliminar (h)</label>
-              <input type="number" id="h_estudo" placeholder="ex: 12" min="0" step="1" value="12" />
-            </div>
-            <div class="fin-field">
-              <label>Anteprojeto (h)</label>
-              <input type="number" id="h_anteprojeto" placeholder="ex: 16" min="0" step="1" value="16" />
-            </div>
-            <div class="fin-field">
-              <label>Projeto Executivo (h)</label>
-              <input type="number" id="h_executivo" placeholder="ex: 24" min="0" step="1" value="24" />
-            </div>
-            <div class="fin-field">
-              <label>Entrega e Finalização (h)</label>
-              <input type="number" id="h_entrega" placeholder="ex: 4" min="0" step="1" value="4" />
+          <div class="fin-accordion-header" data-accordion="horas">
+            <h3>2. Horas por Etapa</h3>
+            <span class="fin-accordion-toggle" data-toggle="horas">▾</span>
+          </div>
+          <div class="fin-accordion-body" data-body="horas">
+            <p class="fin-hint">Distribua as horas que você vai gastar em cada etapa.</p>
+            <div class="fin-grid">
+              <div class="fin-field">
+                <label>Briefing & Alinhamento (h)</label>
+                <input type="number" id="h_briefing" placeholder="ex: 4" min="0" step="1" value="4" />
+              </div>
+              <div class="fin-field">
+                <label>Levantamento Técnico (h)</label>
+                <input type="number" id="h_levantamento" placeholder="ex: 6" min="0" step="1" value="6" />
+              </div>
+              <div class="fin-field">
+                <label>Estudo Preliminar (h)</label>
+                <input type="number" id="h_estudo" placeholder="ex: 12" min="0" step="1" value="12" />
+              </div>
+              <div class="fin-field">
+                <label>Anteprojeto (h)</label>
+                <input type="number" id="h_anteprojeto" placeholder="ex: 16" min="0" step="1" value="16" />
+              </div>
+              <div class="fin-field">
+                <label>Projeto Executivo (h)</label>
+                <input type="number" id="h_executivo" placeholder="ex: 24" min="0" step="1" value="24" />
+              </div>
+              <div class="fin-field">
+                <label>Entrega e Finalização (h)</label>
+                <input type="number" id="h_entrega" placeholder="ex: 4" min="0" step="1" value="4" />
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- BLOCO 3: CUSTOS EXTRAS -->
+        <!-- ========== SEÇÃO 3: CUSTOS EXTRAS ========== -->
         <div class="fin-card">
-          <h3>3. Custos Extras do Projeto</h3>
-          <p class="fin-hint">Deslocamento, impressão, freelancer, etc. (serão somados ao custo final).</p>
-          <div class="fin-grid">
-            <div class="fin-field">
-              <label>Deslocamento / Visitas (R$)</label>
-              <input type="number" id="c_deslocamento" placeholder="ex: 200" min="0" step="10" value="0" />
-            </div>
-            <div class="fin-field">
-              <label>Plotagem / Impressão (R$)</label>
-              <input type="number" id="c_plotagem" placeholder="ex: 150" min="0" step="10" value="0" />
-            </div>
-            <div class="fin-field">
-              <label>Freelancer / Terceirizado (R$)</label>
-              <input type="number" id="c_freelancer" placeholder="ex: 800" min="0" step="50" value="0" />
-            </div>
-            <div class="fin-field">
-              <label>Outros Custos (R$)</label>
-              <input type="number" id="c_outros" placeholder="ex: 0" min="0" step="10" value="0" />
+          <div class="fin-accordion-header" data-accordion="custos">
+            <h3>3. Custos Extras</h3>
+            <span class="fin-accordion-toggle" data-toggle="custos">▾</span>
+          </div>
+          <div class="fin-accordion-body" data-body="custos">
+            <p class="fin-hint">Deslocamento, impressão, freelancer, etc. (serão somados ao custo final).</p>
+            <div class="fin-grid">
+              <div class="fin-field">
+                <label>Deslocamento / Visitas (R$)</label>
+                <input type="number" id="c_deslocamento" placeholder="ex: 200" min="0" step="10" value="0" />
+              </div>
+              <div class="fin-field">
+                <label>Plotagem / Impressão (R$)</label>
+                <input type="number" id="c_plotagem" placeholder="ex: 150" min="0" step="10" value="0" />
+              </div>
+              <div class="fin-field">
+                <label>Freelancer / Terceirizado (R$)</label>
+                <input type="number" id="c_freelancer" placeholder="ex: 800" min="0" step="50" value="0" />
+              </div>
+              <div class="fin-field">
+                <label>Outros Custos (R$)</label>
+                <input type="number" id="c_outros" placeholder="ex: 0" min="0" step="10" value="0" />
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- BLOCO 4: RESULTADO -->
+        <!-- ========== RESULTADO ========== -->
         <div class="fin-resultado">
           <h3>📊 Resumo do Orçamento</h3>
           <div class="fin-res-linha"><span>Horas Totais:</span> <strong id="calcHorasTotais">0h</strong></div>
           <div class="fin-res-linha"><span>Custo da Mão de Obra:</span> <strong id="calcCustoMaoObra">R$ 0,00</strong></div>
           <div class="fin-res-linha"><span>Custos Extras:</span> <strong id="calcCustosExtras">R$ 0,00</strong></div>
           <div class="fin-res-linha"><span><b>Custo Total:</b></span> <strong id="calcCustoTotal">R$ 0,00</strong></div>
-          <hr style="border-color: rgba(255,255,255,0.1); margin: 8px 0;">
-          <div class="fin-res-linha"><span>Preço Sugerido (com margem):</span> <strong id="calcPrecoSugerido" style="color: #2a9d8f; font-size: 1.3rem;">R$ 0,00</strong></div>
-          <div class="fin-res-linha"><span>Lucro Real:</span> <strong id="calcLucro" style="color: #4CAF50;">R$ 0,00</strong></div>
+          <hr style="border-color: rgba(255,255,255,0.08); margin: 10px 0;">
+          <div class="fin-res-linha destaque"><span>Preço Sugerido (com margem):</span> <strong id="calcPrecoSugerido">R$ 0,00</strong></div>
+          <div class="fin-res-linha"><span>Lucro Real:</span> <strong id="calcLucro">R$ 0,00</strong></div>
         </div>
 
-        <div class="fin-actions" style="margin-top: 20px;">
+        <div class="fin-actions">
           <button type="button" class="btn-primary" id="btnGerarProposta">📄 Gerar Proposta</button>
           <span id="calcFeedback" class="fin-feedback"></span>
         </div>
@@ -197,6 +208,17 @@
    --------------------------------------------------------- */
 function ligarEventosCalculadora() {
 
+    // === ACCORDIONS ===
+    document.querySelectorAll(".fin-accordion-header").forEach(header => {
+      header.addEventListener("click", () => {
+        const key = header.dataset.accordion;
+        const body = document.querySelector(`[data-body="${key}"]`);
+        const toggle = document.querySelector(`[data-toggle="${key}"]`);
+        if (body) body.classList.toggle("closed");
+        if (toggle) toggle.classList.toggle("closed");
+      });
+    });
+   
   // === CARREGAR PROJETOS EXISTENTES ===
   carregarProjetosNoDropdown();
 

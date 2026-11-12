@@ -6510,3 +6510,33 @@ body.theme-light .fin-proposta textarea {
   color: #2a9d8f;
   font-weight: 600;
 }
+
+/* Botões de seleção (pacote, tom, cálculo) */
+.pacote-btn,
+.tom-btn,
+.calculo-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.pacote-btn:hover,
+.tom-btn:hover,
+.calculo-btn:hover {
+  border-color: #2a9d8f;
+  color: #2a9d8f;
+}
+.pacote-btn.active,
+.tom-btn.active,
+.calculo-btn.active {
+  background: rgba(42, 157, 143, 0.15);
+  border-color: #2a9d8f;
+  color: #2a9d8f;
+  font-weight: 600;
+}

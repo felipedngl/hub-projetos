@@ -6609,9 +6609,14 @@ body .project-card .status-tag.status-concluido {
 .stage-link.bloqueada {
   opacity: 0.5;
   cursor: not-allowed;
+  position: relative;
 }
 .stage-link.bloqueada::after {
   content: "🔒";
   margin-left: auto;
   font-size: 0.8rem;
+}
+.stage-link.bloqueada:hover {
+  background: transparent;
+  color: var(--text-dim);
 }

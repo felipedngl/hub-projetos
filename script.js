@@ -7739,18 +7739,22 @@ function setupNewProjectModal() {
       const modalTitle = $("#modalTitle");
       if (modalTitle) modalTitle.textContent = "Novo Projeto";
 
-      if (typeof closeAllOpenModals === "function") {
-        closeAllOpenModals();
-      } else {
-        if (modal) {
-          modal.style.display = "none";
-          modal.setAttribute("hidden", "");
-        }
-        document.querySelectorAll(".modal-overlay, .modal-backdrop, .overlay, .backdrop").forEach((el) => {
-          el.style.display = "none";
-          el.classList.remove("active", "show", "open");
-        });
+      // Fecha o modal (reset completo)
+      const modalOverlay = document.getElementById("modalOverlay");
+      if (modalOverlay) {
+        modalOverlay.hidden = true;
+        modalOverlay.style.display = "none";
+        delete modalOverlay.dataset.aberto;
       }
+      if (form) delete form.dataset.editId;
+      
+      // Fecha outros modais
+      document.querySelectorAll(".modal-overlay, .checklist-modal-overlay").forEach((el) => {
+        if (el.id !== "passwordModal" && el.id !== "pwdModal") {
+          el.style.display = "none";
+          el.hidden = true;
+        }
+      });
       
       // Limpa o dataset.editId após salvar
       delete form.dataset.editId;
@@ -8472,18 +8476,24 @@ document.addEventListener("click", function (e) {
     e.target.classList.contains("checklist-modal-overlay") ||
     e.target.id === "shareModal"
   ) {
-    closeAllOpenModals();
-    
-    // Garante que o modal de projeto seja fechado corretamente
+    // Reset direto no modal de projeto (igual ao Cancelar)
     const modalOverlay = document.getElementById("modalOverlay");
     if (modalOverlay) {
       modalOverlay.hidden = true;
       modalOverlay.style.display = "none";
+      delete modalOverlay.dataset.aberto;
     }
     
-    // Limpa o modo de edição
     const form = document.getElementById("projectForm");
     if (form) delete form.dataset.editId;
+    
+    // Fecha outros modais
+    document.querySelectorAll(".modal-overlay, .checklist-modal-overlay").forEach((el) => {
+      if (el.id !== "passwordModal" && el.id !== "pwdModal") {
+        el.style.display = "none";
+        el.hidden = true;
+      }
+    });
   }
 });
 

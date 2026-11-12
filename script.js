@@ -8239,7 +8239,12 @@ return;
   document.body.classList.remove("hub-is-locked");
   document.body.classList.remove("client-view");
 
-  if (designerUnlocked && !clientMode && isDashboardPath) {
+  if (designerUnlocked && !clientMode && isFinanceiroPath) {
+    // Abre o financeiro automaticamente
+    document.getElementById("view-dashboard").hidden = true;
+    document.getElementById("view-financeiro").hidden = false;
+    if (window.financeiroInit) window.financeiroInit();
+  } else if (designerUnlocked && !clientMode && isDashboardPath) {
     showDashboard();
   } else {
     showDashboard();

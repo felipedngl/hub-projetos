@@ -6086,112 +6086,112 @@ body.theme-light .schedule-section p {
 }
 
 /* ========================================= */
-/* ESTILOS DO FINANCEIRO                     */
+/* FINANCEIRO — DESIGN LIMPO (v2)            */
 /* ========================================= */
 
-/* Botão do Financeiro no header */
+/* Botão do header */
 .btn-financeiro {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
-  background: #2a9d8f; 
-  color: white;        
-  border: 1px solid #2a9d8f; 
+  padding: 9px 14px;
+  background: #2a9d8f;
+  color: #fff;
+  border: 1px solid #2a9d8f;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.2s ease;
 }
 .btn-financeiro:hover {
-  background: #21867a; 
+  background: #21867a;
   border-color: #21867a;
 }
 .btn-financeiro.active {
-  background: #1a6b61; 
-  color: white;
+  background: #1a6b61;
   border-color: #1a6b61;
 }
 
-/* Sub-abas do financeiro */
+/* Sub-abas (topo do financeiro) */
 .financeiro-tabs {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   margin-bottom: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
 }
 
 .fin-tab {
-  padding: 10px 20px;
+  padding: 10px 16px;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
   cursor: pointer;
-  font-size: 0.95rem;
-  color: inherit;
-  opacity: 0.6;
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  opacity: 0.7;
   transition: all 0.2s ease;
 }
-
 .fin-tab:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
 }
-
 .fin-tab.active {
   opacity: 1;
-  background: rgba(42, 157, 143, 0.2);
   color: #2a9d8f;
+  border-bottom-color: #2a9d8f;
   font-weight: 600;
 }
 
-/* ========================================= */
-/* FINANCEIRO — Formulário de Configuração   */
-/* ========================================= */
-
-.fin-config h2 {
+/* Título e hint da seção */
+.fin-section-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   margin-bottom: 4px;
 }
 .fin-hint {
   opacity: 0.6;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   margin-bottom: 20px;
 }
 
+/* Grid de campos (2 colunas no desktop, 1 no mobile) */
 .fin-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
 }
 
 .fin-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .fin-field label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  opacity: 0.85;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  margin-bottom: 2px;
 }
 
-/* ========================================= */
-/* FINANCEIRO — Inputs e Selects bonitos     */
-/* ========================================= */
-
+/* Inputs e selects compactos */
 .fin-field input,
 .fin-field select {
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background-color: #1e2528;
-  color: #e0e0e0;
-  font-size: 0.95rem;
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text);
   font-family: inherit;
+  font-size: 0.88rem;
   width: 100%;
   box-sizing: border-box;
   outline: none;
@@ -6200,173 +6200,223 @@ body.theme-light .schedule-section p {
   -webkit-appearance: none;
   -moz-appearance: none;
 }
-
 .fin-field input:focus,
 .fin-field select:focus {
   border-color: #2a9d8f;
-  box-shadow: 0 0 0 2px rgba(42, 157, 143, 0.2);
+  box-shadow: 0 0 0 2px rgba(42, 157, 143, 0.15);
 }
-
 .fin-field input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-dim);
+  opacity: 0.5;
 }
-
 .fin-field select {
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e0e0e0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 16px;
-  padding-right: 32px;
+  background-position: right 8px center;
+  background-size: 14px;
+  padding-right: 28px;
   cursor: pointer;
 }
-
 .fin-field select option {
-  background-color: #1e2528;
-  color: #e0e0e0;
+  background: var(--surface);
+  color: var(--text);
 }
 
+/* Card (agora sem borda, só espaçamento) */
+.fin-card {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.fin-card:last-child {
+  border-bottom: none;
+}
+.fin-card h3 {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fin-card .fin-hint {
+  margin-bottom: 14px;
+}
+
+/* Accordion (seções colapsáveis) */
+.fin-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 0;
+}
+.fin-accordion-header:hover h3 {
+  color: #2a9d8f;
+}
+.fin-accordion-toggle {
+  font-size: 1rem;
+  color: var(--text-dim);
+  transition: transform 0.2s ease;
+}
+.fin-accordion-toggle.closed {
+  transform: rotate(-90deg);
+}
+.fin-accordion-body {
+  padding-top: 12px;
+}
+.fin-accordion-body.closed {
+  display: none;
+}
+
+/* Resultado (destaque com verde suave) */
 .fin-resultado {
-  background: rgba(42, 157, 143, 0.1);
-  border: 1px solid rgba(42, 157, 143, 0.3);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 24px;
+  background: rgba(42, 157, 143, 0.08);
+  border: 1px solid rgba(42, 157, 143, 0.25);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 20px 0;
 }
 .fin-resultado h3 {
-  margin-top: 0;
-  margin-bottom: 12px;
-  font-size: 1.1rem;
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 600;
 }
 .fin-res-linha {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.88rem;
 }
 .fin-res-linha:last-child {
   border-bottom: none;
 }
 .fin-res-linha strong {
   color: #2a9d8f;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.fin-res-linha.destaque strong {
+  font-size: 1.15rem;
 }
 
+/* Ações (botões) */
 .fin-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
 }
 .fin-feedback {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
 }
 
-/* ========================================= */
-/* FINANCEIRO — Calculadora                  */
-/* ========================================= */
-.fin-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
+/* Cabeçalho da tela (título + botão limpar) */
+.fin-calc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
 }
-.fin-card h3 {
-  margin-top: 0;
-  margin-bottom: 12px;
-  font-size: 1.1rem;
-  color: #2a9d8f;
-}
-.fin-calc .fin-grid {
-  margin-bottom: 0;
+.fin-calc-header .fin-hint {
+  margin: 0;
 }
 
-/* ========================================= */
-/* FINANCEIRO — Modo Claro (usa suas vars)   */
-/* ========================================= */
+/* Botão secundário (limpar) */
+.btn-fin-limpar {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-dim);
+  padding: 7px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.btn-fin-limpar:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
 
+/* Modo claro */
 body.theme-light .fin-field input,
 body.theme-light .fin-field select {
-  background-color: var(--surface-2);
-  color: var(--text);
-  border-color: var(--border-strong);
+  background: #fff;
+  color: #333;
+  border-color: #d1d5db;
 }
-
 body.theme-light .fin-field input::placeholder {
-  color: var(--text-dim);
-  opacity: 0.7;
+  color: #9ca3af;
 }
-
 body.theme-light .fin-field input:focus,
 body.theme-light .fin-field select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(59, 75, 82, 0.15);
+  border-color: #2a9d8f;
 }
-
 body.theme-light .fin-field select option {
-  background-color: var(--surface-2);
-  color: var(--text);
+  background: #fff;
+  color: #333;
 }
-
-body.theme-light .fin-card {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-body.theme-light .fin-card h3 {
-  color: var(--primary);
-}
-
 body.theme-light .fin-resultado {
-  background: rgba(42, 157, 143, 0.08);
-  border-color: rgba(42, 157, 143, 0.25);
+  background: rgba(42, 157, 143, 0.06);
+  border-color: rgba(42, 157, 143, 0.2);
 }
-
-body.theme-light .fin-resultado h3 {
-  color: var(--primary);
-}
-
 body.theme-light .fin-res-linha {
-  border-bottom-color: var(--border);
+  border-bottom-color: rgba(0, 0, 0, 0.05);
 }
 
-body.theme-light .fin-res-linha strong {
-  color: #2a9d8f;
-}
-
-body.theme-light .fin-hint {
-  color: var(--text-dim);
-}
-
-body.theme-light .fin-tab {
-  color: var(--text-dim);
-}
-
-body.theme-light .fin-tab:hover {
-  background: var(--surface-2);
-  color: var(--text);
-}
-
-body.theme-light .fin-tab.active {
-  background: rgba(42, 157, 143, 0.15);
-  color: #1a6b61;
-}
-
-/* ========================================= */
-/* FINANCEIRO — Proposta                     */
-/* ========================================= */
+/* Proposta */
 .fin-proposta .fin-card {
-  margin-bottom: 20px;
+  padding: 16px 0;
 }
 .fin-proposta textarea {
-  font-family: "Inter", sans-serif;
+  font-family: inherit;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text);
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
 }
 .fin-proposta textarea:focus {
   outline: none;
   border-color: #2a9d8f;
 }
 body.theme-light .fin-proposta textarea {
-  background: #ffffff;
+  background: #fff;
   color: #333;
   border-color: #d1d5db;
+}
+
+/* Responsivo */
+@media (max-width: 600px) {
+  .fin-grid {
+    grid-template-columns: 1fr;
+  }
+  .fin-calc-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .fin-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .fin-actions .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
 }

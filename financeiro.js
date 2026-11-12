@@ -273,7 +273,7 @@ function ligarEventosCalculadora() {
   const btnGerar = document.getElementById("btnGerarProposta");
   if (btnGerar) {
     btnGerar.addEventListener("click", () => {
-      // Salva os dados da calculadora no sessionStorage (para não perder)
+      // Congela os dados da calculadora em "propostaDados"
       const dados = {
         nome: document.getElementById("calcNome")?.value || "",
         m2: document.getElementById("calcM2")?.value || "",
@@ -291,7 +291,7 @@ function ligarEventosCalculadora() {
         complexidade: document.getElementById("calcComplexidade")?.value || "1.0",
         tipo: document.getElementById("calcTipo")?.value || "interiores"
       };
-      sessionStorage.setItem("calcDados", JSON.stringify(dados));
+      sessionStorage.setItem("propostaDados", JSON.stringify(dados));
 
       // Troca para a aba de Propostas
       ativarSubAba("propostas");
@@ -408,13 +408,33 @@ function ligarEventosCalculadora() {
     if (!raw) return;
     try {
       const dados = JSON.parse(raw);
-      Object.keys(dados).forEach(id => {
-        if (id === "cliente") return;
-        const el = document.getElementById(id);
-        if (el) el.value = dados[id];
+      // Só restaura se o dado existir (não sobrescreve com vazio)
+      if (dados.calcNome !== undefined) {
+        const el = document.getElementById("calcNome");
+        if (el) {
+          el.value = dados.calcNome;
+          if (dados.cliente) el.dataset.cliente = dados.cliente;
+        }
+      }
+      if (dados.calcM2 !== undefined) {
+        const el = document.getElementById("calcM2");
+        if (el) el.value = dados.calcM2;
+      }
+      if (dados.calcTipo !== undefined) {
+        const el = document.getElementById("calcTipo");
+        if (el) el.value = dados.calcTipo;
+      }
+      if (dados.calcComplexidade !== undefined) {
+        const el = document.getElementById("calcComplexidade");
+        if (el) el.value = dados.calcComplexidade;
+      }
+      ["h_briefing", "h_levantamento", "h_estudo", "h_anteprojeto", "h_executivo", "h_entrega",
+       "c_deslocamento", "c_plotagem", "c_freelancer", "c_outros"].forEach(id => {
+        if (dados[id] !== undefined) {
+          const el = document.getElementById(id);
+          if (el) el.value = dados[id];
+        }
       });
-      const nomeEl = document.getElementById("calcNome");
-      if (nomeEl && dados.cliente) nomeEl.dataset.cliente = dados.cliente;
       if (typeof calcularOrcamento === "function") calcularOrcamento();
     } catch (err) {
       console.warn("Erro ao restaurar dados da calculadora:", err);
@@ -450,6 +470,19 @@ function ligarEventosCalculadora() {
                 <option value="persuasivo">Persuasivo</option>
               </select>
             </div>
+          </div>
+        </div>
+
+        <!-- BLOCO 1.5: MODO DE CÁLCULO -->
+        <div class="fin-card">
+          <h3>1.5. Modo de Cálculo</h3>
+          <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+            <button type="button" class="modo-btn active" data-modo="fixo">Valor fixo</button>
+            <button type="button" class="modo-btn" data-modo="metragem">Por metragem</button>
+            <button type="button" class="modo-btn" data-modo="hora">Por hora</button>
+          </div>
+          <div id="modoCampos">
+            <!-- Preenchido pelo JS -->
           </div>
         </div>
 
@@ -523,7 +556,7 @@ function ligarEventosCalculadora() {
      --------------------------------------------------------- */
   function ligarEventosProposta() {
     // === CARREGA DADOS DA CALCULADORA (COLE AQUI) ===
-    const dadosSalvos = sessionStorage.getItem("calcDados");
+    const dadosSalvos = sessionStorage.getItem("propostaDados");
     if (dadosSalvos) {
       const d = JSON.parse(dadosSalvos);
       if (document.getElementById("calcNome")) document.getElementById("calcNome").value = d.nome;

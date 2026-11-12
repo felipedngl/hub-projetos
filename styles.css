@@ -6604,3 +6604,14 @@ body .project-card .status-tag.status-concluido {
   color: #6fbf8f !important;
   border: 1px solid rgba(111, 191, 143, 0.35) !important;
 }
+
+/* Cadeado nas etapas bloqueadas */
+.stage-link.bloqueada {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.stage-link.bloqueada::after {
+  content: "🔒";
+  margin-left: auto;
+  font-size: 0.8rem;
+}

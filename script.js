@@ -8435,6 +8435,17 @@ document.addEventListener("click", function (e) {
     e.target.id === "shareModal"
   ) {
     closeAllOpenModals();
+    
+    // Garante que o modal de projeto seja fechado corretamente
+    const modalOverlay = document.getElementById("modalOverlay");
+    if (modalOverlay) {
+      modalOverlay.hidden = true;
+      modalOverlay.style.display = "none";
+    }
+    
+    // Limpa o modo de edição
+    const form = document.getElementById("projectForm");
+    if (form) delete form.dataset.editId;
   }
 });
 
@@ -8445,7 +8456,7 @@ function closeAllOpenModals() {
     document.querySelectorAll(selector).forEach((el) => {
       if (el.id !== "passwordModal" && el.id !== "pwdModal") {
         el.style.display = "none";
-        el.hidden = true;  // ← NOVO: garante que o hidden seja setado
+        el.hidden = true;
         el.classList.remove("active", "open", "show");
       }
     });

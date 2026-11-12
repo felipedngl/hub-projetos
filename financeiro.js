@@ -1237,6 +1237,8 @@ ${nomeEscritorio}`;
       btnFin.addEventListener("click", () => {
         mostrarView("view-financeiro");
         ativarSubAba("calculadora");
+        // Muda a URL para /financeiro
+        window.history.replaceState({}, "", "/financeiro");
       });
     }
 
@@ -1248,6 +1250,8 @@ ${nomeEscritorio}`;
         // Remove o destaque verde do botão Financeiro
         const b = document.getElementById("btnFinanceiro");
         if (b) b.classList.remove("active");
+        // Volta a URL para /painel
+        window.history.replaceState({}, "", "/painel");
       });
     }
 

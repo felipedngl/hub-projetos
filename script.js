@@ -1654,6 +1654,12 @@ function cardHTML(p, index) {
           <span title="Metragem">
             ${ICONS.area} ${formatArea(p.area)} m²
           </span>
+
+          ${p.pacote ? `
+            <span class="pacote-badge pacote-${p.pacote}" title="Pacote contratado">
+              ${p.pacote === "ponto" ? "Ponto" : p.pacote === "trema" ? "Trema" : "Reticências"}
+            </span>
+          ` : ""}
         </div>
 
         <div class="card-footer">

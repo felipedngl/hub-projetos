@@ -80,56 +80,66 @@ const STAGES = [
   {
     id: "briefing",
     label: "Briefing & Alinhamento",
-    hint: "Entendimento das suas necessidades, preferências, rotina, estilo e orçamento."
+    hint: "Entendimento das suas necessidades, preferências, rotina, estilo e orçamento.",
+    pacotes: ["ponto", "trema", "reticencias"]
   },
   {
     id: "levantamento",
     label: "Levantamento Técnico",
-    hint: "Medição do espaço, registro fotográfico e levantamento das condições existentes."
+    hint: "Medição do espaço, registro fotográfico e levantamento das condições existentes.",
+    pacotes: ["ponto", "trema", "reticencias"]
   },
   {
     id: "estudo",
     label: "Estudo Preliminar",
-    hint: "Desenvolvimento das primeiras propostas de layout, conceito e distribuição dos ambientes."
+    hint: "Desenvolvimento das primeiras propostas de layout, conceito e distribuição dos ambientes.",
+    pacotes: ["trema", "reticencias"]
   },
   {
     id: "anteprojeto",
     label: "Anteprojeto",
-    hint: "Definição de materiais, acabamentos, iluminação, mobiliário e imagens 3D."
+    hint: "Definição de materiais, acabamentos, iluminação, mobiliário e imagens 3D.",
+    pacotes: ["trema", "reticencias"]
   },
   {
     id: "executivo",
     label: "Projeto Executivo",
-    hint: "Detalhamento técnico necessário para execução, compatibilização e orçamento da obra."
+    hint: "Detalhamento técnico necessário para execução, compatibilização e orçamento da obra.",
+    pacotes: ["trema", "reticencias"]
   },
   {
     id: "pos",
-    label: "Entrega e Finalização",
-    hint: "Organização dos materiais finais do projeto, ajustes de encerramento e preparação para a execução."
+    label: "Entregáveis",
+    hint: "Organização dos materiais finais do projeto, ajustes de encerramento e preparação para a execução.",
+    pacotes: ["ponto", "trema", "reticencias"]
   },
   {
     id: "memorial",
     label: "Memorial Descritivo",
     hint: "Especificação dos produtos, materiais e fornecedores, com quantidades, valores e links para compra.",
-    special: "memorial"
+    special: "memorial",
+    pacotes: ["reticencias"]
   },
   {
     id: "cronograma",
     label: "Cronograma de Obra",
     hint: "Organização das etapas da obra, prazos, fornecedores e datas previstas para execução e entrega.",
-    special: "schedule"
+    special: "schedule",
+    pacotes: ["reticencias"]
   },
   {
     id: "contratos",
     label: "Contratos & Documentos",
     hint: "Centralização de contratos, aditivos, documentos importantes e arquivos relacionados ao projeto.",
-    special: "contracts"
+    special: "contracts",
+    pacotes: ["ponto", "trema", "reticencias"]
   },
   {
     id: "site_log",
     label: "Diário de Obra",
     hint: "Registro do andamento da obra, fotos, relatórios, ocorrências e pendências.",
-    special: "site_log"
+    special: "site_log",
+    pacotes: ["reticencias"]
   }
 ];
 
@@ -1996,7 +2006,10 @@ if (projCover) {
   if (btnShare) btnShare.hidden = !fullAccess;
   if (btnDelete) btnDelete.hidden = !fullAccess;
 
-  const navStages = STAGES || [];
+  const pacoteDoProjeto = p.pacote || "trema";
+  const navStages = (STAGES || []).filter(stage => 
+    stage.pacotes && stage.pacotes.includes(pacoteDoProjeto)
+  );
   const stageNav = $("#stageNav");
 
   if (stageNav) {
@@ -2487,6 +2500,29 @@ if (designerUnlocked && !clientMode) {
     const project = currentProject();
     const stage = STAGES.find((s) => s.id === currentStage);
     if (!project || !stage) return;
+
+    // Verifica se a etapa está disponível no pacote do projeto
+    const pacoteDoProjeto = project.pacote || "trema";
+    const etapasPermitidas = stage.pacotes || [];
+    if (!etapasPermitidas.includes(pacoteDoProjeto)) {
+      const container = $("#stageContainer");
+      if (container) {
+        container.innerHTML = `
+          <div class="stage-header">
+            <h2>${stage.label}</h2>
+            <p class="stage-hint">${stage.hint}</p>
+          </div>
+          <div class="panel" style="text-align: center; padding: 60px 20px;">
+            <div style="font-size: 3rem; margin-bottom: 16px;">🔒</div>
+            <h3>Etapa indisponível no pacote ${pacoteDoProjeto === "ponto" ? "Ponto" : pacoteDoProjeto === "trema" ? "Trema" : "Reticências"}</h3>
+            <p style="color: var(--text-dim); margin-top: 8px;">
+              Para acessar esta etapa, faça upgrade para o pacote ${pacoteDoProjeto === "ponto" ? "Trema ou Reticências" : "Reticências"}.
+            </p>
+          </div>
+        `;
+      }
+      return;
+    }
 
     if (readOnlyView()) return renderStageClient(project, stage);
 

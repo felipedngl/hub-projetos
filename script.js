@@ -2007,9 +2007,7 @@ if (projCover) {
   if (btnDelete) btnDelete.hidden = !fullAccess;
 
   const pacoteDoProjeto = p.pacote || "trema";
-  const navStages = (STAGES || []).filter(stage => 
-    stage.pacotes && stage.pacotes.includes(pacoteDoProjeto)
-  );
+  const navStages = STAGES || [];  // ← TODAS as etapas (para mostrar as bloqueadas)
   const stageNav = $("#stageNav");
 
   if (stageNav) {
@@ -2088,6 +2086,10 @@ const dotClass = unreadMsg
             ? "done"
             : "";
 			
+// Verifica se a etapa está bloqueada para o pacote do projeto
+const etapaPermitida = stage.pacotes && stage.pacotes.includes(pacoteDoProjeto);
+const bloqueada = !etapaPermitida;
+
 return `
   ${
     stage.id === "memorial"
@@ -2101,7 +2103,7 @@ return `
 
   <button class="stage-link ${stage.id === currentStage ? "active" : ""} ${
     unreadMsg ? "has-unread-message" : ""
-  }" data-stage="${stage.id}">
+  } ${bloqueada ? "bloqueada" : ""}" data-stage="${stage.id}" ${bloqueada ? 'data-bloqueada="true"' : ""}>
 
     <span class="nav-label">
       <span class="stage-number">${index + 1}</span>

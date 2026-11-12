@@ -1681,33 +1681,38 @@ function cardHTML(p, index) {
               : ""
           }
 
-<div class="card-action-row">
-  <span class="status-tag ${statusClass}">
-    ${statusLabel}
-  </span>
+          <div class="card-action-row">
+            <span class="status-tag ${statusClass}">
+              ${statusLabel}
+            </span>
+          </div>
 
-  <span class="btn-detail">
-    Ver Detalhes
-  </span>
-</div>
+          ${
+            showOwnerOpenButton
+              ? `
+                <div class="card-owner-action" style="display: flex; gap: 8px; margin-top: 12px;">
+                  <button
+                    type="button"
+                    class="btn-owner-edit-project"
+                    data-project-id="${escapeHTML(String(p.id))}"
+                    style="flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-owner-open-project"
+                    data-project-id="${escapeHTML(String(p.id))}"
+                    style="flex: 1; padding: 8px 12px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;"
+                  >
+                    Abrir
+                  </button>
+                </div>
+              `
+              : ""
+          }
 
-${
-  showOwnerOpenButton
-    ? `
-      <div class="card-owner-action">
-        <button
-          type="button"
-          class="btn-owner-open-project"
-          data-project-id="${escapeHTML(String(p.id))}"
-        >
-          Abrir projeto
-        </button>
-      </div>
-    `
-    : ""
-}
-
-</div>
+        </div>
 
         </div>
 
@@ -1729,7 +1734,14 @@ function renderDashboard() {
   }
   if (projects.length > 0) {
     window._hasLoadedProjectsOnce = true;
-    projects = getOrderedProjects(projects);
+    const ordemSalva = getOrderedProjects(projects);
+    // Se o projeto novo não estiver na ordem, coloca no início
+    if (ordemSalva.length === projects.length) {
+      projects = ordemSalva;
+    } else {
+      const novos = projects.filter(p => !ordemSalva.find(o => String(o.id) === String(p.id)));
+      projects = [...novos, ...ordemSalva];
+    }
   }
 
   // Esconde barra de busca e filtros se estiver no modo cliente
@@ -1791,6 +1803,40 @@ $$(".btn-owner-open-project").forEach((button) => {
 
     if (projectId) {
       openProject(projectId, true);
+    }
+  });
+});
+
+// Botão "Editar" (abre o modal de edição)
+$$(".btn-owner-edit-project").forEach((button) => {
+  button.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!designerUnlocked || clientMode) return;
+
+    const projectId = button.dataset.projectId;
+    if (!projectId) return;
+
+    // Abre o modal de novo projeto com os dados preenchidos
+    const projeto = projects.find(p => String(p.id) === String(projectId));
+    if (!projeto) return;
+
+    const modal = $("#modalOverlay");
+    if (modal) {
+      modal.removeAttribute("hidden");
+      modal.style.display = "flex";
+      
+      $("#fieldName").value = projeto.title || "";
+      $("#fieldClient").value = projeto.client || "";
+      $("#fieldArea").value = projeto.area || "";
+      $("#fieldType").value = projeto.type || "residencial";
+      $("#fieldStatus").value = projeto.status || "em andamento";
+      $("#fieldPacote").value = projeto.pacote || "trema";
+      
+      // Muda o título do modal e o modo
+      $("#modalTitle").textContent = "Editar Projeto";
+      $("#projectForm").dataset.editId = projectId;
     }
   });
 });
@@ -7560,13 +7606,28 @@ function renderScheduleClientHTML(project) {
 
 function setupNewProjectModal() {
   const btnNew = $("#btnNewProject");
-  const modal = $("#modalNewProject") || $("#newProjectModal") || document.querySelector(".modal");
-  const form = $("#formNewProject") || document.querySelector("form");
+  const modal = $("#modalOverlay");
+  const form = $("#projectForm");
 
   if (btnNew && modal) {
     btnNew.addEventListener("click", () => {
-      modal.style.display = "flex";
+      // Limpa o modo de edição (se havia)
+      if (form) delete form.dataset.editId;
+      
+      // Muda o título do modal para "Novo Projeto"
+      const modalTitle = $("#modalTitle");
+      if (modalTitle) modalTitle.textContent = "Novo Projeto";
+      
       modal.removeAttribute("hidden");
+      modal.style.display = "flex";
+      
+      if (form) form.reset();
+      
+      // Reseta o preview da imagem
+      const preview = $("#dropzonePreview");
+      const inner = $("#dropzoneInner");
+      if (preview) preview.hidden = true;
+      if (inner) inner.hidden = false;
     });
   }
 
@@ -7574,31 +7635,20 @@ function setupNewProjectModal() {
     form.addEventListener("submit", (e) => {
       e.preventDefault();
 
-      // Pega todos os inputs e selects do formulário
       const textInputs = Array.from(form.querySelectorAll("input[type='text'], input[type='number'], input:not([type])"));
       const selects = Array.from(form.querySelectorAll("select"));
 
-      // 1. TÍTULO: Procura por ID/name ou pega o 1º campo de texto
       const titleInput = form.querySelector('#newProjectTitle, #projectTitleInput, [name="title"], [name="nome"]') || textInputs[0];
-      
-      // 2. CLIENTE: Procura por ID/name contendo 'client'/'cliente' ou pega o 2º campo de texto
       const clientInput = form.querySelector('#newProjectClient, #projectClientInput, [name="client"], [name="cliente"], [id*="client"], [name*="client"]') || textInputs[1];
-      
-      // 3. ÁREA: Procura por ID/name contendo 'area'/'metragem' ou pega o 3º campo de texto
       const areaInput = form.querySelector('#newProjectArea, [name="area"], [name="metragem"], [id*="area"]') || textInputs[2];
 
-      // 4. SELECTS: Tipo e Status
-      const typeSelect = form.querySelector('#newProjectType, [name="type"], [name="tipo"]') || selects[0];
-      const statusSelect = form.querySelector('#newProjectStatus, [name="status"]') || selects[1];
-      
-      // 5. SENHA: Procura por campo de senha ou o 4º campo de texto
+      const typeSelect = form.querySelector('#fieldType, #newProjectType, [name="type"], [name="tipo"]') || selects[0];
+      const statusSelect = form.querySelector('#fieldStatus, #newProjectStatus, [name="status"]') || selects[1];
+      const pacoteSelect = form.querySelector('#fieldPacote');
       const passwordInput = form.querySelector('input[type="password"], #newProjectPassword, [name="password"], [name="senha"]') || textInputs[3];
 
       const titleValue = titleInput ? titleInput.value.trim() : "";
       const clientValue = clientInput ? clientInput.value.trim() : "";
-      
-      // Pega o pacote
-      const pacoteSelect = form.querySelector("#fieldPacote");
       const pacoteValue = pacoteSelect ? pacoteSelect.value : "trema";
 
       if (!titleValue) {
@@ -7608,9 +7658,11 @@ function setupNewProjectModal() {
 
       const parsedArea = areaInput ? parseFloat(areaInput.value) : 0;
 
-      // Objeto com mapeamento duplo (client / clientName) para suportar qualquer estrutura de card
+      const editId = form.dataset.editId;
+      const isEdicao = !!editId;
+
       const rawProj = {
-        id: "proj_" + Date.now(),
+        id: isEdicao ? editId : "proj_" + Date.now(),
         title: titleValue,
         client: clientValue,
         clientName: clientValue,
@@ -7618,27 +7670,40 @@ function setupNewProjectModal() {
         type: typeSelect ? typeSelect.value : "Residencial",
         status: statusSelect ? statusSelect.value : "Em Andamento",
         clientPassword: passwordInput ? passwordInput.value.trim() : "",
-        pacote: pacoteValue,  // ← usa o valor do select
+        pacote: pacoteValue,
         updatedAt: new Date().toISOString()
       };
 
-      const newProj = typeof seedProject === "function" ? seedProject(rawProj) : rawProj;
-
-      // 1. Adiciona o projeto à lista local imediatamente
-      if (typeof projects !== "undefined" && Array.isArray(projects)) {
-        projects.unshift(newProj);
+      if (isEdicao) {
+        // Atualiza o projeto existente
+        const index = projects.findIndex(p => String(p.id) === String(editId));
+        if (index !== -1) {
+          projects[index] = { ...projects[index], ...rawProj };
+        }
+        delete form.dataset.editId;
+        if (typeof showToast === "function") showToast("Projeto atualizado!");
+      } else {
+        // Cria novo projeto
+        const newProj = typeof seedProject === "function" ? seedProject(rawProj) : rawProj;
+        if (typeof projects !== "undefined" && Array.isArray(projects)) {
+          projects.unshift(newProj);
+        }
+        if (typeof showToast === "function") showToast("Projeto criado com sucesso!");
       }
 
-      // 2. Atualiza os filtros e re-renderiza o painel na hora
+      // Atualiza filtros
       if (typeof activeFilter !== "undefined") activeFilter = "todos";
       if (typeof searchTerm !== "undefined") searchTerm = "";
 
-      if (typeof renderDashboard === "function") {
-        renderDashboard();
-      }
+      // Re-renderiza
+      if (typeof renderDashboard === "function") renderDashboard();
 
-      // 3. Limpa e fecha o modal IMEDIATAMENTE (sem esperar o Firebase)
+      // Limpa e fecha o modal
       form.reset();
+      
+      // Reseta o título do modal
+      const modalTitle = $("#modalTitle");
+      if (modalTitle) modalTitle.textContent = "Novo Projeto";
 
       if (typeof closeAllOpenModals === "function") {
         closeAllOpenModals();
@@ -7653,11 +7718,7 @@ function setupNewProjectModal() {
         });
       }
 
-      if (typeof showToast === "function") {
-        showToast("Projeto criado com sucesso!");
-      }
-
-      // 4. Salva no Firebase em segundo plano (background) para não travar a interface
+      // Salva no Firebase em background
       if (typeof saveProjects === "function") {
         saveProjects().catch((err) => {
           console.warn("Aviso: Falha ao sincronizar com o Firebase em segundo plano:", err);
@@ -7666,7 +7727,7 @@ function setupNewProjectModal() {
     });
   }
 }
-
+	
 /* ---------------- Modal & Toasts & Utilitários de Inicialização ---------------- */
 function showToast(message, isError = false) {
   // Remove toast anterior se existir
@@ -7988,6 +8049,41 @@ function bindEvents() {
 
     if (preview) preview.hidden = true;
     if (inner) inner.hidden = false;
+  });
+
+  // Trocar pacote ao clicar no badge (delegação de evento)
+  document.addEventListener("click", async (e) => {
+    const badge = e.target.closest(".pacote-badge");
+    if (!badge) return;
+    
+    e.stopPropagation();
+    
+    const card = badge.closest(".card");
+    const projectId = card?.dataset.projectId || card?.dataset.id;
+    if (!projectId) return;
+    
+    const projeto = projects.find(p => String(p.id) === String(projectId));
+    if (!projeto) return;
+    
+    const pacoteAtual = projeto.pacote || "trema";
+    const novoPacote = prompt(
+      "Qual pacote?\n1 = Ponto\n2 = Trema\n3 = Reticências",
+      pacoteAtual === "ponto" ? "1" : pacoteAtual === "trema" ? "2" : "3"
+    );
+    if (!novoPacote) return;
+    
+    const mapa = { "1": "ponto", "2": "trema", "3": "reticencias" };
+    const pacote = mapa[novoPacote.trim()];
+    if (!pacote) {
+      showToast("Pacote inválido.", true);
+      return;
+    }
+    
+    projeto.pacote = pacote;
+    if (await saveProjects([projeto])) {
+      showToast("Pacote atualizado.");
+      renderDashboard();
+    }
   });
 	
   $("#btnDesignerAccess")?.addEventListener("click", () => {

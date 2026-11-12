@@ -473,19 +473,19 @@ function ligarEventosCalculadora() {
           </div>
         </div>
 
-        <!-- BLOCO 1.5: MODO DE CÁLCULO -->
+        <!-- BLOCO 1.5: PACOTE E CÁLCULO -->
         <div class="fin-card">
-          <h3>1.5. Modo de Cálculo</h3>
+          <h3>1.5. Pacote e Cálculo</h3>
           <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
-            <button type="button" class="modo-btn active" data-modo="fixo">Valor fixo</button>
-            <button type="button" class="modo-btn" data-modo="metragem">Por metragem</button>
-            <button type="button" class="modo-btn" data-modo="hora">Por hora</button>
+            <button type="button" class="modo-btn" data-modo="ponto">Ponto</button>
+            <button type="button" class="modo-btn active" data-modo="trema">Trema</button>
+            <button type="button" class="modo-btn" data-modo="reticencias">Reticências</button>
           </div>
           <div id="modoCampos">
             <!-- Preenchido pelo JS -->
           </div>
         </div>
-
+        
         <!-- BLOCO 2: ADICIONAIS -->
         <div class="fin-card">
           <h3>2. Adicionais (opcional)</h3>
@@ -575,53 +575,56 @@ function ligarEventosCalculadora() {
       if (document.getElementById("calcComplexidade")) document.getElementById("calcComplexidade").value = d.complexidade;
       if (document.getElementById("calcTipo")) document.getElementById("calcTipo").value = d.tipo;
 
+      // 🔍 DEBUG: verifica se os dados foram restaurados
+      console.log("[DEBUG] Dados restaurados:", {
+        nome: document.getElementById("calcNome")?.value,
+        m2: document.getElementById("calcM2")?.value,
+        cliente: document.getElementById("calcNome")?.dataset?.cliente
+      });
+
        atualizarTextoProposta();
+    } else {
+      console.warn("[DEBUG] Nenhum dado em propostaDados");
     }
 
-    // === MODO DE CÁLCULO ===
-    let modoAtual = "fixo";
+    // === PACOTES ===
+    let pacoteAtual = "trema";
     const botoesModo = document.querySelectorAll(".modo-btn");
     botoesModo.forEach(btn => {
       btn.addEventListener("click", () => {
         botoesModo.forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
-        modoAtual = btn.dataset.modo;
-        renderizarCamposModo(modoAtual);
+        pacoteAtual = btn.dataset.modo;
+        renderizarCamposModo(pacoteAtual);
       });
     });
 
-    function renderizarCamposModo(modo) {
+    function renderizarCamposModo(pacote) {
       const container = document.getElementById("modoCampos");
       if (!container) return;
       
-      if (modo === "fixo") {
+      if (pacote === "ponto") {
         container.innerHTML = `
           <div class="fin-field">
             <label>Valor fixo (R$)</label>
             <input type="number" id="modoValorFixo" value="400" min="0" step="50" />
           </div>
         `;
-      } else if (modo === "metragem") {
+      } else if (pacote === "trema") {
         container.innerHTML = `
           <div class="fin-field">
             <label>Valor por m² (R$)</label>
             <input type="number" id="modoValorM2" value="50" min="0" step="10" />
           </div>
+          <p class="fin-hint">Calculado com base na metragem (${document.getElementById("calcM2")?.value || 0}m²) + custo/hora do orçamento.</p>
         `;
-      } else if (modo === "hora") {
+      } else if (pacote === "reticencias") {
         container.innerHTML = `
-          <p class="fin-hint">O valor por hora é calculado automaticamente com base no orçamento.</p>
-          <div class="fin-field">
-            <label>Horas totais</label>
-            <input type="number" id="modoHoras" value="0" min="0" step="1" readonly />
-          </div>
+          <p class="fin-hint">Valor calculado automaticamente com base no orçamento completo (horas × custo/hora + extras, com margem).</p>
         `;
-        const horas = document.getElementById("h_briefing")?.value || 0;
-        const el = document.getElementById("modoHoras");
-        if (el) el.value = horas;
       }
     }
-    renderizarCamposModo("fixo");
+    renderizarCamposModo("trema");
 
     // Atualiza o texto quando o modo mudar
     ["modoValorFixo", "modoValorM2"].forEach(id => {
@@ -695,21 +698,31 @@ function ligarEventosCalculadora() {
     const custoTotal = custoMaoObra + custosExtras;
     let precoBase = custoTotal * (1 + margemPerc / 100);
 
-    // Verifica qual modo de cálculo está ativo
-    const modoAtivo = document.querySelector(".modo-btn.active")?.dataset.modo || "fixo";
+    // Verifica qual pacote está ativo
+    const pacoteAtivo = document.querySelector(".modo-btn.active")?.dataset.modo || "trema";
     
-    if (modoAtivo === "fixo") {
-      const valorFixo = Number(document.getElementById("modoValorFixo")?.value) || 0;
+    if (pacoteAtivo === "ponto") {
+      // Ponto: valor fixo (editável)
+      const valorFixo = Number(document.getElementById("modoValorFixo")?.value) || 400;
       precoBase = valorFixo;
-    } else if (modoAtivo === "metragem") {
-      const valorM2 = Number(document.getElementById("modoValorM2")?.value) || 0;
-      precoBase = metragem * valorM2;
-    } else if (modoAtivo === "hora") {
-      // Usa o preço calculado do orçamento (já está em precoBase)
-      // Se for 0, usa o fallback
-      if (precoBase <= 0) {
-        const adicionalMetragem = metragem > 25 ? (metragem - 25) * 50 : 0;
-        precoBase = 1500 + adicionalMetragem;
+    } else if (pacoteAtivo === "trema") {
+      // Trema: valor por metragem × custo/hora do orçamento (mais inteligente)
+      const valorM2 = Number(document.getElementById("modoValorM2")?.value) || 50;
+      // Se o orçamento tiver custo, usa o custo/hora; senão, usa 50/m² como fallback
+      if (custoTotal > 0) {
+        // Preço = horas × custo/hora × margem
+        precoBase = custoTotal * (1 + margemPerc / 100);
+      } else {
+        // Fallback: metragem × valor/m²
+        precoBase = metragem * valorM2;
+      }
+    } else if (pacoteAtivo === "reticencias") {
+      // Reticências: valor do orçamento completo
+      if (custoTotal > 0) {
+        precoBase = custoTotal * (1 + margemPerc / 100);
+      } else {
+        // Fallback: metragem × 80/m² (valor padrão do Reticências)
+        precoBase = metragem * 80;
       }
     }
 

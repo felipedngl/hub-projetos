@@ -1816,12 +1816,13 @@ $$(".btn-owner-edit-project").forEach((button) => {
     const projeto = projects.find(p => String(p.id) === String(projectId));
     if (!projeto) return;
 
-	const modal = $("#modalOverlay");
+    const modal = $("#modalOverlay");
     if (modal) {
-      // Força o reset do modal (garante que vai abrir)
+      // Reset completo do modal
       modal.hidden = false;
+      modal.removeAttribute("hidden");
       modal.style.display = "flex";
-      modal.classList.remove("hidden");
+      modal.classList.remove("hidden", "active", "open", "show");
       
       const fieldName = $("#fieldName");
       const fieldClient = $("#fieldClient");

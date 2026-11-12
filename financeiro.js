@@ -456,9 +456,9 @@ function ligarEventosCalculadora() {
         <div class="fin-card">
           <h3>1. Pacote</h3>
           <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
-            <button type="button" class="pacote-btn" data-pacote="ponto">Ponto (R$ 400)</button>
-            <button type="button" class="pacote-btn" data-pacote="trema">Trema (R$ 1.500 + m² extra)</button>
-            <button type="button" class="pacote-btn" data-pacote="reticencias">Reticências (orçamento)</button>
+            <button type="button" class="pacote-btn" data-pacote="ponto">Ponto</button>
+            <button type="button" class="pacote-btn" data-pacote="trema">Trema</button>
+            <button type="button" class="pacote-btn" data-pacote="reticencias">Reticências</button>
           </div>
           <div id="pacoteCampos">
             <p class="fin-hint">Clique em um pacote para ver os campos e o cálculo.</p>
@@ -468,16 +468,16 @@ function ligarEventosCalculadora() {
         <!-- BLOCO 2: ADICIONAIS -->
         <div class="fin-card">
           <h3>2. Adicionais (opcional)</h3>
-          <div class="fin-grid">
-            <div class="fin-field">
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <div class="fin-field" style="flex: 1; min-width: 200px;">
               <label>Luminotécnico (+15%)</label>
               <select id="propLuminotecnico">
                 <option value="nao">Não incluir</option>
                 <option value="sim">Sim, incluir</option>
               </select>
             </div>
-            <div class="fin-field">
-              <label>Marcenaria (valor do Cortecloud)</label>
+            <div class="fin-field" style="flex: 1; min-width: 200px;">
+              <label>Marcenaria (R$)</label>
               <input type="number" id="propMarcenaria" placeholder="ex: 1500" min="0" step="50" value="0" />
             </div>
           </div>
@@ -609,7 +609,7 @@ function ligarEventosCalculadora() {
       
       if (pacote === "ponto") {
         container.innerHTML = `
-          <div class="fin-field">
+          <div class="fin-field" style="max-width: 220px;">
             <label>Valor fixo (R$)</label>
             <input type="number" id="pacoteValorFixo" value="400" min="0" step="50" />
           </div>
@@ -617,7 +617,7 @@ function ligarEventosCalculadora() {
         document.getElementById("pacoteValorFixo")?.addEventListener("input", atualizarTextoProposta);
       } else if (pacote === "trema") {
         container.innerHTML = `
-          <div class="fin-grid">
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
             <div class="fin-field">
               <label>Valor base (R$)</label>
               <input type="number" id="pacoteValorBase" value="1500" min="0" step="100" />
@@ -631,7 +631,7 @@ function ligarEventosCalculadora() {
               <input type="number" id="pacoteValorM2" value="50" min="0" step="10" />
             </div>
           </div>
-          <p class="fin-hint">Cálculo: R$ 1.500 + (m² - 25) × R$ 50/m²</p>
+          <p class="fin-hint">Cálculo: valor base + (m² do projeto - metragem inclusa) × valor/m²</p>
         `;
         ["pacoteValorBase", "pacoteMetragemInclusa", "pacoteValorM2"].forEach(id => {
           document.getElementById(id)?.addEventListener("input", atualizarTextoProposta);
@@ -737,9 +737,9 @@ function ligarEventosCalculadora() {
       const valorFixo = Number(document.getElementById("pacoteValorFixo")?.value) || 400;
       precoBase = valorFixo;
     } else if (pacoteAtivo === "trema") {
-      // Trema: R$ 1.500 até 25m² + R$ 50/m² por m² excedente
+      // Trema: valor base + (m² do projeto - metragem inclusa) × valor/m²
       const valorBase = Number(document.getElementById("pacoteValorBase")?.value) || 1500;
-      const metragemInclusa = Number(document.getElementById("pacoteMetragemInclusa")?.value) || 25;
+      const metragemInclusa = Number(document.getElementById("pacoteMetragemInclusa")?.value) || 1;
       const valorM2 = Number(document.getElementById("pacoteValorM2")?.value) || 50;
       const adicionalMetragem = metragem > metragemInclusa ? (metragem - metragemInclusa) * valorM2 : 0;
       precoBase = valorBase + adicionalMetragem;

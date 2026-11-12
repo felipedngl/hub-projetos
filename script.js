@@ -8092,14 +8092,6 @@ function bindEvents() {
     if (inner) inner.hidden = false;
   });
 
-  // Botão X do modal de projeto
-  const btnCloseModal = document.getElementById("btnCloseModal");
-  if (btnCloseModal) {
-    btnCloseModal.addEventListener("click", () => {
-      closeAllOpenModals();
-    });
-  }
-
   // Trocar pacote ao clicar no badge (delegação de evento)
   document.addEventListener("click", async (e) => {
     const badge = e.target.closest(".pacote-badge");

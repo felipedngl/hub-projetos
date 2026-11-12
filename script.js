@@ -2132,6 +2132,15 @@ return `
 
 $$("#stageNav .stage-link").forEach((btn) => {
   btn.addEventListener("click", () => {
+    // Se a etapa está bloqueada, não faz nada (ou mostra um aviso)
+    if (btn.dataset.bloqueada === "true") {
+      const pacoteAtual = currentProject()?.pacote || "trema";
+      const proximoPacote = pacoteAtual === "ponto" ? "Trema" : "Reticências";
+      if (typeof showToast === "function") {
+        showToast(`Etapa disponível no pacote ${proximoPacote}.`, true);
+      }
+      return;
+    }
 
 currentStage = btn.dataset.stage;
 

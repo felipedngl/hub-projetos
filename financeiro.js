@@ -61,6 +61,9 @@
     } else if (tabId === "propostas") {
       container.innerHTML = renderPropostaHTML();
       ligarEventosProposta();
+    } else if (tabId === "propostas-salvas") {
+      container.innerHTML = renderPropostasSalvasHTML();
+      ligarEventosPropostasSalvas();
     } else if (tabId === "contratos") {
       container.innerHTML = `<div class="empty-state"><h3>Contratos</h3><p>Em construção.</p></div>`;
     }
@@ -1099,6 +1102,87 @@ ${nomeEscritorio}`;
         feedback.textContent = "❌ Erro ao salvar: " + (err.message || "desconhecido");
         feedback.style.color = "#ef4444";
       }
+    }
+  }
+
+  /* ---------------------------------------------------------
+     5.2. TELA DE PROPOSTAS SALVAS
+     --------------------------------------------------------- */
+  function renderPropostasSalvasHTML() {
+    return `
+      <div class="fin-propostas-salvas">
+        <h2 class="fin-section-title">Propostas Salvas</h2>
+        <p class="fin-hint">Histórico de propostas geradas. Você pode apagar as que não precisar mais.</p>
+        
+        <div id="listaPropostasSalvas">
+          <p class="fin-hint">Carregando...</p>
+        </div>
+      </div>
+    `;
+  }
+
+  async function ligarEventosPropostasSalvas() {
+    const container = document.getElementById("listaPropostasSalvas");
+    if (!container) return;
+
+    try {
+      const snapshot = await db.collection("propostas")
+        .orderBy("criadoEm", "desc")
+        .get();
+
+      if (snapshot.empty) {
+        container.innerHTML = `<p class="fin-hint">Nenhuma proposta salva ainda.</p>`;
+        return;
+      }
+
+      const propostas = [];
+      snapshot.forEach(doc => {
+        propostas.push({ id: doc.id, ...doc.data() });
+      });
+
+      container.innerHTML = propostas.map(p => {
+        const data = p.criadoEm ? new Date(p.criadoEm).toLocaleString("pt-BR") : "";
+        const pacoteLabel = p.pacote === "ponto" ? "Ponto" : p.pacote === "trema" ? "Trema" : "Reticências";
+        const pacoteClass = p.pacote === "ponto" ? "pacote-ponto" : p.pacote === "trema" ? "pacote-trema" : "pacote-reticencias";
+        
+        return `
+          <div class="proposta-salva-item" data-id="${p.id}">
+            <div class="proposta-salva-info">
+              <div class="proposta-salva-titulo">
+                <strong>${p.projeto || "Sem projeto"}</strong>
+                <span class="pacote-badge ${pacoteClass}">${pacoteLabel}</span>
+              </div>
+              <div class="proposta-salva-meta">
+                ${p.cliente ? `<span>Cliente: ${p.cliente}</span>` : ""}
+                <span>Data: ${data}</span>
+                <span>Tom: ${p.tom || "—"}</span>
+              </div>
+            </div>
+            <button type="button" class="btn-apagar-proposta" data-id="${p.id}" title="Apagar proposta">🗑️</button>
+          </div>
+        `;
+      }).join("");
+
+      // Liga os botões de apagar
+      container.querySelectorAll(".btn-apagar-proposta").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.dataset.id;
+          if (!confirm("Apagar esta proposta?")) return;
+
+          try {
+            await db.collection("propostas").doc(id).delete();
+            if (typeof showToast === "function") showToast("Proposta apagada.");
+            ligarEventosPropostasSalvas();  // Recarrega a lista
+          } catch (err) {
+            console.error("Erro ao apagar proposta:", err);
+            if (typeof showToast === "function") showToast("Erro ao apagar.", true);
+          }
+        });
+      });
+
+    } catch (err) {
+      console.error("Erro ao carregar propostas:", err);
+      container.innerHTML = `<p class="fin-hint">Erro ao carregar propostas.</p>`;
     }
   }
    

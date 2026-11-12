@@ -7596,6 +7596,10 @@ function setupNewProjectModal() {
 
       const titleValue = titleInput ? titleInput.value.trim() : "";
       const clientValue = clientInput ? clientInput.value.trim() : "";
+      
+      // Pega o pacote
+      const pacoteSelect = form.querySelector("#fieldPacote");
+      const pacoteValue = pacoteSelect ? pacoteSelect.value : "trema";
 
       if (!titleValue) {
         if (typeof showToast === "function") showToast("Preencha o título do projeto.", true);
@@ -7614,7 +7618,7 @@ function setupNewProjectModal() {
         type: typeSelect ? typeSelect.value : "Residencial",
         status: statusSelect ? statusSelect.value : "Em Andamento",
         clientPassword: passwordInput ? passwordInput.value.trim() : "",
-        pacote: "trema",  // ← NOVO: pacote padrão (Trema)
+        pacote: pacoteValue,  // ← usa o valor do select
         updatedAt: new Date().toISOString()
       };
 

@@ -270,6 +270,11 @@ const STATUS_LABELS = {
   "em-producao": "Em Produção",
   "aguardando-aprovacao": "Aguardando sua Aprovação",
   concluida: "Concluída",
+  // Status do card (projeto)
+  "em andamento": "Em Andamento",
+  "concluido": "Concluído",
+  "Em Andamento": "Em Andamento",
+  "Concluído": "Concluído",
 };
 
 const STATUS_CLASS = {
@@ -277,6 +282,11 @@ const STATUS_CLASS = {
   "em-producao": "status-em-producao",
   "aguardando-aprovacao": "status-aguardando-aprovacao",
   concluida: "status-concluida",
+  // Status do card (projeto)
+  "em andamento": "status-em-andamento",
+  "concluido": "status-concluido",
+  "Em Andamento": "status-em-andamento",
+  "Concluído": "status-concluido",
 };
 
   /* ---------------- Estado ---------------- */

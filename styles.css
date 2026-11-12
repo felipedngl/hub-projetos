@@ -6568,3 +6568,15 @@ body.theme-light .fin-proposta textarea {
   color: #2a9d8f;
   border: 1px solid rgba(42, 157, 143, 0.3);
 }
+
+/* Cores dos status dos cards */
+.status-tag.status-em-andamento {
+  background: rgba(232, 176, 74, 0.15);
+  color: #e8b04a;
+  border: 1px solid rgba(232, 176, 74, 0.35);
+}
+.status-tag.status-concluido {
+  background: rgba(111, 191, 143, 0.15);
+  color: #6fbf8f;
+  border: 1px solid rgba(111, 191, 143, 0.35);
+}

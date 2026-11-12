@@ -51,7 +51,7 @@
       container.innerHTML = renderPropostaHTML();
       ligarEventosProposta();
     } else if (tabId === "contratos") {
-      container.innerHTML = `<div class="empty-state"><h3>✍️ Contratos</h3><p>Em construção.</p></div>`;
+      container.innerHTML = `<div class="empty-state"><h3>Contratos</h3><p>Em construção.</p></div>`;
     }
   }
    
@@ -63,10 +63,10 @@
       <div class="fin-calc">
         <div class="fin-calc-header">
           <div>
-            <h2 class="fin-section-title">🧮 Orçamento de Projeto</h2>
+            <h2 class="fin-section-title">Orçamento de Projeto</h2>
             <p class="fin-hint">Preencha os dados abaixo. O preço é calculado em tempo real.</p>
           </div>
-          <button type="button" class="btn-fin-limpar" id="btnLimparCalculadora">🗑️ Limpar</button>
+          <button type="button" class="btn-fin-limpar" id="btnLimparCalculadora">Limpar</button>
         </div>
 
         <!-- ========== SEÇÃO 1: DADOS DO PROJETO ========== -->
@@ -185,7 +185,7 @@
 
         <!-- ========== RESULTADO ========== -->
         <div class="fin-resultado">
-          <h3>📊 Resumo do Orçamento</h3>
+          <h3>Resumo do Orçamento</h3>
           <div class="fin-res-linha"><span>Horas Totais:</span> <strong id="calcHorasTotais">0h</strong></div>
           <div class="fin-res-linha"><span>Custo da Mão de Obra:</span> <strong id="calcCustoMaoObra">R$ 0,00</strong></div>
           <div class="fin-res-linha"><span>Custos Extras:</span> <strong id="calcCustosExtras">R$ 0,00</strong></div>
@@ -196,7 +196,7 @@
         </div>
 
         <div class="fin-actions">
-          <button type="button" class="btn-primary" id="btnGerarProposta">📄 Gerar Proposta</button>
+          <button type="button" class="btn-primary" id="btnGerarProposta">Gerar Proposta</button>
           <span id="calcFeedback" class="fin-feedback"></span>
         </div>
       </div>
@@ -417,7 +417,7 @@ function ligarEventosCalculadora() {
   function renderPropostaHTML() {
     return `
       <div class="fin-proposta">
-        <h2>📄 Gerar Proposta</h2>
+        <h2>Gerar Proposta</h2>
         <p class="fin-hint">Escolha o pacote, o tom e as condições. O texto é gerado automaticamente.</p>
 
         <!-- BLOCO 1: PACOTE E TOM -->
@@ -499,8 +499,8 @@ function ligarEventosCalculadora() {
           <p class="fin-hint">O texto abaixo é gerado automaticamente. Você pode copiar e colar.</p>
           <textarea id="propTexto" rows="20" style="width:100%; font-family: inherit; font-size:0.9rem; line-height:1.5; padding:12px; border-radius:8px; border:1px solid var(--border-strong); background: var(--surface-2); color: var(--text); resize: vertical;"></textarea>
           <div class="fin-actions" style="margin-top: 16px;">
-            <button type="button" class="btn-primary" id="btnCopiarProposta">📋 Copiar</button>
-            <button type="button" class="btn-primary" id="btnSalvarProposta" style="background:#2a9d8f;">💾 Salvar Proposta</button>
+            <button type="button" class="btn-primary" id="btnCopiarProposta">Copiar</button>
+            <button type="button" class="btn-primary" id="btnSalvarProposta" style="background:#2a9d8f;">Salvar Proposta</button>
             <span id="propFeedback" class="fin-feedback"></span>
           </div>
         </div>
@@ -657,21 +657,21 @@ function ligarEventosCalculadora() {
 
 Analisei o que você me contou sobre o ${nomeProjeto} e preparei a Consultoria Ponto, ideal para quem quer clareza antes de começar.
 
-📦 O QUE INCLUI:
+O QUE INCLUI:
 • 1 videochamada de 1h (diagnóstico do espaço)
 • Plano de Ação em PDF (o que fazer, em que ordem)
 • Paleta de cores sugerida
 • Mapa do que fica (o que manter, adaptar, trocar)
 • Suporte por 7 dias no WhatsApp
 
-💰 VALOR: ${formatBRL(precoFinal)}
+VALOR: ${formatBRL(precoFinal)}
 
-💳 CONDIÇÕES:
+CONDIÇÕES:
 Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
 Saldo: ${parcelasAtual}x de ${formatBRL(valorParcela)}
 Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
 
-Se fizer sentido, me chama que a gente marca a videochamada. 💛
+Se fizer sentido, me chama que a gente marca a videochamada.
 
 ${nomeEscritorio}`;
       } else if (tom === "formal") {
@@ -702,16 +702,16 @@ Antes do valor, deixa eu te mostrar por que a Consultoria Ponto é o melhor prim
 
 Muitas pessoas começam a reformar sem saber por onde. Compram o móvel errado, escolhem a cor errada, gastam com o que não precisava. A Consultoria Ponto existe para você não cometer esses erros.
 
-📦 O QUE VOCÊ RECEBE:
+O QUE VOCÊ RECEBE:
 • Diagnóstico completo do espaço
 • Plano de Ação em PDF (o passo a passo do que fazer)
 • Paleta de cores
 • Mapa do que fica (o que manter, adaptar, trocar)
 • Suporte por 7 dias
 
-💰 VALOR: ${formatBRL(precoFinal)}
+VALOR: ${formatBRL(precoFinal)}
 
-💳 CONDIÇÕES:
+CONDIÇÕES:
 Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
 Saldo: ${parcelasAtual}x de ${formatBRL(valorParcela)}
 Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
@@ -731,7 +731,7 @@ ${nomeEscritorio}`;
 
 Analisei tudo que você me passou sobre o ${nomeProjeto} (${metragem}m²) e preparei o Trema, o projeto ideal para transformar 1 ambiente.
 
-📦 O QUE INCLUI:
+O QUE INCLUI:
 • Briefing e Levantamento
 • Estudo Preliminar (layout)
 • Anteprojeto (materiais + 1 render 3D)
@@ -739,10 +739,10 @@ Analisei tudo que você me passou sobre o ${nomeProjeto} (${metragem}m²) e prep
 • Entrega (PDF final + guia de execução)
 • Suporte por 10 dias
 
-💰 VALOR: ${formatBRL(precoFinal)}
+VALOR: ${formatBRL(precoFinal)}
 ${adicionais > 0 ? `(inclui ${luminotecnico ? "Luminotécnico +15%" : ""} ${marcenariaValor > 0 ? `+ Marcenaria ${formatBRL(marcenariaValor)}` : ""})` : ""}
 
-💳 CONDIÇÕES:
+CONDIÇÕES:
 Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
 Saldo: ${parcelasAtual}x de ${formatBRL(valorParcela)}
 Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
@@ -782,7 +782,7 @@ Cada centímetro mal planejado é um móvel que não encaixa, uma porta que atra
 
 É por isso que o Trema é o pacote ideal para o seu caso:
 
-📦 O QUE VOCÊ RECEBE:
+O QUE VOCÊ RECEBE:
 • Briefing e Levantamento
 • Estudo Preliminar (layout)
 • Anteprojeto (materiais + 1 render 3D)
@@ -790,10 +790,10 @@ Cada centímetro mal planejado é um móvel que não encaixa, uma porta que atra
 • Entrega (PDF final + guia)
 • Suporte por 10 dias
 
-💰 VALOR: ${formatBRL(precoFinal)}
+VALOR: ${formatBRL(precoFinal)}
 ${adicionais > 0 ? `(inclui ${luminotecnico ? "luminotécnico" : ""} ${marcenariaValor > 0 ? `e marcenaria` : ""})` : ""}
 
-💳 CONDIÇÕES:
+CONDIÇÕES:
 Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
 Saldo: ${parcelasAtual}x de ${formatBRL(valorParcela)}
 Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
@@ -813,7 +813,7 @@ ${nomeEscritorio}`;
 
 Analisei tudo que você me passou sobre o ${nomeProjeto} (${metragem}m²) e preparei o Reticências, o projeto completo para a casa toda.
 
-📦 O QUE INCLUI:
+O QUE INCLUI:
 • Todos os ambientes
 • Briefing, Levantamento, Estudo, Anteprojeto
 • 3 a 5 renders 3D (dependendo do tamanho)
@@ -823,10 +823,10 @@ Analisei tudo que você me passou sobre o ${nomeProjeto} (${metragem}m²) e prep
 • Acompanhamento de obra
 • Suporte por 30 dias
 
-💰 VALOR: ${formatBRL(precoFinal)}
+VALOR: ${formatBRL(precoFinal)}
 ${adicionais > 0 ? `(inclui ${luminotecnico ? "Luminotécnico +15%" : ""} ${marcenariaValor > 0 ? `+ Marcenaria ${formatBRL(marcenariaValor)}` : ""})` : ""}
 
-💳 CONDIÇÕES:
+CONDIÇÕES:
 Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
 Saldo: ${parcelasAtual}x de ${formatBRL(valorParcela)}
 Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
@@ -866,7 +866,7 @@ Antes do valor, deixa eu te mostrar por que o Reticências é o pacote que resol
 
 Projetar a casa toda não é só desenhar cada ambiente separado. É fazer tudo conversar: a luz da sala com o piso do quarto, o armário da cozinha com a circulação. É por isso que o Reticências existe:
 
-📦 O QUE VOCÊ RECEBE:
+O QUE VOCÊ RECEBE:
 • Todos os ambientes
 • Briefing, Levantamento, Estudo, Anteprojeto
 • 3 a 5 renders 3D
@@ -876,10 +876,10 @@ Projetar a casa toda não é só desenhar cada ambiente separado. É fazer tudo 
 • Acompanhamento de obra
 • Suporte por 30 dias
 
-💰 VALOR: ${formatBRL(precoFinal)}
+VALOR: ${formatBRL(precoFinal)}
 ${adicionais > 0 ? `(inclui ${luminotecnico ? "luminotécnico" : ""} ${marcenariaValor > 0 ? `e marcenaria` : ""})` : ""}
 
-💳 CONDIÇÕES:
+CONDIÇÕES:
 Entrada: ${formatBRL(valorEntrada)} (${entradaPerc}%)
 Saldo: ${parcelasAtual}x de ${formatBRL(valorParcela)}
 Ou ${formatBRL(valorPix)} no Pix (${descontoPix}% de desconto)
@@ -1043,7 +1043,7 @@ ${nomeEscritorio}`;
   function renderConfigHTML() {
     return `
       <div class="fin-config">
-        <h2>⚙️ Configuração do Escritório</h2>
+        <h2>Configuração do Escritório</h2>
         <p class="fin-hint">Preencha uma vez. O sistema calcula o custo da sua hora automaticamente.</p>
 
         <div class="fin-grid">
@@ -1095,14 +1095,14 @@ ${nomeEscritorio}`;
         </div>
 
         <div class="fin-resultado" id="finResultado">
-          <h3>📊 Resultado</h3>
+          <h3>Resultado</h3>
           <div class="fin-res-linha"><span>Custo da sua hora:</span> <strong id="resCustoHora">—</strong></div>
           <div class="fin-res-linha"><span>Valor mínimo de venda/hora:</span> <strong id="resVendaHora">—</strong></div>
           <div class="fin-res-linha"><span>Horas faturáveis no mês:</span> <strong id="resHorasMes">—</strong></div>
         </div>
 
         <div class="fin-actions">
-          <button type="button" class="btn-primary" id="btnSalvarConfig">💾 Salvar Configuração</button>
+          <button type="button" class="btn-primary" id="btnSalvarConfig">Salvar Configuração</button>
           <span id="cfgFeedback" class="fin-feedback"></span>
         </div>
       </div>

@@ -578,10 +578,9 @@ body:not(.designer-unlocked) #btnNewProject {
 .card-footer {
   margin-top: auto;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-top: 14px;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
   border-top: 1px solid var(--border);
 }
 
@@ -6576,7 +6575,6 @@ body.theme-light .fin-proposta textarea {
   justify-content: space-between;
   gap: 12px;
   padding-top: 12px;
-  border-top: 1px solid var(--border);
 }
 
 .card-owner-action {

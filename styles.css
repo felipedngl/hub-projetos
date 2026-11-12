@@ -6540,3 +6540,31 @@ body.theme-light .fin-proposta textarea {
   color: #2a9d8f;
   font-weight: 600;
 }
+
+/* Badge do pacote no card */
+.pacote-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.pacote-ponto {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+.pacote-trema {
+  background: rgba(232, 106, 68, 0.15);
+  color: #f28c28;
+  border: 1px solid rgba(232, 106, 68, 0.3);
+}
+.pacote-reticencias {
+  background: rgba(42, 157, 143, 0.15);
+  color: #2a9d8f;
+  border: 1px solid rgba(42, 157, 143, 0.3);
+}

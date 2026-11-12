@@ -7608,6 +7608,7 @@ function setupNewProjectModal() {
         type: typeSelect ? typeSelect.value : "Residencial",
         status: statusSelect ? statusSelect.value : "Em Andamento",
         clientPassword: passwordInput ? passwordInput.value.trim() : "",
+        pacote: "trema",  // ← NOVO: pacote padrão (Trema)
         updatedAt: new Date().toISOString()
       };
 

@@ -1231,7 +1231,7 @@ ${nomeEscritorio}`;
      6. INICIALIZAÇÃO
      --------------------------------------------------------- */
   function init() {
-    // Botão do header (Financeiro)
+    // Botão do header (Financeiro) 
     const btnFin = document.getElementById("btnFinanceiro");
     if (btnFin) {
       btnFin.addEventListener("click", () => {
@@ -1261,10 +1261,17 @@ ${nomeEscritorio}`;
     });
   }
 
+  // Expõe a função para o script.js chamar
+  window.financeiroInit = function() {
+    mostrarView("view-financeiro");
+    ativarSubAba("calculadora");
+  };
+
   // Aguarda o DOM estar pronto
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {
     init();
   }
+   
 })();

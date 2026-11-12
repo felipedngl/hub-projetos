@@ -1691,37 +1691,37 @@ function cardHTML(p, index) {
               : ""
           }
 
-          <div class="card-action-row" style="display: flex; align-items: center; gap: 8px; padding: 8px 0;">
-            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-dim);">
-              <span style="width: 8px; height: 8px; border-radius: 50%; background: ${p.status === "concluido" ? "#6fbf8f" : "#e8b04a"};"></span>
-              ${statusLabel}
-            </span>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--text-dim);">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: ${p.status === "concluido" ? "#6fbf8f" : "#e8b04a"}; flex-shrink: 0;"></span>
+              <span>${statusLabel}</span>
+            </div>
+
+            ${
+              showOwnerOpenButton
+                ? `
+                  <div style="display: flex; gap: 6px; width: 100%;">
+                    <button
+                      type="button"
+                      class="btn-owner-edit-project"
+                      data-project-id="${escapeHTML(String(p.id))}"
+                      style="flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text); font-family: inherit; font-size: 0.75rem; font-weight: 500; cursor: pointer;"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-owner-open-project"
+                      data-project-id="${escapeHTML(String(p.id))}"
+                      style="flex: 1; min-width: 0; padding: 6px 8px; border: none; border-radius: 6px; background: var(--accent); color: #fff; font-family: inherit; font-size: 0.75rem; font-weight: 500; cursor: pointer;"
+                    >
+                      Abrir
+                    </button>
+                  </div>
+                `
+                : ""
+            }
           </div>
-		  
-          ${
-            showOwnerOpenButton
-              ? `
-                <div class="card-owner-action" style="display: flex; gap: 6px; margin-top: 8px; box-sizing: border-box; width: 100%;">
-                  <button
-                    type="button"
-                    class="btn-owner-edit-project"
-                    data-project-id="${escapeHTML(String(p.id))}"
-                    style="flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text); font-family: inherit; font-size: 0.75rem; font-weight: 500; cursor: pointer; box-sizing: border-box;"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    type="button"
-                    class="btn-owner-open-project"
-                    data-project-id="${escapeHTML(String(p.id))}"
-                    style="flex: 1; min-width: 0; padding: 6px 8px; border: none; border-radius: 6px; background: var(--accent); color: #fff; font-family: inherit; font-size: 0.75rem; font-weight: 500; cursor: pointer; box-sizing: border-box;"
-                  >
-                    Abrir
-                  </button>
-                </div>
-              `
-              : ""
-          }
 
         </div>
 

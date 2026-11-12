@@ -623,6 +623,9 @@ function ligarEventosCalculadora() {
         `;
         document.getElementById("pacoteValorFixo")?.addEventListener("input", atualizarTextoProposta);
       } else if (pacote === "trema") {
+        // Pega a metragem do orçamento (se existir)
+        const metragemOrcamento = dadosProposta?.m2 || document.getElementById("calcM2")?.value || 0;
+        
         container.innerHTML = `
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
             <div class="fin-field">
@@ -635,7 +638,7 @@ function ligarEventosCalculadora() {
             </div>
             <div class="fin-field">
               <label>Metragem atual (m²)</label>
-              <input type="number" id="pacoteMetragemAtual" value="0" min="0" step="1" placeholder="ex: 40" />
+              <input type="number" id="pacoteMetragemAtual" value="${metragemOrcamento}" min="0" step="1" placeholder="ex: 40" />
             </div>
             <div class="fin-field">
               <label>Valor por m² extra (R$)</label>
@@ -644,6 +647,7 @@ function ligarEventosCalculadora() {
           </div>
           <p class="fin-hint">Cálculo: preço base + (metragem atual - metragem base) × valor/m²</p>
         `;
+
         ["pacoteMetragemBase", "pacotePrecoBase", "pacoteMetragemAtual", "pacoteValorM2"].forEach(id => {
           document.getElementById(id)?.addEventListener("input", atualizarTextoProposta);
         });

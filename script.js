@@ -1791,8 +1791,8 @@ function renderDashboard() {
       : `<strong>${filtered.length}</strong> de <strong>${projects.length}</strong> projetos · <strong>${formatArea(filteredM2)} m²</strong>`;
   }
 
-// Botão exclusivo da proprietária
-$$(".btn-owner-open-project").forEach((button) => {
+// Botão "Editar" (abre o modal de edição)
+$$(".btn-owner-edit-project").forEach((button) => {
   button.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -1800,9 +1800,33 @@ $$(".btn-owner-open-project").forEach((button) => {
     if (!designerUnlocked || clientMode) return;
 
     const projectId = button.dataset.projectId;
+    if (!projectId) return;
 
-    if (projectId) {
-      openProject(projectId, true);
+    const projeto = projects.find(p => String(p.id) === String(projectId));
+    if (!projeto) return;
+
+    const modal = $("#modalOverlay");
+    if (modal) {
+      modal.removeAttribute("hidden");
+      modal.style.display = "flex";
+      
+      const fieldName = $("#fieldName");
+      const fieldClient = $("#fieldClient");
+      const fieldArea = $("#fieldArea");
+      const fieldType = $("#fieldType");
+      const fieldStatus = $("#fieldStatus");
+      const fieldPacote = $("#fieldPacote");
+      const modalTitle = $("#modalTitle");
+      const form = $("#projectForm");
+      
+      if (fieldName) fieldName.value = projeto.title || "";
+      if (fieldClient) fieldClient.value = projeto.client || "";
+      if (fieldArea) fieldArea.value = projeto.area || "";
+      if (fieldType) fieldType.value = projeto.type || "residencial";
+      if (fieldStatus) fieldStatus.value = projeto.status || "em andamento";
+      if (fieldPacote) fieldPacote.value = projeto.pacote || "trema";
+      if (modalTitle) modalTitle.textContent = "Editar Projeto";
+      if (form) form.dataset.editId = projectId;
     }
   });
 });

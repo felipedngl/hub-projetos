@@ -12,6 +12,7 @@
 
   // Estado local
   let configAtual = null;
+  let dadosProposta = null;  // ← NOVO: guarda os dados da proposta
 
   /* ---------------------------------------------------------
      1. NAVEGAÇÃO ENTRE VIEWS
@@ -292,6 +293,7 @@ function ligarEventosCalculadora() {
         tipo: document.getElementById("calcTipo")?.value || "interiores"
       };
       sessionStorage.setItem("propostaDados", JSON.stringify(dados));
+      dadosProposta = dados;  // ← NOVO: guarda em variável global
 
       // Troca para a aba de Propostas
       ativarSubAba("propostas");
@@ -555,10 +557,11 @@ function ligarEventosCalculadora() {
      5.1. LÓGICA DO GERADOR DE PROPOSTA
      --------------------------------------------------------- */
   function ligarEventosProposta() {
-    // === CARREGA DADOS DA CALCULADORA (COLE AQUI) ===
+    // === CARREGA DADOS DA CALCULADORA ===
     const dadosSalvos = sessionStorage.getItem("propostaDados");
     if (dadosSalvos) {
       const d = JSON.parse(dadosSalvos);
+      dadosProposta = d;  // ← NOVO: guarda em variável global
       if (document.getElementById("calcNome")) document.getElementById("calcNome").value = d.nome;
       if (document.getElementById("calcM2")) document.getElementById("calcM2").value = d.m2;
       if (document.getElementById("calcNome")) document.getElementById("calcNome").dataset.cliente = d.cliente;
@@ -676,25 +679,38 @@ function ligarEventosCalculadora() {
     const parcelas = Number(document.getElementById("propParcelas")?.value) || 6;
     const descontoPix = Number(document.getElementById("propDescontoPix")?.value) || 5;
 
-    const nomeProjeto = document.getElementById("calcNome")?.value || "[Projeto]";
-    const metragem = Number(document.getElementById("calcM2")?.value) || 0;
-    const cliente = document.getElementById("calcNome")?.dataset?.cliente || "[Cliente]";
+    // Usa os dados da variável global (ou do sessionStorage como fallback)
+    let nomeProjeto = "[Projeto]";
+    let metragem = 0;
+    let cliente = "[Cliente]";
+    
+    if (dadosProposta) {
+      nomeProjeto = dadosProposta.nome || "[Projeto]";
+      metragem = Number(dadosProposta.m2) || 0;
+      cliente = dadosProposta.cliente || "[Cliente]";
+    } else {
+      // Fallback: tenta do DOM (se estiver na aba calculadora)
+      nomeProjeto = document.getElementById("calcNome")?.value || "[Projeto]";
+      metragem = Number(document.getElementById("calcM2")?.value) || 0;
+      cliente = document.getElementById("calcNome")?.dataset?.cliente || "[Cliente]";
+    }
 
     const custoHora = configAtual ? calcularCustoHora(configAtual).custoHora : 64;
     const margemPerc = configAtual ? (Number(configAtual.margem) || 20) : 20;
 
-    const hBriefing = Number(document.getElementById("h_briefing")?.value) || 0;
-    const hLevantamento = Number(document.getElementById("h_levantamento")?.value) || 0;
-    const hEstudo = Number(document.getElementById("h_estudo")?.value) || 0;
-    const hAnteprojeto = Number(document.getElementById("h_anteprojeto")?.value) || 0;
-    const hExecutivo = Number(document.getElementById("h_executivo")?.value) || 0;
-    const hEntrega = Number(document.getElementById("h_entrega")?.value) || 0;
+    // Usa os dados da variável global (ou do DOM como fallback)
+    const hBriefing = Number(dadosProposta?.hBriefing || document.getElementById("h_briefing")?.value) || 0;
+    const hLevantamento = Number(dadosProposta?.hLevantamento || document.getElementById("h_levantamento")?.value) || 0;
+    const hEstudo = Number(dadosProposta?.hEstudo || document.getElementById("h_estudo")?.value) || 0;
+    const hAnteprojeto = Number(dadosProposta?.hAnteprojeto || document.getElementById("h_anteprojeto")?.value) || 0;
+    const hExecutivo = Number(dadosProposta?.hExecutivo || document.getElementById("h_executivo")?.value) || 0;
+    const hEntrega = Number(dadosProposta?.hEntrega || document.getElementById("h_entrega")?.value) || 0;
     const horasTotais = hBriefing + hLevantamento + hEstudo + hAnteprojeto + hExecutivo + hEntrega;
 
-    const cDeslocamento = Number(document.getElementById("c_deslocamento")?.value) || 0;
-    const cPlotagem = Number(document.getElementById("c_plotagem")?.value) || 0;
-    const cFreelancer = Number(document.getElementById("c_freelancer")?.value) || 0;
-    const cOutros = Number(document.getElementById("c_outros")?.value) || 0;
+    const cDeslocamento = Number(dadosProposta?.cDeslocamento || document.getElementById("c_deslocamento")?.value) || 0;
+    const cPlotagem = Number(dadosProposta?.cPlotagem || document.getElementById("c_plotagem")?.value) || 0;
+    const cFreelancer = Number(dadosProposta?.cFreelancer || document.getElementById("c_freelancer")?.value) || 0;
+    const cOutros = Number(dadosProposta?.cOutros || document.getElementById("c_outros")?.value) || 0;
     const custosExtras = cDeslocamento + cPlotagem + cFreelancer + cOutros;
 
     const custoMaoObra = horasTotais * custoHora;

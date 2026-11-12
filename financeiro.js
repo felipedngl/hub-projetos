@@ -452,40 +452,19 @@ function ligarEventosCalculadora() {
         <h2>Gerar Proposta</h2>
         <p class="fin-hint">Escolha o pacote, o tom e as condições. O texto é gerado automaticamente.</p>
 
-        <!-- BLOCO 1: PACOTE E TOM -->
+        <!-- BLOCO 1: PACOTE -->
         <div class="fin-card">
-          <h3>1. Pacote e Tom</h3>
-          <div style="margin-bottom: 16px;">
-            <label style="display: block; margin-bottom: 8px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim);">Pacote</label>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button type="button" class="pacote-btn" data-pacote="ponto">Ponto</button>
-              <button type="button" class="pacote-btn active" data-pacote="trema">Trema</button>
-              <button type="button" class="pacote-btn" data-pacote="reticencias">Reticências</button>
-            </div>
+          <h3>1. Pacote</h3>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+            <button type="button" class="pacote-btn" data-pacote="ponto">Ponto (R$ 400)</button>
+            <button type="button" class="pacote-btn" data-pacote="trema">Trema (R$ 1.500 + m² extra)</button>
+            <button type="button" class="pacote-btn" data-pacote="reticencias">Reticências (orçamento)</button>
           </div>
-          <div>
-            <label style="display: block; margin-bottom: 8px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim);">Tom da Proposta</label>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button type="button" class="tom-btn active" data-tom="amigavel">Amigável</button>
-              <button type="button" class="tom-btn" data-tom="formal">Formal</button>
-              <button type="button" class="tom-btn" data-tom="persuasivo">Persuasivo</button>
-            </div>
+          <div id="pacoteCampos">
+            <p class="fin-hint">Clique em um pacote para ver os campos e o cálculo.</p>
           </div>
         </div>
 
-        <!-- BLOCO 1.1: MODO DE CÁLCULO -->
-        <div class="fin-card">
-          <h3>1.5. Modo de Cálculo</h3>
-          <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
-            <button type="button" class="calculo-btn" data-calculo="fixo">Valor fixo</button>
-            <button type="button" class="calculo-btn" data-calculo="metragem">Por metragem</button>
-            <button type="button" class="calculo-btn active" data-calculo="hora">Por hora (orçamento)</button>
-          </div>
-          <div id="calculoCampos">
-            <!-- Preenchido pelo JS -->
-          </div>
-        </div>
-        
         <!-- BLOCO 2: ADICIONAIS -->
         <div class="fin-card">
           <h3>2. Adicionais (opcional)</h3>
@@ -536,10 +515,17 @@ function ligarEventosCalculadora() {
           </div>
         </div>
 
-        <!-- BLOCO 4: PRÉVIA -->
+        <!-- BLOCO 4: TOM + PRÉVIA -->
         <div class="fin-card">
-          <h3>4. Prévia da Proposta</h3>
-          <p class="fin-hint">O texto abaixo é gerado automaticamente. Você pode copiar e colar.</p>
+          <h3>4. Tom e Prévia</h3>
+          <div style="margin-bottom: 12px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim);">Tom da Proposta</label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="tom-btn active" data-tom="amigavel">Amigável</button>
+              <button type="button" class="tom-btn" data-tom="formal">Formal</button>
+              <button type="button" class="tom-btn" data-tom="persuasivo">Persuasivo</button>
+            </div>
+          </div>
           <textarea id="propTexto" rows="20" style="width:100%; font-family: inherit; font-size:0.9rem; line-height:1.5; padding:12px; border-radius:8px; border:1px solid var(--border-strong); background: var(--surface-2); color: var(--text); resize: vertical;"></textarea>
           <div class="fin-actions" style="margin-top: 16px;">
             <button type="button" class="btn-primary" id="btnCopiarProposta">Copiar</button>
@@ -592,13 +578,14 @@ function ligarEventosCalculadora() {
     }
 
     // === PACOTE (BOTÕES) ===
-    let pacoteAtual = "trema";
+    let pacoteAtual = null;  // Nenhum pacote selecionado por padrão
     const botoesPacote = document.querySelectorAll(".pacote-btn");
     botoesPacote.forEach(btn => {
       btn.addEventListener("click", () => {
         botoesPacote.forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         pacoteAtual = btn.dataset.pacote;
+        renderizarCamposPacote(pacoteAtual);
         atualizarTextoProposta();
       });
     });
@@ -615,46 +602,46 @@ function ligarEventosCalculadora() {
       });
     });
 
-    // === MODO DE CÁLCULO (BOTÕES) ===
-    let calculoAtual = "hora";
-    const botoesCalculo = document.querySelectorAll(".calculo-btn");
-    botoesCalculo.forEach(btn => {
-      btn.addEventListener("click", () => {
-        botoesCalculo.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        calculoAtual = btn.dataset.calculo;
-        renderizarCamposCalculo(calculoAtual);
-        atualizarTextoProposta();
-      });
-    });
-
-    function renderizarCamposCalculo(calculo) {
-      const container = document.getElementById("calculoCampos");
+    // === CAMPOS ESPECÍFICOS DO PACOTE ===
+    function renderizarCamposPacote(pacote) {
+      const container = document.getElementById("pacoteCampos");
       if (!container) return;
       
-      if (calculo === "fixo") {
+      if (pacote === "ponto") {
         container.innerHTML = `
           <div class="fin-field">
             <label>Valor fixo (R$)</label>
-            <input type="number" id="calculoValorFixo" value="400" min="0" step="50" />
+            <input type="number" id="pacoteValorFixo" value="400" min="0" step="50" />
           </div>
         `;
-        document.getElementById("calculoValorFixo")?.addEventListener("input", atualizarTextoProposta);
-      } else if (calculo === "metragem") {
+        document.getElementById("pacoteValorFixo")?.addEventListener("input", atualizarTextoProposta);
+      } else if (pacote === "trema") {
         container.innerHTML = `
-          <div class="fin-field">
-            <label>Valor por m² (R$)</label>
-            <input type="number" id="calculoValorM2" value="50" min="0" step="10" />
+          <div class="fin-grid">
+            <div class="fin-field">
+              <label>Valor base (R$)</label>
+              <input type="number" id="pacoteValorBase" value="1500" min="0" step="100" />
+            </div>
+            <div class="fin-field">
+              <label>Metragem inclusa (m²)</label>
+              <input type="number" id="pacoteMetragemInclusa" value="25" min="0" step="1" />
+            </div>
+            <div class="fin-field">
+              <label>Valor por m² extra (R$)</label>
+              <input type="number" id="pacoteValorM2" value="50" min="0" step="10" />
+            </div>
           </div>
+          <p class="fin-hint">Cálculo: R$ 1.500 + (m² - 25) × R$ 50/m²</p>
         `;
-        document.getElementById("calculoValorM2")?.addEventListener("input", atualizarTextoProposta);
-      } else if (calculo === "hora") {
+        ["pacoteValorBase", "pacoteMetragemInclusa", "pacoteValorM2"].forEach(id => {
+          document.getElementById(id)?.addEventListener("input", atualizarTextoProposta);
+        });
+      } else if (pacote === "reticencias") {
         container.innerHTML = `
           <p class="fin-hint">Valor calculado automaticamente com base no orçamento (horas × custo/hora + extras, com margem).</p>
         `;
       }
     }
-    renderizarCamposCalculo("hora");
 
     // Botão Copiar
     const btnCopiar = document.getElementById("btnCopiarProposta");
@@ -735,25 +722,37 @@ function ligarEventosCalculadora() {
     const custoTotal = custoMaoObra + custosExtras;
     let precoBase = custoTotal * (1 + margemPerc / 100);
 
-    // Verifica qual modo de cálculo está ativo
-    const calculoAtivo = document.querySelector(".calculo-btn.active")?.dataset.calculo || "hora";
+    // Verifica qual pacote está ativo
+    const pacoteAtivo = document.querySelector(".pacote-btn.active")?.dataset.pacote;
     
-    if (calculoAtivo === "fixo") {
-      const valorFixo = Number(document.getElementById("calculoValorFixo")?.value) || 400;
+    if (!pacoteAtivo) {
+      // Nenhum pacote selecionado: limpa o texto
+      const textarea = document.getElementById("propTexto");
+      if (textarea) textarea.value = "";
+      return;
+    }
+    
+    if (pacoteAtivo === "ponto") {
+      // Ponto: valor fixo
+      const valorFixo = Number(document.getElementById("pacoteValorFixo")?.value) || 400;
       precoBase = valorFixo;
-    } else if (calculoAtivo === "metragem") {
-      const valorM2 = Number(document.getElementById("calculoValorM2")?.value) || 50;
-      precoBase = metragem * valorM2;
-    } else if (calculoAtivo === "hora") {
-      // Usa o valor do orçamento
+    } else if (pacoteAtivo === "trema") {
+      // Trema: R$ 1.500 até 25m² + R$ 50/m² por m² excedente
+      const valorBase = Number(document.getElementById("pacoteValorBase")?.value) || 1500;
+      const metragemInclusa = Number(document.getElementById("pacoteMetragemInclusa")?.value) || 25;
+      const valorM2 = Number(document.getElementById("pacoteValorM2")?.value) || 50;
+      const adicionalMetragem = metragem > metragemInclusa ? (metragem - metragemInclusa) * valorM2 : 0;
+      precoBase = valorBase + adicionalMetragem;
+    } else if (pacoteAtivo === "reticencias") {
+      // Reticências: valor do orçamento completo
       if (custoTotal > 0) {
         precoBase = custoTotal * (1 + margemPerc / 100);
       } else {
-        // Fallback
         const adicionalMetragem = metragem > 25 ? (metragem - 25) * 50 : 0;
         precoBase = 1500 + adicionalMetragem;
       }
     }
+     
     // Adicionais
     let adicionais = 0;
     if (luminotecnico) adicionais += precoBase * 0.15;

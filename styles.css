@@ -6595,12 +6595,12 @@ body.theme-light .fin-proposta textarea {
 
 /* Cores dos status dos cards */
 .status-tag.status-em-andamento {
-  background: rgba(232, 176, 74, 0.15);
-  color: #e8b04a;
-  border: 1px solid rgba(232, 176, 74, 0.35);
+  background: rgba(232, 176, 74, 0.15) !important;
+  color: #e8b04a !important;
+  border: 1px solid rgba(232, 176, 74, 0.35) !important;
 }
 .status-tag.status-concluido {
-  background: rgba(111, 191, 143, 0.15);
-  color: #6fbf8f;
-  border: 1px solid rgba(111, 191, 143, 0.35);
+  background: rgba(111, 191, 143, 0.15) !important;
+  color: #6fbf8f !important;
+  border: 1px solid rgba(111, 191, 143, 0.35) !important;
 }

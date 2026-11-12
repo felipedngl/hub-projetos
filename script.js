@@ -1691,21 +1691,22 @@ function cardHTML(p, index) {
               : ""
           }
 
-          <div class="card-action-row">
-            <span class="status-tag ${statusClass}">
+          <div class="card-action-row" style="display: flex; align-items: center; gap: 8px; padding: 8px 0;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-dim);">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: ${p.status === "concluido" ? "#6fbf8f" : "#e8b04a"};"></span>
               ${statusLabel}
             </span>
           </div>
-
+		  
           ${
             showOwnerOpenButton
               ? `
-                <div class="card-owner-action" style="display: flex; gap: 6px; margin-top: 10px; box-sizing: border-box; width: 100%;">
+                <div class="card-owner-action" style="display: flex; gap: 6px; margin-top: 8px; box-sizing: border-box; width: 100%;">
                   <button
                     type="button"
                     class="btn-owner-edit-project"
                     data-project-id="${escapeHTML(String(p.id))}"
-                    style="flex: 1; min-width: 0; padding: 7px 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--text); font-family: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer; box-sizing: border-box;"
+                    style="flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text); font-family: inherit; font-size: 0.75rem; font-weight: 500; cursor: pointer; box-sizing: border-box;"
                   >
                     Editar
                   </button>
@@ -1713,7 +1714,7 @@ function cardHTML(p, index) {
                     type="button"
                     class="btn-owner-open-project"
                     data-project-id="${escapeHTML(String(p.id))}"
-                    style="flex: 1; min-width: 0; padding: 7px 8px; border: none; border-radius: 7px; background: var(--accent); color: #fff; font-family: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer; box-sizing: border-box;"
+                    style="flex: 1; min-width: 0; padding: 6px 8px; border: none; border-radius: 6px; background: var(--accent); color: #fff; font-family: inherit; font-size: 0.75rem; font-weight: 500; cursor: pointer; box-sizing: border-box;"
                   >
                     Abrir
                   </button>
@@ -1815,10 +1816,12 @@ $$(".btn-owner-edit-project").forEach((button) => {
     const projeto = projects.find(p => String(p.id) === String(projectId));
     if (!projeto) return;
 
-    const modal = $("#modalOverlay");
+	const modal = $("#modalOverlay");
     if (modal) {
-      modal.removeAttribute("hidden");
+      // Força o reset do modal (garante que vai abrir)
+      modal.hidden = false;
       modal.style.display = "flex";
+      modal.classList.remove("hidden");
       
       const fieldName = $("#fieldName");
       const fieldClient = $("#fieldClient");

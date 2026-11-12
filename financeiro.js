@@ -39,7 +39,7 @@
     const mapa = {
       calculadora: "/financeiro/orcamento",
       propostas: "/financeiro/propostas",
-      config: "/financeiro/configuracoes",
+      config: "/financeiro/interno",
       contratos: "/financeiro/contratos"
     };
     const novaUrl = mapa[tabId] || "/financeiro";
@@ -1259,7 +1259,7 @@ ${nomeEscritorio}`;
       const mapa = {
         orcamento: "calculadora",
         propostas: "propostas",
-        configuracoes: "config",
+        interno: "config",
         contratos: "contratos"
       };
       const tabId = mapa[subAba] || "calculadora";

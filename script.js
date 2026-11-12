@@ -7751,6 +7751,9 @@ function setupNewProjectModal() {
           el.classList.remove("active", "show", "open");
         });
       }
+      
+      // Limpa o dataset.editId após salvar
+      delete form.dataset.editId;
 
       // Salva no Firebase em background
       if (typeof saveProjects === "function") {
@@ -8084,6 +8087,14 @@ function bindEvents() {
     if (preview) preview.hidden = true;
     if (inner) inner.hidden = false;
   });
+
+  // Botão X do modal de projeto
+  const btnCloseModal = document.getElementById("btnCloseModal");
+  if (btnCloseModal) {
+    btnCloseModal.addEventListener("click", () => {
+      closeAllOpenModals();
+    });
+  }
 
   // Trocar pacote ao clicar no badge (delegação de evento)
   document.addEventListener("click", async (e) => {
@@ -8489,7 +8500,15 @@ function closeAllOpenModals() {
     });
   });
   
-  // Remove o editId do formulário (para a próxima edição funcionar)
+  // Força o fechamento do modal de projeto (garante que o display e o hidden sejam setados)
+  const modalOverlay = document.getElementById("modalOverlay");
+  if (modalOverlay) {
+    modalOverlay.hidden = true;
+    modalOverlay.setAttribute("hidden", "");
+    modalOverlay.style.display = "none";
+    modalOverlay.classList.remove("active", "open", "show");
+  }
+  
   const form = document.getElementById("projectForm");
   if (form) delete form.dataset.editId;
 }

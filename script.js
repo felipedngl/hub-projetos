@@ -1690,12 +1690,12 @@ function cardHTML(p, index) {
           ${
             showOwnerOpenButton
               ? `
-                <div class="card-owner-action" style="display: flex; gap: 8px; margin-top: 12px;">
+                <div class="card-owner-action" style="display: flex; gap: 6px; margin-top: 10px; box-sizing: border-box; width: 100%;">
                   <button
                     type="button"
                     class="btn-owner-edit-project"
                     data-project-id="${escapeHTML(String(p.id))}"
-                    style="flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;"
+                    style="flex: 1; min-width: 0; padding: 7px 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--text); font-family: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer; box-sizing: border-box;"
                   >
                     Editar
                   </button>
@@ -1703,7 +1703,7 @@ function cardHTML(p, index) {
                     type="button"
                     class="btn-owner-open-project"
                     data-project-id="${escapeHTML(String(p.id))}"
-                    style="flex: 1; padding: 8px 12px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;"
+                    style="flex: 1; min-width: 0; padding: 7px 8px; border: none; border-radius: 7px; background: var(--accent); color: #fff; font-family: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer; box-sizing: border-box;"
                   >
                     Abrir
                   </button>
@@ -1831,8 +1831,8 @@ $$(".btn-owner-edit-project").forEach((button) => {
   });
 });
 
-// Botão "Editar" (abre o modal de edição)
-$$(".btn-owner-edit-project").forEach((button) => {
+// Botão "Abrir" (abre o projeto)
+$$(".btn-owner-open-project").forEach((button) => {
   button.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -1840,27 +1840,10 @@ $$(".btn-owner-edit-project").forEach((button) => {
     if (!designerUnlocked || clientMode) return;
 
     const projectId = button.dataset.projectId;
-    if (!projectId) return;
+    console.log("[DEBUG abrir projeto]", { projectId, designerUnlocked, clientMode });
 
-    // Abre o modal de novo projeto com os dados preenchidos
-    const projeto = projects.find(p => String(p.id) === String(projectId));
-    if (!projeto) return;
-
-    const modal = $("#modalOverlay");
-    if (modal) {
-      modal.removeAttribute("hidden");
-      modal.style.display = "flex";
-      
-      $("#fieldName").value = projeto.title || "";
-      $("#fieldClient").value = projeto.client || "";
-      $("#fieldArea").value = projeto.area || "";
-      $("#fieldType").value = projeto.type || "residencial";
-      $("#fieldStatus").value = projeto.status || "em andamento";
-      $("#fieldPacote").value = projeto.pacote || "trema";
-      
-      // Muda o título do modal e o modo
-      $("#modalTitle").textContent = "Editar Projeto";
-      $("#projectForm").dataset.editId = projectId;
+    if (projectId) {
+      openProject(projectId, true);
     }
   });
 });
@@ -8462,10 +8445,15 @@ function closeAllOpenModals() {
     document.querySelectorAll(selector).forEach((el) => {
       if (el.id !== "passwordModal" && el.id !== "pwdModal") {
         el.style.display = "none";
+        el.hidden = true;  // ← NOVO: garante que o hidden seja setado
         el.classList.remove("active", "open", "show");
       }
     });
   });
+  
+  // Remove o editId do formulário (para a próxima edição funcionar)
+  const form = document.getElementById("projectForm");
+  if (form) delete form.dataset.editId;
 }
 
 function enableCardDragging() {

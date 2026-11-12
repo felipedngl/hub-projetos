@@ -8109,9 +8109,10 @@ const pathParts = window.location.pathname
   .filter(Boolean);
 
 const isDashboardPath = pathParts[0] === "painel";
+const isFinanceiroPath = pathParts[0] === "financeiro";  // ← NOVO
 
 const pathProjectParam =
-  pathParts[0] && !isDashboardPath
+  pathParts[0] && !isDashboardPath && !isFinanceiroPath  // ← MODIFICADO
     ? pathParts[0]
     : null;
 
@@ -8243,7 +8244,14 @@ return;
     // Abre o financeiro automaticamente
     document.getElementById("view-dashboard").hidden = true;
     document.getElementById("view-financeiro").hidden = false;
-    if (window.financeiroInit) window.financeiroInit();
+    if (window.financeiroInit) {
+      window.financeiroInit();
+    } else {
+      // Se o financeiro ainda não carregou, tenta de novo em 200ms
+      setTimeout(() => {
+        if (window.financeiroInit) window.financeiroInit();
+      }, 200);
+    }
   } else if (designerUnlocked && !clientMode && isDashboardPath) {
     showDashboard();
   } else {

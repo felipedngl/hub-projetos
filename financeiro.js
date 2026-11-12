@@ -578,6 +578,57 @@ function ligarEventosCalculadora() {
        atualizarTextoProposta();
     }
 
+    // === MODO DE CÁLCULO ===
+    let modoAtual = "fixo";
+    const botoesModo = document.querySelectorAll(".modo-btn");
+    botoesModo.forEach(btn => {
+      btn.addEventListener("click", () => {
+        botoesModo.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        modoAtual = btn.dataset.modo;
+        renderizarCamposModo(modoAtual);
+      });
+    });
+
+    function renderizarCamposModo(modo) {
+      const container = document.getElementById("modoCampos");
+      if (!container) return;
+      
+      if (modo === "fixo") {
+        container.innerHTML = `
+          <div class="fin-field">
+            <label>Valor fixo (R$)</label>
+            <input type="number" id="modoValorFixo" value="400" min="0" step="50" />
+          </div>
+        `;
+      } else if (modo === "metragem") {
+        container.innerHTML = `
+          <div class="fin-field">
+            <label>Valor por m² (R$)</label>
+            <input type="number" id="modoValorM2" value="50" min="0" step="10" />
+          </div>
+        `;
+      } else if (modo === "hora") {
+        container.innerHTML = `
+          <p class="fin-hint">O valor por hora é calculado automaticamente com base no orçamento.</p>
+          <div class="fin-field">
+            <label>Horas totais</label>
+            <input type="number" id="modoHoras" value="0" min="0" step="1" readonly />
+          </div>
+        `;
+        const horas = document.getElementById("h_briefing")?.value || 0;
+        const el = document.getElementById("modoHoras");
+        if (el) el.value = horas;
+      }
+    }
+    renderizarCamposModo("fixo");
+
+    // Atualiza o texto quando o modo mudar
+    ["modoValorFixo", "modoValorM2"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("input", atualizarTextoProposta);
+    });
+
     // Botão Copiar
     const btnCopiar = document.getElementById("btnCopiarProposta");
     if (btnCopiar) {
@@ -644,14 +695,18 @@ function ligarEventosCalculadora() {
     const custoTotal = custoMaoObra + custosExtras;
     let precoBase = custoTotal * (1 + margemPerc / 100);
 
-    // Ajusta pelo pacote
-    if (pacote === "ponto") {
-      precoBase = 400;
-    } else if (pacote === "trema") {
-      const adicionalMetragem = metragem > 25 ? (metragem - 25) * 50 : 0;
-      precoBase = 1500 + adicionalMetragem;
-    } else if (pacote === "reticencias") {
-      // Se o custo total for 0 (dados vazios), usa o valor mínimo do Trema como fallback
+    // Verifica qual modo de cálculo está ativo
+    const modoAtivo = document.querySelector(".modo-btn.active")?.dataset.modo || "fixo";
+    
+    if (modoAtivo === "fixo") {
+      const valorFixo = Number(document.getElementById("modoValorFixo")?.value) || 0;
+      precoBase = valorFixo;
+    } else if (modoAtivo === "metragem") {
+      const valorM2 = Number(document.getElementById("modoValorM2")?.value) || 0;
+      precoBase = metragem * valorM2;
+    } else if (modoAtivo === "hora") {
+      // Usa o preço calculado do orçamento (já está em precoBase)
+      // Se for 0, usa o fallback
       if (precoBase <= 0) {
         const adicionalMetragem = metragem > 25 ? (metragem - 25) * 50 : 0;
         precoBase = 1500 + adicionalMetragem;

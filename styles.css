@@ -6620,3 +6620,55 @@ body .project-card .status-tag.status-concluido {
   background: transparent;
   color: var(--text-dim);
 }
+
+/* Lista de propostas salvas */
+.proposta-salva-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background: var(--surface-2);
+  transition: border-color 0.2s ease;
+}
+.proposta-salva-item:hover {
+  border-color: var(--border-strong);
+}
+.proposta-salva-info {
+  flex: 1;
+  min-width: 0;
+}
+.proposta-salva-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.proposta-salva-titulo strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.proposta-salva-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+.btn-apagar-proposta {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+.btn-apagar-proposta:hover {
+  background: rgba(220, 80, 80, 0.1);
+  border-color: rgba(220, 80, 80, 0.3);
+}
+

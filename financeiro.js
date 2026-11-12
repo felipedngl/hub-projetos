@@ -1261,6 +1261,11 @@ ${nomeEscritorio}`;
       });
     }
 
+    // Sub-abas
+    document.querySelectorAll(".fin-tab").forEach(tab => {
+      tab.addEventListener("click", () => ativarSubAba(tab.dataset.tab));
+    });
+
     // === LÊ A URL PARA ABRIR A ABA CORRETA ===
     const pathParts = window.location.pathname.split("/").filter(Boolean);
     const isFinanceiroPath = pathParts[0] === "financeiro";
@@ -1277,25 +1282,6 @@ ${nomeEscritorio}`;
       mostrarView("view-financeiro");
       ativarSubAba(tabId);
     }
-  }
-
-    // Botão Voltar ao Painel (dentro do financeiro)
-    const btnVoltar = document.getElementById("btnVoltarPainel");
-    if (btnVoltar) {
-      btnVoltar.addEventListener("click", () => {
-        mostrarView("view-dashboard");
-        // Remove o destaque verde do botão Financeiro
-        const b = document.getElementById("btnFinanceiro");
-        if (b) b.classList.remove("active");
-        // Volta a URL para /painel
-        window.history.replaceState({}, "", "/painel");
-      });
-    }
-
-    // Sub-abas
-    document.querySelectorAll(".fin-tab").forEach(tab => {
-      tab.addEventListener("click", () => ativarSubAba(tab.dataset.tab));
-    });
   }
 
   // Expõe a função para o script.js chamar quando a URL for /financeiro

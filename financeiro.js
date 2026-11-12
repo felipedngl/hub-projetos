@@ -1250,10 +1250,21 @@ ${nomeEscritorio}`;
       });
     }
 
+    // Botão Voltar ao Painel (dentro do financeiro)
+    const btnVoltar = document.getElementById("btnVoltarPainel");
+    if (btnVoltar) {
+      btnVoltar.addEventListener("click", () => {
+        mostrarView("view-dashboard");
+        const b = document.getElementById("btnFinanceiro");
+        if (b) b.classList.remove("active");
+        window.history.replaceState({}, "", "/painel");
+      });
+    }
+
     // === LÊ A URL PARA ABRIR A ABA CORRETA ===
     const pathParts = window.location.pathname.split("/").filter(Boolean);
     const isFinanceiroPath = pathParts[0] === "financeiro";
-    const subAba = pathParts[1] || "";  // pode ser "orcamento", "propostas", etc.
+    const subAba = pathParts[1] || "";
 
     if (isFinanceiroPath) {
       const mapa = {
@@ -1266,6 +1277,7 @@ ${nomeEscritorio}`;
       mostrarView("view-financeiro");
       ativarSubAba(tabId);
     }
+  }
 
     // Botão Voltar ao Painel (dentro do financeiro)
     const btnVoltar = document.getElementById("btnVoltarPainel");
@@ -1290,6 +1302,22 @@ ${nomeEscritorio}`;
   window.financeiroInit = function() {
     mostrarView("view-financeiro");
     ativarSubAba("calculadora");
+  };
+
+  // Expõe a função para o script.js chamar quando a URL for /financeiro
+  window.financeiroInit = function() {
+    mostrarView("view-financeiro");
+
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const subAba = pathParts[1] || "";
+    const mapa = {
+      orcamento: "calculadora",
+      propostas: "propostas",
+      interno: "config",
+      contratos: "contratos"
+    };
+    const tabId = mapa[subAba] || "calculadora";
+    ativarSubAba(tabId);
   };
 
   // Aguarda o DOM estar pronto

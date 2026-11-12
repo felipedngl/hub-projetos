@@ -34,6 +34,16 @@
       t.classList.toggle("active", t.dataset.tab === tabId);
     });
     renderizarConteudo(tabId);
+    
+    // Muda a URL conforme a sub-aba
+    const mapa = {
+      calculadora: "/financeiro/orcamento",
+      propostas: "/financeiro/propostas",
+      config: "/financeiro/configuracoes",
+      contratos: "/financeiro/contratos"
+    };
+    const novaUrl = mapa[tabId] || "/financeiro";
+    window.history.replaceState({}, "", novaUrl);
   }
 
   function renderizarConteudo(tabId) {
@@ -1231,15 +1241,30 @@ ${nomeEscritorio}`;
      6. INICIALIZAÇÃO
      --------------------------------------------------------- */
   function init() {
-    // Botão do header (Financeiro) 
+    // Botão do header (Financeiro)
     const btnFin = document.getElementById("btnFinanceiro");
     if (btnFin) {
       btnFin.addEventListener("click", () => {
         mostrarView("view-financeiro");
         ativarSubAba("calculadora");
-        // Muda a URL para /financeiro
-        window.history.replaceState({}, "", "/financeiro");
       });
+    }
+
+    // === LÊ A URL PARA ABRIR A ABA CORRETA ===
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const isFinanceiroPath = pathParts[0] === "financeiro";
+    const subAba = pathParts[1] || "";  // pode ser "orcamento", "propostas", etc.
+
+    if (isFinanceiroPath) {
+      const mapa = {
+        orcamento: "calculadora",
+        propostas: "propostas",
+        configuracoes: "config",
+        contratos: "contratos"
+      };
+      const tabId = mapa[subAba] || "calculadora";
+      mostrarView("view-financeiro");
+      ativarSubAba(tabId);
     }
 
     // Botão Voltar ao Painel (dentro do financeiro)

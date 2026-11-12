@@ -455,35 +455,33 @@ function ligarEventosCalculadora() {
         <!-- BLOCO 1: PACOTE E TOM -->
         <div class="fin-card">
           <h3>1. Pacote e Tom</h3>
-          <div class="fin-grid">
-            <div class="fin-field">
-              <label>Pacote</label>
-              <select id="propPacote">
-                <option value="ponto">Ponto (Consultoria)</option>
-                <option value="trema" selected>Trema (1 ambiente)</option>
-                <option value="reticencias">Reticências (Casa toda)</option>
-              </select>
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim);">Pacote</label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="pacote-btn" data-pacote="ponto">Ponto</button>
+              <button type="button" class="pacote-btn active" data-pacote="trema">Trema</button>
+              <button type="button" class="pacote-btn" data-pacote="reticencias">Reticências</button>
             </div>
-            <div class="fin-field">
-              <label>Tom da Proposta</label>
-              <select id="propTom">
-                <option value="amigavel" selected>Amigável</option>
-                <option value="formal">Formal</option>
-                <option value="persuasivo">Persuasivo</option>
-              </select>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim);">Tom da Proposta</label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="tom-btn active" data-tom="amigavel">Amigável</button>
+              <button type="button" class="tom-btn" data-tom="formal">Formal</button>
+              <button type="button" class="tom-btn" data-tom="persuasivo">Persuasivo</button>
             </div>
           </div>
         </div>
 
-        <!-- BLOCO 1.5: PACOTE E CÁLCULO -->
+        <!-- BLOCO 1.1: MODO DE CÁLCULO -->
         <div class="fin-card">
-          <h3>1.5. Pacote e Cálculo</h3>
+          <h3>1.5. Modo de Cálculo</h3>
           <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
-            <button type="button" class="modo-btn" data-modo="ponto">Ponto</button>
-            <button type="button" class="modo-btn active" data-modo="trema">Trema</button>
-            <button type="button" class="modo-btn" data-modo="reticencias">Reticências</button>
+            <button type="button" class="calculo-btn" data-calculo="fixo">Valor fixo</button>
+            <button type="button" class="calculo-btn" data-calculo="metragem">Por metragem</button>
+            <button type="button" class="calculo-btn active" data-calculo="hora">Por hora (orçamento)</button>
           </div>
-          <div id="modoCampos">
+          <div id="calculoCampos">
             <!-- Preenchido pelo JS -->
           </div>
         </div>
@@ -593,50 +591,70 @@ function ligarEventosCalculadora() {
       console.warn("[DEBUG] Nenhum dado em propostaDados");
     }
 
-    // === PACOTES ===
+    // === PACOTE (BOTÕES) ===
     let pacoteAtual = "trema";
-    const botoesModo = document.querySelectorAll(".modo-btn");
-    botoesModo.forEach(btn => {
+    const botoesPacote = document.querySelectorAll(".pacote-btn");
+    botoesPacote.forEach(btn => {
       btn.addEventListener("click", () => {
-        botoesModo.forEach(b => b.classList.remove("active"));
+        botoesPacote.forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
-        pacoteAtual = btn.dataset.modo;
-        renderizarCamposModo(pacoteAtual);
+        pacoteAtual = btn.dataset.pacote;
+        atualizarTextoProposta();
       });
     });
 
-    function renderizarCamposModo(pacote) {
-      const container = document.getElementById("modoCampos");
+    // === TOM (BOTÕES) ===
+    let tomAtual = "amigavel";
+    const botoesTom = document.querySelectorAll(".tom-btn");
+    botoesTom.forEach(btn => {
+      btn.addEventListener("click", () => {
+        botoesTom.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        tomAtual = btn.dataset.tom;
+        atualizarTextoProposta();
+      });
+    });
+
+    // === MODO DE CÁLCULO (BOTÕES) ===
+    let calculoAtual = "hora";
+    const botoesCalculo = document.querySelectorAll(".calculo-btn");
+    botoesCalculo.forEach(btn => {
+      btn.addEventListener("click", () => {
+        botoesCalculo.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        calculoAtual = btn.dataset.calculo;
+        renderizarCamposCalculo(calculoAtual);
+        atualizarTextoProposta();
+      });
+    });
+
+    function renderizarCamposCalculo(calculo) {
+      const container = document.getElementById("calculoCampos");
       if (!container) return;
       
-      if (pacote === "ponto") {
+      if (calculo === "fixo") {
         container.innerHTML = `
           <div class="fin-field">
             <label>Valor fixo (R$)</label>
-            <input type="number" id="modoValorFixo" value="400" min="0" step="50" />
+            <input type="number" id="calculoValorFixo" value="400" min="0" step="50" />
           </div>
         `;
-      } else if (pacote === "trema") {
+        document.getElementById("calculoValorFixo")?.addEventListener("input", atualizarTextoProposta);
+      } else if (calculo === "metragem") {
         container.innerHTML = `
           <div class="fin-field">
             <label>Valor por m² (R$)</label>
-            <input type="number" id="modoValorM2" value="50" min="0" step="10" />
+            <input type="number" id="calculoValorM2" value="50" min="0" step="10" />
           </div>
-          <p class="fin-hint">Calculado com base na metragem (${document.getElementById("calcM2")?.value || 0}m²) + custo/hora do orçamento.</p>
         `;
-      } else if (pacote === "reticencias") {
+        document.getElementById("calculoValorM2")?.addEventListener("input", atualizarTextoProposta);
+      } else if (calculo === "hora") {
         container.innerHTML = `
-          <p class="fin-hint">Valor calculado automaticamente com base no orçamento completo (horas × custo/hora + extras, com margem).</p>
+          <p class="fin-hint">Valor calculado automaticamente com base no orçamento (horas × custo/hora + extras, com margem).</p>
         `;
       }
     }
-    renderizarCamposModo("trema");
-
-    // Atualiza o texto quando o modo mudar
-    ["modoValorFixo", "modoValorM2"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener("input", atualizarTextoProposta);
-    });
+    renderizarCamposCalculo("hora");
 
     // Botão Copiar
     const btnCopiar = document.getElementById("btnCopiarProposta");
@@ -671,8 +689,8 @@ function ligarEventosCalculadora() {
   }
 
   function atualizarTextoProposta() {
-    const pacote = document.getElementById("propPacote")?.value || "trema";
-    const tom = document.getElementById("propTom")?.value || "amigavel";
+    const pacote = document.querySelector(".pacote-btn.active")?.dataset.pacote || "trema";
+    const tom = document.querySelector(".tom-btn.active")?.dataset.tom || "amigavel";
     const luminotecnico = document.getElementById("propLuminotecnico")?.value === "sim";
     const marcenariaValor = Number(document.getElementById("propMarcenaria")?.value) || 0;
     const entradaPerc = Number(document.getElementById("propEntrada")?.value) || 30;
@@ -717,34 +735,25 @@ function ligarEventosCalculadora() {
     const custoTotal = custoMaoObra + custosExtras;
     let precoBase = custoTotal * (1 + margemPerc / 100);
 
-    // Verifica qual pacote está ativo
-    const pacoteAtivo = document.querySelector(".modo-btn.active")?.dataset.modo || "trema";
+    // Verifica qual modo de cálculo está ativo
+    const calculoAtivo = document.querySelector(".calculo-btn.active")?.dataset.calculo || "hora";
     
-    if (pacoteAtivo === "ponto") {
-      // Ponto: valor fixo (editável)
-      const valorFixo = Number(document.getElementById("modoValorFixo")?.value) || 400;
+    if (calculoAtivo === "fixo") {
+      const valorFixo = Number(document.getElementById("calculoValorFixo")?.value) || 400;
       precoBase = valorFixo;
-    } else if (pacoteAtivo === "trema") {
-      // Trema: valor por metragem × custo/hora do orçamento (mais inteligente)
-      const valorM2 = Number(document.getElementById("modoValorM2")?.value) || 50;
-      // Se o orçamento tiver custo, usa o custo/hora; senão, usa 50/m² como fallback
-      if (custoTotal > 0) {
-        // Preço = horas × custo/hora × margem
-        precoBase = custoTotal * (1 + margemPerc / 100);
-      } else {
-        // Fallback: metragem × valor/m²
-        precoBase = metragem * valorM2;
-      }
-    } else if (pacoteAtivo === "reticencias") {
-      // Reticências: valor do orçamento completo
+    } else if (calculoAtivo === "metragem") {
+      const valorM2 = Number(document.getElementById("calculoValorM2")?.value) || 50;
+      precoBase = metragem * valorM2;
+    } else if (calculoAtivo === "hora") {
+      // Usa o valor do orçamento
       if (custoTotal > 0) {
         precoBase = custoTotal * (1 + margemPerc / 100);
       } else {
-        // Fallback: metragem × 80/m² (valor padrão do Reticências)
-        precoBase = metragem * 80;
+        // Fallback
+        const adicionalMetragem = metragem > 25 ? (metragem - 25) * 50 : 0;
+        precoBase = 1500 + adicionalMetragem;
       }
     }
-
     // Adicionais
     let adicionais = 0;
     if (luminotecnico) adicionais += precoBase * 0.15;

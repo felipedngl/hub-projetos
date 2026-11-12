@@ -297,7 +297,7 @@
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="modal-header">
         <h2 id="modalTitle">Novo Projeto</h2>
-        <button class="btn-close" id="btnCloseModal" aria-label="Fechar">
+        <button class="btn-close" id="btnCloseModal" aria-label="Fechar" onclick="document.getElementById('modalOverlay').hidden = true; document.getElementById('modalOverlay').style.display = 'none'; if (document.getElementById('projectForm')) delete document.getElementById('projectForm').dataset.editId;">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M18 6 6 18M6 6l12 12" />
           </svg>

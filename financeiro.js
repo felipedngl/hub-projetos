@@ -1298,12 +1298,6 @@ ${nomeEscritorio}`;
     });
   }
 
-  // Expõe a função para o script.js chamar
-  window.financeiroInit = function() {
-    mostrarView("view-financeiro");
-    ativarSubAba("calculadora");
-  };
-
   // Expõe a função para o script.js chamar quando a URL for /financeiro
   window.financeiroInit = function() {
     mostrarView("view-financeiro");

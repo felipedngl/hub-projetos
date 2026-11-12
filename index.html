@@ -364,7 +364,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-ghost" id="btnCancel" onclick="document.getElementById('modalOverlay').hidden = true; document.getElementById('modalOverlay').style.display = 'none';">Cancelar</button>
+          <button type="button" class="btn-ghost" id="btnCancel" onclick="document.getElementById('modalOverlay').hidden = true; document.getElementById('modalOverlay').style.display = 'none'; if (document.getElementById('projectForm')) delete document.getElementById('projectForm').dataset.editId;">Cancelar</button>
           <button type="submit" class="btn-primary">Salvar Projeto</button>
         </div>
       </form>

@@ -9247,6 +9247,12 @@ function initSortableGrid() {
   const gridEl = document.getElementById("projectsGrid");
   if (!gridEl) return;
 
+  // Verifica se o Sortable está disponível
+  if (typeof Sortable === "undefined") {
+    console.warn("[Sortable] Biblioteca não carregada. Drag & drop desabilitado.");
+    return;
+  }
+
   if (gridEl.sortableInstance) {
     gridEl.sortableInstance.destroy();
   }

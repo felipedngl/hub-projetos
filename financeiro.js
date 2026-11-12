@@ -617,23 +617,27 @@ function ligarEventosCalculadora() {
         document.getElementById("pacoteValorFixo")?.addEventListener("input", atualizarTextoProposta);
       } else if (pacote === "trema") {
         container.innerHTML = `
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
             <div class="fin-field">
-              <label>Valor base (R$)</label>
-              <input type="number" id="pacoteValorBase" value="1500" min="0" step="100" />
+              <label>Metragem base (m²)</label>
+              <input type="number" id="pacoteMetragemBase" value="25" min="0" step="1" />
             </div>
             <div class="fin-field">
-              <label>Metragem inclusa (m²)</label>
-              <input type="number" id="pacoteMetragemInclusa" value="25" min="0" step="1" />
+              <label>Preço base (R$)</label>
+              <input type="number" id="pacotePrecoBase" value="1500" min="0" step="100" />
+            </div>
+            <div class="fin-field">
+              <label>Metragem atual (m²)</label>
+              <input type="number" id="pacoteMetragemAtual" value="0" min="0" step="1" placeholder="ex: 40" />
             </div>
             <div class="fin-field">
               <label>Valor por m² extra (R$)</label>
               <input type="number" id="pacoteValorM2" value="50" min="0" step="10" />
             </div>
           </div>
-          <p class="fin-hint">Cálculo: valor base + (m² do projeto - metragem inclusa) × valor/m²</p>
+          <p class="fin-hint">Cálculo: preço base + (metragem atual - metragem base) × valor/m²</p>
         `;
-        ["pacoteValorBase", "pacoteMetragemInclusa", "pacoteValorM2"].forEach(id => {
+        ["pacoteMetragemBase", "pacotePrecoBase", "pacoteMetragemAtual", "pacoteValorM2"].forEach(id => {
           document.getElementById(id)?.addEventListener("input", atualizarTextoProposta);
         });
       } else if (pacote === "reticencias") {
@@ -737,12 +741,19 @@ function ligarEventosCalculadora() {
       const valorFixo = Number(document.getElementById("pacoteValorFixo")?.value) || 400;
       precoBase = valorFixo;
     } else if (pacoteAtivo === "trema") {
-      // Trema: valor base + (m² do projeto - metragem inclusa) × valor/m²
-      const valorBase = Number(document.getElementById("pacoteValorBase")?.value) || 1500;
-      const metragemInclusa = Number(document.getElementById("pacoteMetragemInclusa")?.value) || 1;
+      // Trema: preço base + (metragem atual - metragem base) × valor/m²
+      const precoBaseTrema = Number(document.getElementById("pacotePrecoBase")?.value) || 1500;
+      const metragemBase = Number(document.getElementById("pacoteMetragemBase")?.value) || 25;
+      const metragemAtual = Number(document.getElementById("pacoteMetragemAtual")?.value) || 0;
       const valorM2 = Number(document.getElementById("pacoteValorM2")?.value) || 50;
-      const adicionalMetragem = metragem > metragemInclusa ? (metragem - metragemInclusa) * valorM2 : 0;
-      precoBase = valorBase + adicionalMetragem;
+      
+      // Só cobra adicional se a metragem atual for MAIOR que a base
+      if (metragemAtual > metragemBase) {
+        const excedente = metragemAtual - metragemBase;
+        precoBase = precoBaseTrema + (excedente * valorM2);
+      } else {
+        precoBase = precoBaseTrema;
+      }
     } else if (pacoteAtivo === "reticencias") {
       // Reticências: valor do orçamento completo
       if (custoTotal > 0) {

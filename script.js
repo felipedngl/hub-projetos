@@ -7669,7 +7669,7 @@ function setupNewProjectModal() {
   }
 
   if (form) {
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const textInputs = Array.from(form.querySelectorAll("input[type='text'], input[type='number'], input:not([type])"));
@@ -7698,6 +7698,20 @@ function setupNewProjectModal() {
       const editId = form.dataset.editId;
       const isEdicao = !!editId;
 
+      // === BUSCA IMAGEM ALEATÓRIA DO UNSPLASH (só para novos projetos) ===
+      let imagemAleatoria = null;
+      if (!isEdicao) {
+        try {
+          const resp = await fetch(`/api/unsplash?type=random&query=architecture interior design`);
+          if (resp.ok) {
+            const data = await resp.json();
+            imagemAleatoria = data?.urls?.regular || null;
+          }
+        } catch (err) {
+          console.warn("Não foi possível buscar imagem aleatória:", err);
+        }
+      }
+
       const rawProj = {
         id: isEdicao ? editId : "proj_" + Date.now(),
         title: titleValue,
@@ -7708,6 +7722,7 @@ function setupNewProjectModal() {
         status: statusSelect ? statusSelect.value : "Em Andamento",
         clientPassword: passwordInput ? passwordInput.value.trim() : "",
         pacote: pacoteValue,
+        image: imagemAleatoria || "", // ← NOVO: imagem aleatória do Unsplash
         updatedAt: new Date().toISOString()
       };
 

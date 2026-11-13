@@ -161,21 +161,21 @@ a:hover { text-decoration: underline; }
    ========================================================== */
 .hero-title {
   text-align: center;
-  padding: 40px 0 60px; /* menos respiro em cima e embaixo */
+  padding: 20px 0 40px; /* Menos respiro em cima e embaixo */
 }
 .hero-title h1 {
   font-family: "Archivo", sans-serif;
-  font-size: clamp(2.5rem, 7vw, 5.5rem); /* diminui um pouco o tamanho */
+  font-size: clamp(2rem, 5.5vw, 4.5rem); /* Menor */
   font-weight: 200;
   letter-spacing: -0.04em;
   line-height: 1;
   color: var(--text);
   margin: 0;
   text-transform: uppercase;
-  white-space: nowrap; /* impede que quebre em duas linhas */
+  white-space: nowrap;
   display: flex;
   justify-content: center;
-  gap: 0; /* sem espaço entre as palavras */
+  gap: 0;
 }
 .hero-title h1 span {
   color: var(--text-dim);
@@ -440,12 +440,26 @@ body:not(.designer-unlocked) #btnNewProject { display: none !important; }
 body.shared-client #btnDesignerAccess { display: none !important; }
 
 /* ==========================================================
+   STATS BAR
+   ========================================================== */
+.stats-bar {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  padding-left: 4px;
+}
+.stats-bar strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ==========================================================
    CARDS (escuro, editorial)
    ========================================================== */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px; /* um pouco menor pra caber mais */
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
 }
 .card {
   position: relative;
@@ -487,25 +501,47 @@ body.shared-client #btnDesignerAccess { display: none !important; }
 }
 .card-title-top {
   position: absolute;
-  top: 20px;
-  left: 24px;
-  z-index: 3;
+  top: 16px;
+  left: 20px;
+  z-index: 4;
   font-family: "Inter", sans-serif;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 500;
   color: #fff;
   text-transform: uppercase;
+  background: rgba(10, 10, 10, 0.65); /* Fundo escuro semitransparente */
+  padding: 6px 12px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px); /* Efeito de vidro */
+  -webkit-backdrop-filter: blur(4px);
 }
 .card-pacote-top {
   position: absolute;
-  top: 20px;
-  right: 24px;
-  z-index: 3;
+  top: 16px;
+  right: 20px;
+  z-index: 4;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 700;
-  color: var(--text-dim);
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(10, 10, 10, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Cores dos pacotes */
+.card-pacote-top.pacote-ponto {
+  color: #60a5fa; /* Azul escuro */
+}
+
+.card-pacote-top.pacote-trema {
+  color: #E86A44; /* Laranja */
+}
+
+.card-pacote-top.pacote-reticencias {
+  color: #E8D4A2; /* Off-white amarelado */
 }
 .card-body {
   position: absolute;
@@ -627,7 +663,7 @@ body.shared-client #btnDesignerAccess { display: none !important; }
    TOOLBAR
    ========================================================== */
 .toolbar {
-  margin-bottom: 40px;
+  margin-bottom: 32px;
   border-bottom: 1px solid var(--border);
   padding-bottom: 16px;
 }
@@ -680,7 +716,7 @@ body.shared-client #btnDesignerAccess { display: none !important; }
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 40px 80px; /* 40px de respiro nas laterais */
+  padding: 0 60px 80px; /* 60px nas laterais */
 }
 .view[hidden] {
   display: none !important;

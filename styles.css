@@ -2054,8 +2054,8 @@ textarea.stage-textarea:focus,
 
 /* Respiro lateral no painel (garante que tudo respeite a margem) */
 #view-dashboard {
-  padding-left: 5vw !important;
-  padding-right: 5vw !important;
+  padding-left: 24px !important;
+  padding-right: 24px !important;
   padding-top: 0;
   padding-bottom: 80px;
   box-sizing: border-box;

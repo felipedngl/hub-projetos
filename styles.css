@@ -580,12 +580,10 @@ body.shared-client #btnDesignerAccess { display: none !important; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.card-row-1 .card-tipo {
+.card-row-1 .card-metragem {
   flex: none;
-  text-transform: uppercase;
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.65);
+  font-weight: 600;
+  color: #fff;
 }
 .card-row-2 {
   display: flex;
@@ -595,16 +593,18 @@ body.shared-client #btnDesignerAccess { display: none !important; }
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.75);
 }
-.card-row-2 .card-metragem {
-  flex: none;
-  font-weight: 600;
-  color: #fff;
-}
 .card-row-2 .card-status {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   flex: none;
+}
+.card-row-2 .card-tipo {
+  flex: none;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.65);
 }
 .card-status-dot {
   width: 7px;

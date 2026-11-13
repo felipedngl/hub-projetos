@@ -6672,3 +6672,10 @@ body .project-card .status-tag.status-concluido {
   border-color: rgba(220, 80, 80, 0.3);
 }
 
+/* Contrato */
+.fin-contrato #contratoTexto {
+  font-family: 'Times New Roman', serif;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+

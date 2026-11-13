@@ -381,13 +381,6 @@ a:hover { text-decoration: underline; }
   font-weight: 600;
 }
 
-.view-btn.active,
-.view-btn:hover {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
-}
-
 .btn-financeiro {
   display: inline-flex;
   align-items: center;
@@ -451,8 +444,8 @@ body.shared-client #btnDesignerAccess { display: none !important; }
    ========================================================== */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px; /* um pouco menor pra caber mais */
 }
 .card {
   position: relative;
@@ -687,7 +680,7 @@ body.shared-client #btnDesignerAccess { display: none !important; }
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 24px 24px 80px;
+  padding: 0 40px 80px; /* 40px de respiro nas laterais */
 }
 .view[hidden] {
   display: none !important;

@@ -1746,6 +1746,20 @@ function renderDashboard() {
 
   const grid = $("#projectsGrid");
   const emptyState = $("#emptyState");
+  
+  // Escuta atualizações do Firestore para atualizar o card em tempo real
+  if (typeof db !== "undefined" && db) {
+    db.collection("projects").onSnapshot(() => {
+      // Quando o banco mudar (nova msg, novo arquivo), redesenha a tela
+      if (!window._cardUpdateTimeout) {
+        window._cardUpdateTimeout = setTimeout(() => {
+          renderDashboard();
+          window._cardUpdateTimeout = null;
+        }, 500);
+      }
+    });
+  }
+
   if (filtered.length === 0) {
     // Só esvazia se realmente não houver projetos carregados no sistema
     if (projects.length > 0) {

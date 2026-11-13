@@ -83,7 +83,7 @@ a:hover { text-decoration: underline; }
 .header-inner {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 20px 24px 12px;
+  padding: 40px 24px 20px; /* Mais espaço */
   display: flex;
   justify-content: center;
   align-items: center;

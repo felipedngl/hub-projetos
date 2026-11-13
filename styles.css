@@ -161,17 +161,21 @@ a:hover { text-decoration: underline; }
    ========================================================== */
 .hero-title {
   text-align: center;
-  padding: 100px 0 120px;
+  padding: 40px 0 60px; /* menos respiro em cima e embaixo */
 }
 .hero-title h1 {
   font-family: "Archivo", sans-serif;
-  font-size: clamp(3rem, 10vw, 8rem);
-  font-weight: 200; /* Bem fininho, como a referência */
+  font-size: clamp(2.5rem, 7vw, 5.5rem); /* diminui um pouco o tamanho */
+  font-weight: 200;
   letter-spacing: -0.04em;
-  line-height: 0.9;
+  line-height: 1;
   color: var(--text);
   margin: 0;
   text-transform: uppercase;
+  white-space: nowrap; /* impede que quebre em duas linhas */
+  display: flex;
+  justify-content: center;
+  gap: 0; /* sem espaço entre as palavras */
 }
 .hero-title h1 span {
   color: var(--text-dim);

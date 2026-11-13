@@ -56,12 +56,19 @@
         <input type="text" id="searchInput" placeholder="Buscar por nome ou cliente..." autocomplete="off" />
       </div>
 
-      <!-- Links -->
-      <a href="/painel" class="nav-link" data-nav="painel">Painel</a>
-      <a href="/financeiro/orcamento" class="nav-link" data-nav="financeiro">Financeiro</a>
-      <span class="nav-link" id="btnClientView" hidden></span>
-      
-      <div class="nav-spacer"></div>
+      <!-- Novo Projeto (ícone +) -->
+      <button type="button" class="nav-icon" id="btnNewProject" aria-label="Novo Projeto">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </button>
+
+      <!-- Links centralizados -->
+      <div class="nav-links-center">
+        <a href="/painel" class="nav-link" data-nav="painel">Painel</a>
+        <span class="nav-sep">|</span>
+        <a href="/financeiro/orcamento" class="nav-link" data-nav="financeiro">Financeiro</a>
+      </div>
       
       <!-- Cadeado (bloquear acesso) -->
       <button type="button" class="nav-icon" id="btnDesignerAccess" aria-label="Bloquear acesso">
@@ -70,9 +77,6 @@
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
       </button>
-      
-      <!-- Novo Projeto -->
-      <button type="button" class="nav-action nav-action-primary" id="btnNewProject">Novo Projeto</button>
     </div>
   </nav>
 

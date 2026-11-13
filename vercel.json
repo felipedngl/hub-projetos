@@ -5,7 +5,7 @@
       "destination": "/api/$1"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!script\\.js|financeiro\\.js|styles\\.css|manifest\\.json|firebase-messaging-sw\\.js|assets/).*)",
       "destination": "/index.html"
     }
   ]

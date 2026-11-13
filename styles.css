@@ -161,11 +161,11 @@ a:hover { text-decoration: underline; }
    ========================================================== */
 .hero-title {
   text-align: center;
-  padding: 20px 0 30px; /* Menos respiro em cima e embaixo */
+  padding: 10px 0 20px; /* Bem colado em cima e embaixo */
 }
 .hero-title h1 {
   font-family: "Archivo", sans-serif;
-  font-size: clamp(3rem, 9vw, 8rem); /* Fonte maior */
+  font-size: clamp(2.5rem, 7vw, 6rem);
   font-weight: 200;
   letter-spacing: -0.04em;
   line-height: 1;
@@ -175,7 +175,7 @@ a:hover { text-decoration: underline; }
   white-space: nowrap;
   display: flex;
   justify-content: center;
-  gap: 0; /* Zero espaço entre as palavras */
+  gap: 0;
 }
 .hero-title h1 span {
   color: var(--text-dim);
@@ -506,24 +506,28 @@ body.shared-client #btnDesignerAccess { display: none !important; }
   left: 24px;
   z-index: 3;
   font-family: "Inter", sans-serif;
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1rem;        /* Um pouco menor */
+  font-weight: 400;       /* Bem mais fino (era 600) */
   color: #fff;
   text-transform: uppercase;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5); /* Sombra para garantir leitura */
-  /* SEM background, SEM borda, SEM padding */
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
 }
 .card-pacote-top {
   position: absolute;
   top: 20px;
   right: 24px;
   z-index: 3;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  /* SEM background, SEM borda, SEM padding */
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8); /* Sombra forte para ler */
+  background: transparent !important; /* GARANTE QUE NÃO TEM FUNDO */
+  padding: 0 !important;
+  border: none !important;
 }
 
 .card-pacote-top.pacote-ponto { color: #60a5fa; }
@@ -703,7 +707,11 @@ body.shared-client #btnDesignerAccess { display: none !important; }
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 60px 80px; /* 60px nas laterais */
+  padding-left: 5vw !important;
+  padding-right: 5vw !important;
+  padding-bottom: 80px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .view[hidden] {
   display: none !important;

@@ -352,13 +352,12 @@ const STATUS_CLASS = {
     if (!btn) return;
     if (designerUnlocked) {
       btn.classList.add("active");
-      btn.textContent = btn.dataset.unlockedLabel || "Bloquear acesso";
+      // Não muda o texto, mantém o SVG
     } else {
       btn.classList.remove("active");
-      btn.textContent = btn.dataset.lockedLabel || "Acesso Restrito";
     }
   }
-
+	
   /* ---------------- Helpers ---------------- */
   function uid() {
     return "id" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);

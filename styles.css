@@ -78,7 +78,7 @@ a:hover { text-decoration: underline; }
   top: 0;
   z-index: 40;
   background: var(--bg);
-  border-bottom: 1px solid var(--border);
+  border-bottom: none; /* Remove a linha */
 }
 .header-inner {
   max-width: 1400px;
@@ -116,6 +116,7 @@ a:hover { text-decoration: underline; }
 .main-nav {
   background: var(--bg);
   position: relative;
+  border-bottom: none; /* Remove a linha */
 }
 .main-nav-inner {
   max-width: 1400px;
@@ -682,18 +683,17 @@ body.shared-client #btnDesignerAccess { display: none !important; }
   border: none;
   color: var(--text-dim);
   font-family: inherit;
-  font-size: 0.78rem;
-  font-weight: 500;
+  font-size: 0.85rem; /* Um pouco maior */
+  font-weight: 600; /* Mais negrito */
   cursor: pointer;
   padding: 4px 0;
   border-bottom: 2px solid transparent;
   transition: color 0.2s ease, border-color 0.2s ease;
 }
-.view-btn:hover { color: var(--text); }
 .view-btn.active {
-  color: var(--primary);
+  color: var(--text);
   border-bottom-color: var(--accent);
-  font-weight: 600;
+  font-weight: 700; /* Bem negrito no ativo */
 }
 .filters { display: flex; flex-wrap: wrap; gap: 16px; }
 .chip {

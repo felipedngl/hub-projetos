@@ -1636,109 +1636,65 @@ function cardHTML(p, index) {
 
   console.log("Projeto:", p.title, "Mensagens não lidas:", unreadMessages);
 
+  const pacoteLabel = p.pacote === "ponto" ? "Ponto" : p.pacote === "trema" ? "Trema" : p.pacote === "reticencias" ? "Reticências" : "";
+  const statusDot = p.status === "concluido" ? "concluido" : "em-andamento";
+  const statusLabel2 = p.status === "concluido" ? "Concluído" : "Em andamento";
+  const tipoLabel = (p.type || "").toLowerCase() === "comercial" ? "Comercial" : "Residencial";
+
   return `
     <article
       class="card project-card"
       data-id="${p.id}"
       data-project-id="${p.id}"
       tabindex="0"
-      style="animation-delay: ${Math.min(index * 60, 360)}ms"
     >
-
       <div class="card-cover">
-
-        <span class="card-badge badge-type-${p.type}">
-          ${p.type}
-        </span>
-
         <img
           src="${p.image || PLACEHOLDER}"
           alt="Capa do projeto ${escapeHTML(p.title)}"
           loading="lazy"
           onerror="this.src='${PLACEHOLDER}'"
         />
-
       </div>
+
+      <span class="card-title-top">${escapeHTML(p.title)}</span>
+      ${pacoteLabel ? `<span class="card-pacote-top">${pacoteLabel}</span>` : ""}
 
       <div class="card-body">
+        <div class="card-row-1">
+          <span class="card-cliente">${escapeHTML(p.client || "Sem cliente")}</span>
+          <span class="card-metragem">${formatArea(p.area)} m²</span>
+        </div>
 
-        <h3 class="card-title">
-          ${escapeHTML(p.title)}
-        </h3>
-
-        <div class="card-meta">
-          <span title="Cliente">
-            ${ICONS.client} ${escapeHTML(p.client)}
+        <div class="card-row-2">
+          <span class="card-status">
+            <span class="card-status-dot ${statusDot}"></span>
+            ${statusLabel2}
           </span>
-
-          <span title="Metragem">
-            ${ICONS.area} ${formatArea(p.area)} m²
-          </span>
-
-          ${p.pacote ? `
-            <span class="pacote-badge pacote-${p.pacote}" title="Pacote contratado">
-              ${p.pacote === "ponto" ? "Ponto" : p.pacote === "trema" ? "Trema" : "Reticências"}
-            </span>
-          ` : ""}
+          <span class="card-tipo">${tipoLabel}</span>
         </div>
 
-        <div class="card-footer">
-
-          ${
-            unreadMessages > 0
-              ? `
-                <div class="card-message-row">
-                  <span class="card-message-notification">
-                    <span class="notification-dot"></span>
-                    ${
-                      unreadMessages === 1
-                        ? "Nova mensagem"
-                        : `${unreadMessages} novas mensagens`
-                    }
-                  </span>
-                </div>
-              `
-              : ""
-          }
-
-          <div style="display: flex; flex-direction: column; gap: 8px;">
-            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--text-dim);">
-              <span style="width: 8px; height: 8px; border-radius: 50%; background: ${p.status === "concluido" ? "#6fbf8f" : "#e8b04a"}; flex-shrink: 0;"></span>
-              <span>${statusLabel}</span>
-            </div>
-
-            ${
-              showOwnerOpenButton
-                ? `
-                  <div style="display: flex; gap: 6px; width: 100%;">
-                    <button
-                      type="button"
-                      class="btn-owner-edit-project"
-                      data-project-id="${escapeHTML(String(p.id))}"
-                      style="flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text); font-family: inherit; font-size: 0.75rem; font-weight: 500; cursor: pointer;"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      class="btn-owner-open-project"
-                      data-project-id="${escapeHTML(String(p.id))}"
-                      style="flex: 1; min-width: 0; padding: 6px 8px; border: none; border-radius: 6px; background: var(--accent); color: #fff; font-family: inherit; font-size: 0.75rem; font-weight: 500; cursor: pointer;"
-                    >
-                      Abrir
-                    </button>
-                  </div>
-                `
-                : ""
-            }
-          </div>
-
+        <div class="card-message-row">
+          ${unreadMessages > 0 ? `<span class="card-message-badge">${unreadMessages === 1 ? "Nova mensagem" : `${unreadMessages} novas mensagens`}</span>` : ""}
         </div>
 
+        <div class="card-owner-action">
+          <button
+            type="button"
+            class="btn-card-edit"
+            data-project-id="${escapeHTML(String(p.id))}"
+          >
+            Editar
+          </button>
+          <button
+            type="button"
+            class="btn-card-open"
+            data-project-id="${escapeHTML(String(p.id))}"
+          >
+            Abrir
+          </button>
         </div>
-
       </div>
-
     </article>
   `;
 }
@@ -1813,8 +1769,8 @@ function renderDashboard() {
   }
 
 // Botão "Editar" (abre o modal de edição)
-$$(".btn-owner-edit-project").forEach((button) => {
-  button.addEventListener("click", (e) => {
+$$(".btn-card-edit").forEach((button) => {
+	button.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -1869,7 +1825,7 @@ $$(".btn-owner-edit-project").forEach((button) => {
 });
 
 // Botão "Abrir" (abre o projeto)
-$$(".btn-owner-open-project").forEach((button) => {
+$$(".btn-card-open").forEach((button) => {
   button.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();

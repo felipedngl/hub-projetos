@@ -161,11 +161,11 @@ a:hover { text-decoration: underline; }
    ========================================================== */
 .hero-title {
   text-align: center;
-  padding: 20px 0 40px; /* Menos respiro em cima e embaixo */
+  padding: 20px 0 30px; /* Menos respiro em cima e embaixo */
 }
 .hero-title h1 {
   font-family: "Archivo", sans-serif;
-  font-size: clamp(2rem, 5.5vw, 4.5rem); /* Menor */
+  font-size: clamp(3rem, 9vw, 8rem); /* Fonte maior */
   font-weight: 200;
   letter-spacing: -0.04em;
   line-height: 1;
@@ -175,7 +175,7 @@ a:hover { text-decoration: underline; }
   white-space: nowrap;
   display: flex;
   justify-content: center;
-  gap: 0;
+  gap: 0; /* Zero espaço entre as palavras */
 }
 .hero-title h1 span {
   color: var(--text-dim);
@@ -494,55 +494,42 @@ body.shared-client #btnDesignerAccess { display: none !important; }
   inset: 0;
   background: linear-gradient(
     180deg,
-    transparent 40%,
-    rgba(10, 10, 10, 0.6) 70%,
-    rgba(10, 10, 10, 0.95) 100%
+    rgba(10, 10, 10, 0.7) 0%,   /* Escuro no topo para ler o nome */
+    transparent 25%,            /* Fica claro no meio (a foto aparece) */
+    transparent 60%,            /* Continua claro */
+    rgba(10, 10, 10, 0.9) 100%  /* Escuro embaixo para o overlay */
   );
 }
 .card-title-top {
   position: absolute;
-  top: 16px;
-  left: 20px;
-  z-index: 4;
+  top: 20px;
+  left: 24px;
+  z-index: 3;
   font-family: "Inter", sans-serif;
   font-size: 1.1rem;
-  font-weight: 500;
+  font-weight: 600;
   color: #fff;
   text-transform: uppercase;
-  background: rgba(10, 10, 10, 0.65); /* Fundo escuro semitransparente */
-  padding: 6px 12px;
-  border-radius: 6px;
-  backdrop-filter: blur(4px); /* Efeito de vidro */
-  -webkit-backdrop-filter: blur(4px);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5); /* Sombra para garantir leitura */
+  /* SEM background, SEM borda, SEM padding */
 }
 .card-pacote-top {
   position: absolute;
-  top: 16px;
-  right: 20px;
-  z-index: 4;
+  top: 20px;
+  right: 24px;
+  z-index: 3;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 700;
-  padding: 6px 12px;
-  border-radius: 6px;
-  background: rgba(10, 10, 10, 0.65);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  /* SEM background, SEM borda, SEM padding */
 }
 
-/* Cores dos pacotes */
-.card-pacote-top.pacote-ponto {
-  color: #60a5fa; /* Azul escuro */
-}
+.card-pacote-top.pacote-ponto { color: #60a5fa; }
+.card-pacote-top.pacote-trema { color: #E86A44; }
+.card-pacote-top.pacote-reticencias { color: #E8D4A2; }
 
-.card-pacote-top.pacote-trema {
-  color: #E86A44; /* Laranja */
-}
-
-.card-pacote-top.pacote-reticencias {
-  color: #E8D4A2; /* Off-white amarelado */
-}
 .card-body {
   position: absolute;
   bottom: 0;

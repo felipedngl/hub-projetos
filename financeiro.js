@@ -65,7 +65,8 @@
       container.innerHTML = renderPropostasSalvasHTML();
       ligarEventosPropostasSalvas();
     } else if (tabId === "contratos") {
-      container.innerHTML = `<div class="empty-state"><h3>Contratos</h3><p>Em construção.</p></div>`;
+      container.innerHTML = renderContratoHTML();
+      ligarEventosContrato();
     }
   }
    
@@ -1116,6 +1117,319 @@ ${nomeEscritorio}`;
     }
   }
 
+  /* ---------------------------------------------------------
+     5.3. TELA DE CONTRATO
+     --------------------------------------------------------- */
+  function renderContratoHTML() {
+    return `
+      <div class="fin-contrato">
+        <h2 class="fin-section-title">Contrato</h2>
+        <p class="fin-hint">Preencha os dados abaixo. O contrato é gerado automaticamente.</p>
+
+        <!-- DADOS DO CONTRATO -->
+        <div class="fin-card">
+          <h3>1. Dados do Contrato</h3>
+          <div class="fin-grid">
+            <div class="fin-field">
+              <label>Nome do Cliente</label>
+              <input type="text" id="contratoCliente" placeholder="ex: Kelly Feitosa" />
+            </div>
+            <div class="fin-field">
+              <label>CPF do Cliente</label>
+              <input type="text" id="contratoCpf" placeholder="ex: 123.456.789-00" />
+            </div>
+            <div class="fin-field">
+              <label>Endereço do Cliente</label>
+              <input type="text" id="contratoEndereco" placeholder="ex: Rua X, 123, Apto 45" />
+            </div>
+            <div class="fin-field">
+              <label>Cidade</label>
+              <input type="text" id="contratoCidade" placeholder="ex: São Paulo" />
+            </div>
+            <div class="fin-field">
+              <label>Estado</label>
+              <input type="text" id="contratoEstado" placeholder="ex: SP" />
+            </div>
+          </div>
+        </div>
+
+        <!-- DADOS DO PROJETO (puxa do orçamento) -->
+        <div class="fin-card">
+          <h3>2. Dados do Projeto</h3>
+          <div class="fin-grid">
+            <div class="fin-field">
+              <label>Nome do Projeto</label>
+              <input type="text" id="contratoProjeto" placeholder="ex: Studio 42" />
+            </div>
+            <div class="fin-field">
+              <label>Metragem (m²)</label>
+              <input type="number" id="contratoMetragem" placeholder="ex: 28" min="0" step="0.1" />
+            </div>
+            <div class="fin-field">
+              <label>Pacote</label>
+              <select id="contratoPacote">
+                <option value="ponto">Ponto (Consultoria)</option>
+                <option value="trema" selected>Trema (1 ambiente)</option>
+                <option value="reticencias">Reticências (Casa toda)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONDIÇÕES DE PAGAMENTO -->
+        <div class="fin-card">
+          <h3>3. Condições de Pagamento</h3>
+          <div class="fin-grid">
+            <div class="fin-field">
+              <label>Valor Total (R$)</label>
+              <input type="number" id="contratoValorTotal" placeholder="ex: 1500" min="0" step="50" />
+            </div>
+            <div class="fin-field">
+              <label>Entrada (%)</label>
+              <input type="number" id="contratoEntrada" value="30" min="0" max="100" step="5" />
+            </div>
+            <div class="fin-field">
+              <label>Parcelas no saldo</label>
+              <input type="number" id="contratoParcelas" value="3" min="1" max="12" step="1" />
+            </div>
+            <div class="fin-field">
+              <label>Chave PIX</label>
+              <input type="text" id="contratoPix" placeholder="ex: menche@email.com" />
+            </div>
+          </div>
+        </div>
+
+        <!-- PRÉVIA -->
+        <div class="fin-card">
+          <h3>4. Prévia do Contrato</h3>
+          <p class="fin-hint">O texto abaixo é gerado automaticamente. Você pode imprimir ou salvar como PDF.</p>
+          <div id="contratoTexto" style="background: var(--surface-2); padding: 20px; border-radius: 8px; font-size: 0.85rem; line-height: 1.6; max-height: 600px; overflow-y: auto; white-space: pre-wrap; font-family: 'Times New Roman', serif;"></div>
+          <div class="fin-actions" style="margin-top: 16px;">
+            <button type="button" class="btn-primary" id="btnImprimirContrato">🖨️ Imprimir / Salvar PDF</button>
+            <button type="button" class="btn-primary" id="btnSalvarContrato" style="background:#2a9d8f;">💾 Salvar Contrato</button>
+            <span id="contratoFeedback" class="fin-feedback"></span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function ligarEventosContrato() {
+    // Puxa os dados do orçamento (se existirem)
+    const dados = dadosProposta || {};
+    if (document.getElementById("contratoProjeto")) {
+      document.getElementById("contratoProjeto").value = dados.nome || "";
+    }
+    if (document.getElementById("contratoMetragem")) {
+      document.getElementById("contratoMetragem").value = dados.m2 || "";
+    }
+    if (document.getElementById("contratoCliente")) {
+      document.getElementById("contratoCliente").value = dados.cliente || "";
+    }
+    
+    // Gera o texto ao abrir
+    atualizarTextoContrato();
+    
+    // Atualiza ao digitar
+    ["contratoCliente", "contratoCpf", "contratoEndereco", "contratoCidade", "contratoEstado",
+     "contratoProjeto", "contratoMetragem", "contratoValorTotal", "contratoEntrada",
+     "contratoParcelas", "contratoPix", "contratoPacote"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener("input", atualizarTextoContrato);
+        el.addEventListener("change", atualizarTextoContrato);
+      }
+    });
+    
+    // Botão imprimir
+    const btnImprimir = document.getElementById("btnImprimirContrato");
+    if (btnImprimir) {
+      btnImprimir.addEventListener("click", () => {
+        const texto = document.getElementById("contratoTexto").innerText;
+        const janela = window.open("", "_blank");
+        janela.document.write(`
+          <html>
+            <head>
+              <title>Contrato - Menchë Interiores</title>
+              <style>
+                body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; padding: 40px; max-width: 800px; margin: 0 auto; }
+                h1 { font-size: 14pt; text-align: center; }
+                h2 { font-size: 12pt; margin-top: 24px; }
+                pre { white-space: pre-wrap; font-family: inherit; }
+              </style>
+            </head>
+            <body>
+              <pre>${texto}</pre>
+              <script>window.print();</script>
+            </body>
+          </html>
+        `);
+        janela.document.close();
+      });
+    }
+    
+    // Botão salvar
+    const btnSalvar = document.getElementById("btnSalvarContrato");
+    if (btnSalvar) {
+      btnSalvar.addEventListener("click", async () => {
+        const feedback = document.getElementById("contratoFeedback");
+        const user = auth?.currentUser;
+        
+        if (!user || user.email !== DESIGNER_EMAIL) {
+          if (feedback) { feedback.textContent = "⚠️ Faça login como designer."; feedback.style.color = "#f59e0b"; }
+          return;
+        }
+        
+        const texto = document.getElementById("contratoTexto").innerText;
+        const nomeProjeto = document.getElementById("contratoProjeto")?.value || "";
+        const cliente = document.getElementById("contratoCliente")?.value || "";
+        
+        if (!texto.trim()) {
+          if (feedback) { feedback.textContent = "⚠️ Gere o texto antes de salvar."; feedback.style.color = "#f59e0b"; }
+          return;
+        }
+        
+        try {
+          await db.collection("contratos").add({
+            projeto: nomeProjeto,
+            cliente: cliente,
+            texto: texto,
+            criadoEm: new Date().toISOString(),
+            designer: user.email
+          });
+          if (feedback) { feedback.textContent = "✓ Contrato salvo!"; feedback.style.color = "#4CAF50"; }
+          setTimeout(() => { if (feedback) feedback.textContent = ""; }, 3000);
+        } catch (err) {
+          console.error("Erro ao salvar contrato:", err);
+          if (feedback) { feedback.textContent = "❌ Erro: " + err.message; feedback.style.color = "#ef4444"; }
+        }
+      });
+    }
+  }
+
+  function atualizarTextoContrato() {
+    const cliente = document.getElementById("contratoCliente")?.value || "[Nome do Contratante]";
+    const cpf = document.getElementById("contratoCpf")?.value || "[CPF]";
+    const endereco = document.getElementById("contratoEndereco")?.value || "[Endereço]";
+    const cidade = document.getElementById("contratoCidade")?.value || "[Cidade]";
+    const estado = document.getElementById("contratoEstado")?.value || "[Estado]";
+    const projeto = document.getElementById("contratoProjeto")?.value || "[Projeto]";
+    const metragem = document.getElementById("contratoMetragem")?.value || "0";
+    const pacote = document.getElementById("contratoPacote")?.value || "trema";
+    const valorTotal = Number(document.getElementById("contratoValorTotal")?.value) || 0;
+    const entradaPerc = Number(document.getElementById("contratoEntrada")?.value) || 30;
+    const parcelas = Number(document.getElementById("contratoParcelas")?.value) || 3;
+    const pix = document.getElementById("contratoPix")?.value || "[Chave PIX]";
+    
+    const valorEntrada = valorTotal * (entradaPerc / 100);
+    const valorSaldo = valorTotal - valorEntrada;
+    const valorParcela = valorSaldo / parcelas;
+    
+    const pacoteLabel = pacote === "ponto" ? "Ponto (Consultoria)" : pacote === "trema" ? "Trema (1 ambiente)" : "Reticências (Casa toda)";
+    
+    const hoje = new Date().toLocaleDateString("pt-BR");
+    
+    const texto = `
+CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE DESIGN DE INTERIORES
+
+1. PARTES
+
+CONTRATANTE: ${cliente}, portador(a) do CPF ${cpf}, residente e domiciliado(a) na cidade de ${cidade}/${estado}, no endereço ${endereco}.
+
+CONTRATADA: Menchë Interiores, representada por Felipe D'Angelo, com endereço profissional em ${cidade}/${estado}.
+
+As partes acima identificadas têm, entre si, justo e acertado o presente Contrato de Prestação de Serviços de Design de Interiores, que se regerá pelas cláusulas seguintes e pelas condições descritas no presente.
+
+2. OBJETO DO CONTRATO
+
+O presente contrato tem como objeto a prestação de serviços de design de interiores para o projeto "${projeto}", com área de ${metragem}m², no pacote ${pacoteLabel}.
+
+3. ESCOPO DOS SERVIÇOS
+
+O pacote ${pacoteLabel} inclui as seguintes etapas:
+${
+  pacote === "ponto"
+    ? `- 1 videochamada de 1h (diagnóstico do espaço)
+- Plano de Ação em PDF (o que fazer, em que ordem)
+- Paleta de cores sugerida
+- Mapa do que fica (o que manter, adaptar, trocar)
+- Suporte por 7 dias no WhatsApp`
+    : pacote === "trema"
+    ? `- Briefing e Levantamento
+- Estudo Preliminar (layout)
+- Anteprojeto (materiais + 1 render 3D)
+- Projeto Executivo (planta técnica)
+- Entrega (PDF final + guia de execução)
+- Suporte por 10 dias`
+    : `- Todos os ambientes
+- Briefing, Levantamento, Estudo, Anteprojeto
+- 3 a 5 renders 3D
+- Projeto Executivo completo
+- Memorial Descritivo
+- Cronograma de Obra
+- Acompanhamento de obra
+- Suporte por 30 dias`
+}
+
+4. PRAZO
+
+O prazo para entrega do projeto será combinado entre as partes, contado a partir da assinatura deste contrato e do pagamento da entrada.
+
+5. OBRIGAÇÕES DA CONTRATADA
+
+5.1. Executar os serviços com qualidade técnica e dentro dos prazos combinados.
+5.2. Entregar os arquivos em formato PDF e/ou DWG/PLT, conforme o pacote contratado.
+5.3. Manter sigilo sobre as informações do CONTRATANTE.
+5.4. Fornecer suporte durante o período estipulado no pacote.
+
+6. OBRIGAÇÕES DO CONTRATANTE
+
+6.1. Fornecer as informações necessárias para o desenvolvimento do projeto.
+6.2. Aprovar as etapas dentro do prazo de 5 dias úteis.
+6.3. Efetuar os pagamentos conforme a cláusula 7.
+6.4. Não repassar o projeto a terceiros sem autorização.
+
+7. VALORES E FORMA DE PAGAMENTO
+
+7.1. O valor total dos serviços é de R$ ${valorTotal.toFixed(2)}.
+7.2. A entrada de ${entradaPerc}% (R$ ${valorEntrada.toFixed(2)}) será paga na assinatura deste contrato.
+7.3. O saldo de R$ ${valorSaldo.toFixed(2)} será pago em ${parcelas}x de R$ ${valorParcela.toFixed(2)}.
+7.4. Pagamento via PIX: ${pix}.
+
+8. DIREITOS AUTORAIS
+
+8.1. O projeto é protegido pela Lei de Direitos Autorais (Lei 9.610/98).
+8.2. O CONTRATANTE tem direito de uso do projeto para fins residenciais.
+8.3. A reprodução comercial do projeto exige autorização expressa da CONTRATADA.
+
+9. RESCISÃO
+
+9.1. O contrato pode ser rescindido por acordo mútuo ou por inadimplência.
+9.2. Em caso de rescisão pelo CONTRATANTE após o início dos trabalhos, os valores já pagos não serão reembolsáveis.
+
+10. DISPOSIÇÕES GERAIS
+
+10.1. Este contrato não gera vínculo empregatício entre as partes.
+10.2. As partes elegem o foro da Comarca de ${cidade}/${estado} para dirimir quaisquer dúvidas.
+10.3. O CONTRATANTE autoriza o uso de imagens do projeto para portfólio da CONTRATADA.
+
+${cidade}, ${hoje}.
+
+
+_________________________________________
+CONTRATANTE: ${cliente}
+CPF: ${cpf}
+
+
+_________________________________________
+CONTRATADA: Menchë Interiores
+Felipe D'Angelo
+    `.trim();
+    
+    const container = document.getElementById("contratoTexto");
+    if (container) container.textContent = texto;
+  }
+   
   /* ---------------------------------------------------------
      5.2. TELA DE PROPOSTAS SALVAS
      --------------------------------------------------------- */

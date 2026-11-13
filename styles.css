@@ -71,7 +71,7 @@ a {
 a:hover { text-decoration: underline; }
 
 /* ==========================================================
-   HEADER
+   HEADER (centralizado)
    ========================================================== */
 .header {
   position: sticky;
@@ -83,18 +83,19 @@ a:hover { text-decoration: underline; }
 .header-inner {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 16px 24px;
+  padding: 20px 24px 12px;
   display: flex;
+  justify-content: center;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
 }
 .brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 12px;
-  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
+.brand:hover { text-decoration: none; }
 .brand-mark {
   display: grid;
   place-items: center;
@@ -106,9 +107,101 @@ a:hover { text-decoration: underline; }
 }
 .brand-mark img { width: 28px; height: 28px; object-fit: contain; }
 .brand-mark .logo-light { display: none; }
-.brand h1 { font-size: 1.1rem; font-weight: 600; }
+.brand h1 { font-size: 1.15rem; font-weight: 600; }
 .brand p { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.15em; }
-.header-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ==========================================================
+   MENU DE NAVEGAÇÃO
+   ========================================================== */
+.main-nav {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: relative;
+}
+.main-nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 48px;
+}
+.nav-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.nav-icon:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.nav-icon.active { color: var(--accent); }
+.nav-link {
+  padding: 12px 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.nav-link:hover { color: var(--text); text-decoration: none; }
+.nav-link.active {
+  color: var(--primary);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+.nav-spacer { flex: 1; }
+.nav-action {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 8px 0;
+  transition: color 0.2s ease;
+}
+.nav-action:hover { color: var(--text); }
+.nav-action.active { color: var(--accent); }
+.nav-action-primary {
+  color: var(--accent);
+  font-weight: 600;
+}
+.nav-action-primary:hover { color: var(--accent-hover); }
+.search-box-wrapper {
+  position: absolute;
+  top: 100%;
+  left: 60px;
+  margin-top: 8px;
+  width: 280px;
+  z-index: 1000;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+.search-box-wrapper input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-size: 0.85rem;
+  outline: none;
+  box-sizing: border-box;
+}
 
 /* ==========================================================
    BOTÕES — TODOS OS QUE O script.js USA
@@ -375,12 +468,12 @@ body:not(.designer-unlocked) #btnNewProject { display: none !important; }
 body.shared-client #btnDesignerAccess { display: none !important; }
 
 /* ==========================================================
-   CARDS DO PAINEL
+   CARDS DO PAINEL (editorial)
    ========================================================== */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
 }
 .card {
   position: relative;
@@ -392,7 +485,7 @@ body.shared-client #btnDesignerAccess { display: none !important; }
   flex-direction: column;
   cursor: pointer;
   transition: border-color 0.2s ease, transform 0.2s ease;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 3 / 4.2;
 }
 .card:hover {
   border-color: var(--border-strong);
@@ -400,10 +493,7 @@ body.shared-client #btnDesignerAccess { display: none !important; }
 }
 .card-cover {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 75%;
+  inset: 0;
   overflow: hidden;
   background: var(--surface-2);
 }
@@ -418,105 +508,145 @@ body.shared-client #btnDesignerAccess { display: none !important; }
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 60%, rgba(15, 21, 25, 0.5) 100%);
+  background: linear-gradient(
+    180deg,
+    transparent 40%,
+    rgba(15, 21, 25, 0.5) 65%,
+    rgba(15, 21, 25, 0.95) 100%
+  );
 }
 .card-title-top {
   position: absolute;
-  top: 14px;
-  left: 16px;
+  top: 16px;
+  left: 18px;
   z-index: 3;
   font-family: "Playfair Display", serif;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 500;
   color: #fff;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   max-width: 60%;
 }
 .card-pacote-top {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 18px;
+  right: 18px;
   z-index: 3;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
   color: var(--accent);
-  background: rgba(255, 255, 255, 0.95);
-  padding: 4px 8px;
-  border-radius: 4px;
 }
 .card-body {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 25%;
   z-index: 3;
-  padding: 12px 16px;
+  padding: 16px 18px 18px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  color: var(--text);
-  background: var(--surface);
-  border-top: 1px solid var(--border);
+  gap: 6px;
+  color: #fff;
+  background: linear-gradient(180deg, transparent 0%, rgba(15, 21, 25, 0.7) 30%, rgba(15, 21, 25, 0.95) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-.card-meta {
+.card-row-1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   font-size: 0.78rem;
-  color: var(--text-dim);
+  color: rgba(255, 255, 255, 0.85);
 }
-.card-meta .card-meta-cliente {
+.card-row-1 .card-cliente {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.card-meta .card-meta-metragem {
+.card-row-1 .card-tipo {
+  flex: none;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.65);
+}
+.card-row-2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+.card-row-2 .card-metragem {
   flex: none;
   font-weight: 600;
-  color: var(--text);
+  color: #fff;
 }
-.card-status {
+.card-row-2 .card-status {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.72rem;
-  color: var(--text-dim);
+  flex: none;
 }
 .card-status-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 .card-status-dot.em-andamento { background: var(--warning); }
 .card-status-dot.concluido { background: var(--success); }
+.card-message-row {
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+}
+.card-message-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #60a5fa;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.card-message-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #60a5fa;
+}
 .card-owner-action {
   display: flex;
-  gap: 6px;
-  margin-top: auto;
+  gap: 8px;
+  margin-top: 4px;
 }
 .btn-card-edit,
 .btn-card-open {
   flex: 1;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 6px;
   font-family: inherit;
-  font-size: 0.72rem;
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 .btn-card-edit {
-  background: var(--surface-2);
-  border: 1px solid var(--border-strong);
-  color: var(--text);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  backdrop-filter: blur(4px);
 }
-.btn-card-edit:hover { background: var(--border); }
+.btn-card-edit:hover { background: rgba(255, 255, 255, 0.25); }
 .btn-card-open {
   background: var(--accent);
   border: none;

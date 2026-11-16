@@ -8760,16 +8760,10 @@ const projectSlug =
   (typeof slugify === "function" ? slugify(p.title) : p.id) ||
   p.id;
 
-const shareParams = new URLSearchParams();
-
-// Identifica o projeto pelo slug
-shareParams.set("projeto", projectSlug);
-
 const shareUrl =
-  `${window.location.origin}${window.location.pathname}?${shareParams.toString()}`;
+  `${window.location.origin}/${encodeURIComponent(projectSlug)}`;
 
-
-  const clientPwd = p.clientPassword || p.client_password || "";
+const clientPwd = p.clientPassword || p.client_password || "";
 
   // 2. Fundo Escuro do Modal
   const wrapper = document.createElement("div");

@@ -502,18 +502,18 @@ body.shared-client #btnDesignerAccess { display: none !important; }
 }
 .card-title-top {
   position: absolute;
-  top: 20px;
-  left: 24px;
+  top: 16px;
+  left: 20px;
   z-index: 3;
   font-family: "Inter", sans-serif;
-  font-size: 1rem;        /* Um pouco menor */
-  font-weight: 400;       /* Bem mais fino (era 600) */
+  font-size: 1rem;
+  font-weight: 500;
   color: #fff;
   text-transform: uppercase;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-  background: transparent !important;
-  padding: 0 !important;
-  border: none !important;
+  max-width: calc(100% - 120px); /* Deixa espaço para o pacote */
+  line-height: 1.2;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 .card-pacote-top {
   position: absolute;

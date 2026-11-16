@@ -8414,7 +8414,6 @@ async function init() {
   initViewModeSwitcher();
   initSearchToggle();
 
-
 const urlParams = new URLSearchParams(window.location.search);
 
 // Link Mágico (acesso sem senha)
@@ -8432,6 +8431,7 @@ if (magicToken) {
   document.body.classList.add("client-view");
   
   try {
+
     // Busca o token na coleção magicLinks
     const tokenDoc = await db.collection("magicLinks").doc(magicToken).get();
     
@@ -8485,7 +8485,13 @@ const pathParts = window.location.pathname
   .filter(Boolean);
 
 const isDashboardPath = pathParts[0] === "painel";
-const isFinanceiroPath = pathParts[0] === "financeiro";  // ← NOVO
+const isFinanceiroPath = pathParts[0] === "financeiro";
+
+// Se for cliente tentando acessar o financeiro, bloqueia
+if (isFinanceiroPath && clientMode) {
+  mostrarAvisoCliente("Acesso Restrito", "Área exclusiva do escritório.");
+  return;
+}
 
 const pathProjectParam =
   pathParts[0] && !isDashboardPath && !isFinanceiroPath  // ← MODIFICADO
@@ -8649,9 +8655,14 @@ return;
 const splash = document.getElementById("introSplash");
 if (splash) {
   splash.style.opacity = "0";
-  setTimeout(() => { splash.style.display = "none"; }, 500);
+  setTimeout(() => { splash.style.display = "none"; }, 300);
 }
 document.body.style.visibility = "visible";
+
+// Se for modo cliente, garante que as classes de UI estejam aplicadas
+if (clientMode) {
+  document.body.classList.add("client-view");
+}
 }
 
 // ============================================================

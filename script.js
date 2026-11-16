@@ -8674,7 +8674,6 @@ return;
   }
   document.body.style.visibility = "visible";
 }
-}
 
 // ============================================================
 // INICIALIZAÇÃO

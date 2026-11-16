@@ -8059,12 +8059,30 @@ async function promptClientPassword(project) {
     }
 
     try {
-      if (!project.clientUid) {
-        showToast("Este projeto ainda não está configurado para acesso do cliente.", true);
+      // Verifica a senha (sem precisar de clientUid)
+      const senhaSalva = project.clientPassword || project.client_password || "";
+      
+      if (entered !== senhaSalva) {
+        showToast("Senha incorreta.", true);
         return;
       }
 
-      await signInWithFirebase(project.clientEmail, entered);
+      // Cria a sessão
+      sessionStorage.setItem(`client_authenticated_${project.id}`, "true");
+      showSoundPermission();
+
+      modal.setAttribute("hidden", "");
+      modal.style.display = "none";
+      document.body.classList.remove("client-view");
+
+      openProject(project.id);
+
+      showToast("Acesso liberado!");
+    } catch (error) {
+      console.error("[AUTH] Erro no acesso do cliente:", error);
+      showToast("Senha incorreta ou acesso não autorizado.", true);
+    }
+  };
 	  
 	  sessionStorage.setItem(
   		`client_authenticated_${project.id}`,
@@ -8394,6 +8412,19 @@ function mostrarAvisoCliente(titulo, mensagem) {
 
 /* ---------------- Inicialização da Aplicação ---------------- */
 async function init() {
+  // Mostra splash enquanto valida o token mágico
+  const temToken = new URLSearchParams(window.location.search).has("token");
+  if (temToken) {
+    const splash = document.getElementById("introSplash");
+    if (splash) {
+      splash.style.display = "flex";
+      splash.style.opacity = "1";
+    } else {
+      // Se não tem splash, esconde o body
+      document.body.style.visibility = "hidden";
+    }
+  }
+
   if (
     typeof DESIGNER_KEY !== "undefined" &&
     sessionStorage.getItem(DESIGNER_KEY) === "true"
@@ -8632,6 +8663,16 @@ return;
   } else {
     showDashboard();
   }
+
+// ============================================================
+  // ESCONDE O SPLASH (se ainda estiver visível)
+  // ============================================================
+  const splash = document.getElementById("introSplash");
+  if (splash) {
+    splash.style.opacity = "0";
+    setTimeout(() => { splash.style.display = "none"; }, 500);
+  }
+  document.body.style.visibility = "visible";
 }
 }
 

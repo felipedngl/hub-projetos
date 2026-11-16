@@ -2123,3 +2123,32 @@ body.client-view .btn-back {
   display: none !important;
 }
 
+/* ==========================================================
+   CONTROLE DE UI: MODO CLIENTE vs DESIGNER
+   ========================================================== */
+
+/* Esconde TUDO do designer no modo cliente */
+body.client-view .header-nav,
+body.client-view .header-actions,
+body.client-view .main-nav,
+body.client-view #btnFinanceiro,
+body.client-view #btnNewProject,
+body.client-view #btnDesignerAccess,
+body.client-view .toolbar,
+body.client-view .stats-bar,
+body.client-view #view-dashboard {
+  display: none !important;
+}
+
+/* Garante que o menu e botões apareçam no modo designer */
+body.designer-unlocked .header-nav,
+body.designer-unlocked .header-actions,
+body.designer-unlocked .main-nav {
+  display: flex !important;
+}
+
+/* Esconde o botão de voltar no modo cliente */
+body.client-view .btn-back {
+  display: none !important;
+}
+

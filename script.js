@@ -1781,40 +1781,24 @@ function renderDashboard() {
       : `<strong>${filtered.length}</strong> de <strong>${projects.length}</strong> projetos · <strong>${formatArea(filteredM2)} m²</strong>`;
   }
 
-// Botão "Editar" (abre o modal de edição)
-$$(".btn-card-edit").forEach((button) => {
-	button.addEventListener("click", (e) => {
+// Delegação de eventos para os botões do card (mais seguro e não duplica)
+document.addEventListener("click", (e) => {
+  // Botão Editar
+  const btnEdit = e.target.closest(".btn-card-edit");
+  if (btnEdit) {
     e.preventDefault();
     e.stopPropagation();
-
     if (!designerUnlocked || clientMode) return;
-
-    const projectId = button.dataset.projectId;
-    if (!projectId) return;
-
+    const projectId = btnEdit.dataset.projectId;
     const projeto = projects.find(p => String(p.id) === String(projectId));
     if (!projeto) return;
 
     const modal = $("#modalOverlay");
-    console.log("[DEBUG editar] modal encontrado?", !!modal);
     if (modal) {
-      console.log("[DEBUG editar] ANTES:", {
-        hidden: modal.hidden,
-        display: modal.style.display,
-        classes: modal.className
-      });
-      
-      // Reset completo do modal
       modal.hidden = false;
       modal.removeAttribute("hidden");
       modal.style.display = "flex";
       modal.classList.remove("hidden", "active", "open", "show");
-      
-      console.log("[DEBUG editar] DEPOIS:", {
-        hidden: modal.hidden,
-        display: modal.style.display,
-        classes: modal.className
-      });
       
       const fieldName = $("#fieldName");
       const fieldClient = $("#fieldClient");
@@ -1834,7 +1818,21 @@ $$(".btn-card-edit").forEach((button) => {
       if (modalTitle) modalTitle.textContent = "Editar Projeto";
       if (form) form.dataset.editId = projectId;
     }
-  });
+    return;
+  }
+
+  // Botão Abrir
+  const btnOpen = e.target.closest(".btn-card-open");
+  if (btnOpen) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!designerUnlocked || clientMode) return;
+    const projectId = btnOpen.dataset.projectId;
+    if (projectId) {
+      openProject(projectId, true);
+    }
+    return;
+  }
 });
 
 // Botão "Abrir" (abre o projeto)
@@ -8753,15 +8751,6 @@ const shareParams = new URLSearchParams();
 
 // Identifica o projeto pelo slug
 shareParams.set("projeto", projectSlug);
-
-// Inclui a etapa atual no link
-const validStage = STAGES.some(
-  (stage) => stage.id === currentStage
-);
-
-if (validStage) {
-  shareParams.set("pagina", currentStage);
-}
 
 const shareUrl =
   `${window.location.origin}${window.location.pathname}?${shareParams.toString()}`;

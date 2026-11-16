@@ -9313,7 +9313,7 @@ function initSortableGrid() {
     }
 
     gridEl.sortableInstance = Sortable.create(gridEl, {
-      animation: 200,
+      animation: 0,
       ghostClass: "sortable-ghost",
       onEnd: async function () {
         const cardElements = gridEl.querySelectorAll(".project-card, [data-project-id], .grid > *");

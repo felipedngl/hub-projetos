@@ -2066,3 +2066,13 @@ textarea.stage-textarea:focus,
   width: 100%;
 }
 
+/* FORÇA PARAR A PULSAÇÃO DO CARD */
+.card,
+.card:hover,
+.card *,
+.card:hover * {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+

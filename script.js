@@ -8084,6 +8084,69 @@ async function promptClientPassword(project) {
   }
 }
 
+/* ==========================================================
+   LINK MÁGICO (acesso sem senha)
+   ========================================================== */
+function gerarMagicLink() {
+  const p = currentProject();
+  if (!p) return;
+
+  const validadeDias = Number(document.getElementById("magicLinkValidity")?.value) || 30;
+  const token = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+  const expiraEm = Date.now() + (validadeDias * 24 * 60 * 60 * 1000);
+
+  p.magicToken = token;
+  p.magicTokenExpiresAt = expiraEm;
+  p.magicTokenRevoked = false;
+
+  saveProjects([p]).then(() => {
+    const link = `${window.location.origin}/${encodeURIComponent(p.slug || p.id)}?token=${token}`;
+    const input = document.getElementById("shareMagicLinkInput");
+    if (input) input.value = link;
+
+    const feedback = document.getElementById("magicLinkFeedback");
+    if (feedback) {
+      feedback.textContent = `✓ Link gerado! Válido por ${validadeDias} dia(s).`;
+      feedback.style.color = "#4CAF50";
+      feedback.style.display = "block";
+    }
+
+    const btnRevoke = document.getElementById("btnRevokeMagicLink");
+    if (btnRevoke) btnRevoke.style.display = "inline-flex";
+  });
+}
+
+function revogarMagicLink() {
+  const p = currentProject();
+  if (!p) return;
+
+  p.magicTokenRevoked = true;
+
+  saveProjects([p]).then(() => {
+    const input = document.getElementById("shareMagicLinkInput");
+    if (input) input.value = "";
+
+    const feedback = document.getElementById("magicLinkFeedback");
+    if (feedback) {
+      feedback.textContent = "✓ Link revogado. O cliente perdeu o acesso.";
+      feedback.style.color = "#ef4444";
+      feedback.style.display = "block";
+    }
+
+    const btnRevoke = document.getElementById("btnRevokeMagicLink");
+    if (btnRevoke) btnRevoke.style.display = "none";
+  });
+}
+
+function validarMagicToken(token) {
+  if (!token) return null;
+  const p = projects.find(proj => proj.magicToken === token);
+  if (!p) return null;
+  if (p.magicTokenRevoked) return null;
+  if (p.magicTokenExpiresAt && Date.now() > p.magicTokenExpiresAt) return null;
+  return p;
+}
+	
 function bindEvents() {
   setupNewProjectModal();
 
@@ -8287,11 +8350,31 @@ async function init() {
 
 const urlParams = new URLSearchParams(window.location.search);
 
+// Link Mágico (acesso sem senha)
+const magicToken = urlParams.get("token");
+
 // Links antigos e compartilhados com clientes
 const queryProjectParam =
   urlParams.get("projeto") ||
   urlParams.get("project") ||
   urlParams.get("p");
+
+// Se tem token mágico, valida e libera acesso
+if (magicToken) {
+  const projeto = validarMagicToken(magicToken);
+  if (projeto) {
+    clientMode = true;
+    document.body.classList.add("client-view");
+    projects = [projeto];
+    sessionStorage.setItem(`client_authenticated_${projeto.id}`, "true");
+    openProject(projeto.id);
+    return;
+  } else {
+    showToast("Link expirado ou revogado. Peça um novo link.", true);
+    showDashboard();
+    return;
+  }
+}
 
 // Novo formato: /nome-do-projeto/briefing
 const pathParts = window.location.pathname

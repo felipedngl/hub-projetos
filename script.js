@@ -8390,9 +8390,7 @@ function mostrarAvisoCliente(titulo, mensagem) {
 
 /* ---------------- Inicialização da Aplicação ---------------- */
 async function init() {
-  // Esconde o body enquanto decide o que fazer
-  document.body.style.visibility = "hidden";
-
+  // 1. Verifica se o designer já está logado (sessão)
   if (
     typeof DESIGNER_KEY !== "undefined" &&
     sessionStorage.getItem(DESIGNER_KEY) === "true"
@@ -8400,146 +8398,33 @@ async function init() {
     designerUnlocked = true;
   }
 
+  // 2. Liga os eventos básicos da interface
   bindEvents();
   initViewModeSwitcher();
   initSearchToggle();
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const magicToken = urlParams.get("token");
-  const queryProjectParam = urlParams.get("projeto") || urlParams.get("project") || urlParams.get("p");
-
-  // ============================================================
-  // 1. TOKEN MÁGICO (acesso sem senha)
-  // ============================================================
-  if (magicToken) {
-    clientMode = true;
-    document.body.classList.add("client-view");
-
-    try {
-      const tokenDoc = await db.collection("magicLinks").doc(magicToken).get();
-      if (!tokenDoc.exists) {
-        mostrarAvisoCliente("Link inválido", "Este link não existe.");
-        return;
-      }
-      const tokenData = tokenDoc.data();
-      if (tokenData.revoked) {
-        mostrarAvisoCliente("Link revogado", "Peça um novo link.");
-        return;
-      }
-      if (tokenData.expiresAt && Date.now() > tokenData.expiresAt) {
-        mostrarAvisoCliente("Link expirado", "Peça um novo link.");
-        return;
-      }
-
-      const projectDoc = await db.collection("projects").doc(tokenData.projectId).get();
-      if (!projectDoc.exists) {
-        mostrarAvisoCliente("Projeto não encontrado", "O projeto não existe.");
-        return;
-      }
-
-      const projeto = { id: projectDoc.id, ...projectDoc.data() };
-      projects = [projeto];
-      sessionStorage.setItem(`client_authenticated_${projeto.id}`, "true");
-      openProject(projeto.id);
-      document.body.style.visibility = "visible";
-      return;
-    } catch (err) {
-      console.error("[MAGIC LINK] Erro:", err);
-      mostrarAvisoCliente("Erro no link", "Tente novamente.");
-      return;
-    }
-  }
-
-  // ============================================================
-  // 2. ACESSO POR LINK DE CLIENTE (com senha)
-  // ============================================================
-  if (queryProjectParam && !designerUnlocked) {
-    clientMode = true;
-    document.body.classList.add("client-view");
-
-    try {
-      let accessDoc = null;
-      const accessSnapshot = await db.collection("clientAccess").where("slug", "==", queryProjectParam).limit(1).get();
-      
-      if (!accessSnapshot.empty) {
-        accessDoc = accessSnapshot.docs[0];
-      } else {
-        const directAccessSnapshot = await db.collection("clientAccess").doc(queryProjectParam).get();
-        if (directAccessSnapshot.exists) accessDoc = directAccessSnapshot;
-      }
-
-      if (!accessDoc) {
-        mostrarAvisoCliente("Projeto não encontrado", "O projeto não existe.");
-        return;
-      }
-
-      const accessData = accessDoc.data();
-      const targetProject = { id: accessDoc.id, title: accessData.slug || accessDoc.id, clientUid: accessData.clientUid || null, clientEmail: accessData.clientEmail || null };
-      projects = [targetProject];
-
-      if (sessionStorage.getItem(`client_authenticated_${targetProject.id}`) === "true") {
-        openProject(targetProject.id);
-      } else {
-        promptClientPassword(targetProject);
-      }
-      document.body.style.visibility = "visible";
-      return;
-    } catch (error) {
-      console.error("[INIT] Erro ao localizar projeto do cliente:", error);
-      mostrarAvisoCliente("Erro ao carregar", "Tente novamente.");
-      return;
-    }
-  }
-
-  // ============================================================
-  // 3. ACESSO DO DESIGNER
-  // ============================================================
-  const pathParts = window.location.pathname.split("/").filter(Boolean);
-  const isDashboardPath = pathParts[0] === "painel";
-  const isFinanceiroPath = pathParts[0] === "financeiro";
-
+  // 3. Carrega os projetos do Firebase (para o designer)
   const cloudProjects = typeof loadProjects === "function" ? await loadProjects() : [];
   if (cloudProjects && cloudProjects.length > 0) {
-    projects = cloudProjects.map((p) => typeof seedProject === "function" ? seedProject(p) : p);
+    projects = cloudProjects.map((p) =>
+      typeof seedProject === "function" ? seedProject(p) : p
+    );
   } else if (typeof initialProjects !== "undefined") {
     projects = initialProjects;
   }
 
-  // Abre o projeto se tiver um ID na URL
-  if (queryProjectParam || pathParts[0]) {
-    const targetProject = projects.find((p) => 
-      p.id === (queryProjectParam || pathParts[0]) || 
-      p.slug === (queryProjectParam || pathParts[0])
-    );
-
-    if (targetProject) {
-      openProject(targetProject.id);
-    } else {
-      showDashboard();
-    }
-  } else {
-    // Se não for projeto, é o painel ou financeiro
-    if (designerUnlocked && isFinanceiroPath) {
-      document.getElementById("view-dashboard").hidden = true;
-      document.getElementById("view-financeiro").hidden = false;
-      if (window.financeiroInit) window.financeiroInit();
-    } else {
-      showDashboard();
-    }
-  }
-
-  // Mostra o body no final
+  // 4. Mostra o painel na tela
+  document.body.classList.remove("hub-is-locked");
+  document.body.classList.remove("client-view");
   document.body.style.visibility = "visible";
 
-  // Ajusta a UI para o modo cliente (se necessário)
-  if (clientMode) {
-    const btnFinanceiro = document.getElementById("btnFinanceiro");
-    if (btnFinanceiro) btnFinanceiro.style.display = "none";
-    const brandIcon = document.getElementById("brandHome");
-    if (brandIcon) {
-      brandIcon.href = "https://instagram.com/mencheinteriores";
-      brandIcon.target = "_blank";
-    }
+  showDashboard();
+
+  // 5. Esconde a splash, se ela estiver visível
+  const splash = document.getElementById("introSplash");
+  if (splash) {
+    splash.style.opacity = "0";
+    setTimeout(() => { splash.style.display = "none"; }, 300);
   }
 }	
 

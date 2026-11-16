@@ -2098,3 +2098,28 @@ body.client-view #btnDesignerAccess {
   display: none !important;
 }
 
+/* ==========================================================
+   MODO CLIENTE — Esconde TODA a interface do designer
+   ========================================================== */
+
+/* Esconde o menu (Painel | Financeiro), lupa, +, cadeado */
+body.client-view .header-nav,
+body.client-view .header-actions,
+body.client-view .nav-link,
+body.client-view .nav-sep,
+body.client-view .nav-icon {
+  display: none !important;
+}
+
+/* Esconde o painel de cards e filtros */
+body.client-view #view-dashboard,
+body.client-view .toolbar,
+body.client-view .stats-bar {
+  display: none !important;
+}
+
+/* Esconde o botão "Voltar ao Painel" */
+body.client-view .btn-back {
+  display: none !important;
+}
+

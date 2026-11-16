@@ -8408,14 +8408,15 @@ async function init() {
   const magicToken = urlParams.get("token");
   const queryProjectParam = urlParams.get("projeto") || urlParams.get("project") || urlParams.get("p");
 
-  // 1. TOKEN MÁGICO (valida primeiro)
+  // ============================================================
+  // 1. TOKEN MÁGICO (acesso sem senha)
+  // ============================================================
   if (magicToken) {
     clientMode = true;
     document.body.classList.add("client-view");
-    
+
     try {
       const tokenDoc = await db.collection("magicLinks").doc(magicToken).get();
-      
       if (!tokenDoc.exists) {
         mostrarAvisoCliente("Link inválido", "Este link não existe.");
         return;
@@ -8432,14 +8433,13 @@ async function init() {
 
       const projectDoc = await db.collection("projects").doc(tokenData.projectId).get();
       if (!projectDoc.exists) {
-        mostrarAvisoCliente("Projeto não encontrado", "O projeto não existe mais.");
+        mostrarAvisoCliente("Projeto não encontrado", "O projeto não existe.");
         return;
       }
 
       const projeto = { id: projectDoc.id, ...projectDoc.data() };
       projects = [projeto];
       sessionStorage.setItem(`client_authenticated_${projeto.id}`, "true");
-      
       openProject(projeto.id);
       document.body.style.visibility = "visible";
       return;
@@ -8450,34 +8450,21 @@ async function init() {
     }
   }
 
-  // 2. BLOQUEIO DE ROTAS DO DESIGNER
-  const pathParts = window.location.pathname.split("/").filter(Boolean);
-  const ROTAS_DESIGNER = ["painel", "financeiro"]; // adicione novas rotas aqui
-  const isDesignerPath = ROTAS_DESIGNER.includes(pathParts[0]);
-  const isDashboardPath = pathParts[0] === "painel";
-  const isFinanceiroPath = pathParts[0] === "financeiro";
-
-  if (clientMode && isDesignerPath) {
-    mostrarAvisoCliente("Acesso Restrito", "Área exclusiva do escritório.");
-    return;
-  }
-
-  const pathProjectParam = pathParts[0] && !isDesignerPath ? pathParts[0] : null;
-  const projectParam = queryProjectParam || pathProjectParam;
-
-  // 3. ACESSO POR LINK DE CLIENTE (COM SENHA)
+  // ============================================================
+  // 2. ACESSO POR LINK DE CLIENTE (com senha)
+  // ============================================================
   if (queryProjectParam && !designerUnlocked) {
     clientMode = true;
     document.body.classList.add("client-view");
 
     try {
       let accessDoc = null;
-      const accessSnapshot = await db.collection("clientAccess").where("slug", "==", projectParam).limit(1).get();
+      const accessSnapshot = await db.collection("clientAccess").where("slug", "==", queryProjectParam).limit(1).get();
       
       if (!accessSnapshot.empty) {
         accessDoc = accessSnapshot.docs[0];
       } else {
-        const directAccessSnapshot = await db.collection("clientAccess").doc(projectParam).get();
+        const directAccessSnapshot = await db.collection("clientAccess").doc(queryProjectParam).get();
         if (directAccessSnapshot.exists) accessDoc = directAccessSnapshot;
       }
 
@@ -8504,7 +8491,13 @@ async function init() {
     }
   }
 
-  // 4. ACESSO DA DESIGNER
+  // ============================================================
+  // 3. ACESSO DO DESIGNER
+  // ============================================================
+  const pathParts = window.location.pathname.split("/").filter(Boolean);
+  const isDashboardPath = pathParts[0] === "painel";
+  const isFinanceiroPath = pathParts[0] === "financeiro";
+
   const cloudProjects = typeof loadProjects === "function" ? await loadProjects() : [];
   if (cloudProjects && cloudProjects.length > 0) {
     projects = cloudProjects.map((p) => typeof seedProject === "function" ? seedProject(p) : p);
@@ -8512,26 +8505,21 @@ async function init() {
     projects = initialProjects;
   }
 
-  // 5. ABERTURA DE PROJETO
-  if (projectParam) {
-    const targetProject = projects.find((p) => p.id === projectParam || (typeof slugify === "function" && slugify(p.title) === slugify(projectParam)) || p.slug === projectParam);
+  // Abre o projeto se tiver um ID na URL
+  if (queryProjectParam || pathParts[0]) {
+    const targetProject = projects.find((p) => 
+      p.id === (queryProjectParam || pathParts[0]) || 
+      p.slug === (queryProjectParam || pathParts[0])
+    );
 
     if (targetProject) {
-      if (!designerUnlocked && !sessionStorage.getItem(`client_authenticated_${targetProject.id}`)) {
-        clientMode = true;
-        document.body.classList.add("client-view");
-        promptClientPassword(targetProject);
-      } else {
-        openProject(targetProject.id);
-      }
+      openProject(targetProject.id);
     } else {
       showDashboard();
     }
   } else {
-    document.body.classList.remove("hub-is-locked");
-    document.body.classList.remove("client-view");
-
-    if (designerUnlocked && !clientMode && isFinanceiroPath) {
+    // Se não for projeto, é o painel ou financeiro
+    if (designerUnlocked && isFinanceiroPath) {
       document.getElementById("view-dashboard").hidden = true;
       document.getElementById("view-financeiro").hidden = false;
       if (window.financeiroInit) window.financeiroInit();
@@ -8540,18 +8528,13 @@ async function init() {
     }
   }
 
-  // 6. MOSTRA O BODY NO FINAL
+  // Mostra o body no final
   document.body.style.visibility = "visible";
 
-  // 7. SE FOR MODO CLIENTE, AJUSTA A UI
+  // Ajusta a UI para o modo cliente (se necessário)
   if (clientMode) {
-    document.body.classList.add("client-view");
-    
-    // Esconde o botão do financeiro (se ele existir no HTML)
     const btnFinanceiro = document.getElementById("btnFinanceiro");
     if (btnFinanceiro) btnFinanceiro.style.display = "none";
-
-    // Muda a logo para o Instagram
     const brandIcon = document.getElementById("brandHome");
     if (brandIcon) {
       brandIcon.href = "https://instagram.com/mencheinteriores";

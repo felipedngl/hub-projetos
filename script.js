@@ -1633,8 +1633,6 @@ function cardHTML(p, index) {
   const unreadMessages = countUnreadClientMessages(p);
   const showOwnerOpenButton = designerUnlocked && !clientMode;
 
-  console.log("Projeto:", p.title, "Mensagens não lidas:", unreadMessages);
-
   const pacoteLabel = p.pacote === "ponto" ? "Ponto" : p.pacote === "trema" ? "Trema" : p.pacote === "reticencias" ? "Reticências" : "";
   const statusDot = p.status === "concluido" ? "concluido" : "em-andamento";
   const statusLabel2 = p.status === "concluido" ? "Concluído" : "Em andamento";
@@ -1706,7 +1704,8 @@ function renderDashboard() {
   // TRAVA DE SEGURANÇA: impede que o renderDashboard rode em loop
   if (window._isRenderingDashboard) return;
   window._isRenderingDashboard = true;
-  setTimeout(() => { window._isRenderingDashboard = false; }, 500); // Libera a trava após 500ms
+  // Só libera depois de 2 segundos (tempo suficiente para o loop parar)
+  setTimeout(() => { window._isRenderingDashboard = false; }, 2000);
 
   // Proteção: Se a lista de projetos estiver vazia mas já carregamos antes, 
   // não sobrescrevemos a tela para evitar que os cards sumam na atualização.
@@ -1874,12 +1873,21 @@ $$(".btn-card-open").forEach((button) => {
     });
   });
 
-  // Ativa a função de arrastar os cards pela tela
-  initSortableGrid();
+  // Ativa a função de arrastar os cards pela tela (só uma vez)
+  if (!window._sortableInitialized) {
+    initSortableGrid();
+    window._sortableInitialized = true;
+  }
 
   if (typeof applyViewMode === "function" && typeof currentViewMode !== "undefined") {
     applyViewMode(currentViewMode);
   }
+
+  // TRAVA: impede que o renderDashboard rode de novo por 1 segundo
+  window._isRenderingDashboard = true;
+  setTimeout(() => { 
+    window._isRenderingDashboard = false; 
+  }, 1000); // 1 segundo de trava
 }
 	
 /* ---------------- Render: visão interna ---------------- */

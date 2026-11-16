@@ -2300,7 +2300,11 @@ function openProject(id, fromDashboard = false) {
   if (clientMode) {
     const user = getFirebaseUser();
 
-    if (!user) {
+    // Verifica se é link mágico (sessão criada pelo token)
+    const isMagicLink = sessionStorage.getItem(`client_authenticated_${id}`) === "true";
+
+    // Se não for link mágico e não tiver usuário logado, bloqueia
+    if (!user && !isMagicLink) {
       console.error("[AUTH] Cliente sem usuário autenticado.");
       showDashboard();
       return;
@@ -2308,7 +2312,8 @@ function openProject(id, fromDashboard = false) {
 
     const project = projects.find((p) => p.id === id);
 
-    if (!project || project.clientUid !== user.uid) {
+    // Se não for link mágico, verifica se o cliente logado é o dono do projeto
+    if (!isMagicLink && (!project || project.clientUid !== user.uid)) {
       console.error(
         "[AUTH] Cliente tentou acessar projeto não autorizado:",
         id
@@ -2316,6 +2321,8 @@ function openProject(id, fromDashboard = false) {
       showDashboard();
       return;
     }
+
+    // Se for link mágico, permite o acesso (o token já foi validado)
   }
 
   listenToCurrentProject(id);

@@ -2077,53 +2077,6 @@ textarea.stage-textarea:focus,
 }
 
 /* ==========================================================
-   MODO CLIENTE: Esconde menu, filtros e botões de designer
-   ========================================================== */
-body.client-view .header-nav,
-body.client-view .nav-icon,
-body.client-view #btnNewProject,
-body.client-view .toolbar,
-body.client-view .stats-bar,
-body.client-view #view-dashboard {
-  display: none !important;
-}
-
-/* Esconde o menu (Painel | Financeiro) e os ícones da direita */
-body.client-view .main-nav {
-  display: none !important;
-}
-
-/* Esconde o botão de bloquear acesso */
-body.client-view #btnDesignerAccess {
-  display: none !important;
-}
-
-/* ==========================================================
-   MODO CLIENTE — Esconde TODA a interface do designer
-   ========================================================== */
-
-/* Esconde o menu (Painel | Financeiro), lupa, +, cadeado */
-body.client-view .header-nav,
-body.client-view .header-actions,
-body.client-view .nav-link,
-body.client-view .nav-sep,
-body.client-view .nav-icon {
-  display: none !important;
-}
-
-/* Esconde o painel de cards e filtros */
-body.client-view #view-dashboard,
-body.client-view .toolbar,
-body.client-view .stats-bar {
-  display: none !important;
-}
-
-/* Esconde o botão "Voltar ao Painel" */
-body.client-view .btn-back {
-  display: none !important;
-}
-
-/* ==========================================================
    CONTROLE DE UI: MODO CLIENTE vs DESIGNER
    ========================================================== */
 
@@ -2136,19 +2089,19 @@ body.client-view #btnNewProject,
 body.client-view #btnDesignerAccess,
 body.client-view .toolbar,
 body.client-view .stats-bar,
-body.client-view #view-dashboard {
+body.client-view #view-dashboard,
+body.client-view .btn-back {
   display: none !important;
 }
 
-/* Garante que o menu e botões apareçam no modo designer */
+/* Garante que o menu apareça no modo designer */
 body.designer-unlocked .header-nav,
 body.designer-unlocked .header-actions,
 body.designer-unlocked .main-nav {
   display: flex !important;
 }
 
-/* Esconde o botão de voltar no modo cliente */
-body.client-view .btn-back {
-  display: none !important;
+/* Garante que o painel apareça no modo designer */
+body.designer-unlocked #view-dashboard {
+  display: block !important;
 }
-

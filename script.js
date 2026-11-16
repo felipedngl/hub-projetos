@@ -8829,7 +8829,6 @@ function openShareModal() {
     try { p = currentProject(); } catch(err) {}
   }
   if (!p && typeof currentProject === "object") p = currentProject;
-  if (!p && window.selectedProject) p = window.selectedProject;
   if (!p && typeof projects !== "undefined" && Array.isArray(projects)) {
     const activeCard = document.querySelector(".project-card.active, .card.active");
     const activeId = activeCard ? (activeCard.dataset.projectId || activeCard.dataset.id) : null;
@@ -8841,211 +8840,52 @@ function openShareModal() {
     return;
   }
 
-  closeShareModal();
+  // 2. Preenche o nome do projeto
+  const shareName = document.getElementById("shareProjectName");
+  if (shareName) shareName.textContent = `Projeto: ${p.title || "Sem título"}`;
 
-
-const projectSlug =
-  p.slug ||
-  (typeof slugify === "function" ? slugify(p.title) : p.id) ||
-  p.id;
-
-const shareUrl =
-  `${window.location.origin}/${encodeURIComponent(projectSlug)}`;
-
-const clientPwd = p.clientPassword || p.client_password || "";
-
-  // 2. Fundo Escuro do Modal
-  const wrapper = document.createElement("div");
-  wrapper.id = "customShareWrapper";
-  wrapper.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;pointer-events:auto !important;";
-
-  // 3. Card do Modal
-  const card = document.createElement("div");
-  card.style.cssText = "background:#181d28;border:1px solid rgba(255,255,255,0.2);border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,0.9);width:100%;max-width:520px;padding:24px;box-sizing:border-box;color:#fff;font-family:inherit;position:relative;z-index:2147483647;pointer-events:auto !important;";
-
-  card.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:12px;">
-      <h2 style="margin:0;font-size:1.25rem;font-weight:600;color:#ffffff;">Compartilhar projeto</h2>
-      <button type="button" id="closeShareBtnX" style="background:transparent;border:none;color:#a0aec0;cursor:pointer;font-size:1.2rem;padding:4px;line-height:1;pointer-events:auto !important;">✕</button>
-    </div>
-
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <p style="margin:0;font-weight:600;font-size:1rem;color:#e2e8f0;">Projeto: ${p.title || "Sem título"}</p>
-      
-      <!-- CAMPO SENHA -->
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <label style="font-size:0.75rem;font-weight:700;color:#a0aec0;">SENHA DO CLIENTE</label>
-        <div style="display:flex;gap:8px;">
-          <input type="text" id="inputClientPwdReal" value="${clientPwd}" placeholder="Digite a senha" style="flex:1;background:#0f131c;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px;color:#fff;font-size:0.9rem;pointer-events:auto !important;">
-          <button type="button" id="btnSavePwdReal" style="background:#e56a44;border:none;border-radius:8px;color:#fff;padding:0 16px;font-weight:600;cursor:pointer;pointer-events:auto !important;transition:all 0.2s ease;">Salvar Senha</button>
-        </div>
-      </div>
-
-      <!-- CAMPO LINK -->
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <label style="font-size:0.75rem;font-weight:700;color:#a0aec0;">LINK DO CLIENTE</label>
-        <div style="display:flex;gap:8px;">
-          <input type="text" id="inputShareLinkReal" value="${shareUrl}" readonly style="flex:1;background:#0f131c;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px;color:#fff;font-size:0.9rem;pointer-events:auto !important;">
-          <button type="button" id="btnCopyLinkReal" style="background:#2d3748;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;padding:0 16px;font-weight:600;cursor:pointer;pointer-events:auto !important;transition:all 0.2s ease;">Copiar Link</button>
-        </div>
-      </div>
-    </div>
-  `;
-
-  wrapper.appendChild(card);
-  document.body.appendChild(wrapper);
-
-  // Impedir que o clique no card feche o modal
-  card.onclick = function(e) { e.stopPropagation(); };
-  wrapper.onclick = function(e) { if (e.target === wrapper) closeShareModal(); };
-
-  // Botão X para fechar
-  const closeBtn = card.querySelector("#closeShareBtnX");
-  if (closeBtn) closeBtn.onclick = closeShareModal;
-
-  // 4. ATRIBUIÇÃO DIRETA DOS BOTOES (Desbloqueados)
-  const pwdInput = card.querySelector("#inputClientPwdReal");
-  const pwdBtn = card.querySelector("#btnSavePwdReal");
-  const linkInput = card.querySelector("#inputShareLinkReal");
-  const copyBtn = card.querySelector("#btnCopyLinkReal");
-
-  // AÇÃO DO BOTÃO SALVAR SENHA
-  pwdBtn.onclick = async function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const novaSenha = pwdInput ? pwdInput.value : "";
-
-    // Atualiza o objeto do projeto
-    p.clientPassword = novaSenha;
-    p.client_password = novaSenha;
-
-	if (!p.clientUid || !p.clientEmail) {
-  try {
-    const authAccount = await createClientAuthAccount(p, novaSenha);
-
-    p.clientUid = authAccount.clientUid;
-    p.clientEmail = authAccount.clientEmail;
-
-    console.log("[CLIENT AUTH] Conta criada:", {
-      clientUid: p.clientUid,
-      clientEmail: p.clientEmail
-    });
-
-  } catch (error) {
-    console.error("[CLIENT AUTH] Erro ao criar conta:", error);
-    showToast(
-      "Não foi possível criar o acesso do cliente: " +
-      (error.message || "erro desconhecido"),
-      true
-    );
-    return;
-  }
-}
-
-	const projectSlug =
-  typeof slugify === "function"
-    ? slugify(p.title)
-    : p.id;
-
-db.collection("clientAccess")
-  .doc(p.id)
-  .set({
-    slug: projectSlug,
-    projectId: p.id,
-    clientUid: p.clientUid || null,
-    clientEmail: p.clientEmail || null
-  }, { merge: true })
-  .catch((error) => {
-    console.error("[CLIENT ACCESS] Erro ao salvar:", error);
-  });
-
-    if (typeof projects !== "undefined" && Array.isArray(projects)) {
-      const item = projects.find(proj => proj.id === p.id);
-      if (item) {
-        item.clientPassword = novaSenha;
-        item.client_password = novaSenha;
-      }
-      try { localStorage.setItem("projects", JSON.stringify(projects)); } catch(err) {}
-    }
-
-    if (typeof saveProjects === "function") saveProjects();
-    if (typeof saveState === "function") saveState();
-
-    if (typeof supabaseClient !== "undefined" && p.id) {
-      supabaseClient
-        .from("projects")
-        .update({ client_password: novaSenha, clientPassword: novaSenha })
-        .eq("id", p.id)
-        .then(() => {})
-        .catch(err => console.error("Erro Supabase:", err));
-    }
-
-    // ANIMAÇÃO DE ÉXITO (LARANJA -> VERDE "SALVO!")
-    pwdBtn.textContent = "Salvo!";
-    pwdBtn.style.background = "#2e7d32";
-
-    setTimeout(() => {
-      pwdBtn.textContent = "Salvar Senha";
-      pwdBtn.style.background = "#e56a44";
-    }, 2000);
-  };
-
-  // AÇÃO DO BOTÃO COPIAR LINK
-  copyBtn.onclick = function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const urlParaCopiar = linkInput ? linkInput.value : shareUrl;
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(urlParaCopiar).then(() => {
-        mostrarCopiadoSucesso(copyBtn);
-      }).catch(() => {
-        copiarNativo(urlParaCopiar, copyBtn);
-      });
-    } else {
-      copiarNativo(urlParaCopiar, copyBtn);
-    }
-  };
-
-	
-  function mostrarCopiadoSucesso(btn) {
-    btn.textContent = "Copiado!";
-    btn.style.background = "#2b6cb0";
-    setTimeout(() => {
-      btn.textContent = "Copiar Link";
-      btn.style.background = "#2d3748";
-    }, 2000);
+  // 3. Preenche o link "com senha"
+  const projectSlug = p.slug || (typeof slugify === "function" ? slugify(p.title) : p.id) || p.id;
+  const shareLinkInput = document.getElementById("shareLinkInput");
+  if (shareLinkInput) {
+    shareLinkInput.value = `${window.location.origin}/${encodeURIComponent(projectSlug)}`;
   }
 
-  function copiarNativo(texto, btn) {
-    const area = document.createElement("textarea");
-    area.value = texto;
-    area.style.position = "fixed";
-    area.style.left = "-9999px";
-    document.body.appendChild(area);
-    area.focus();
-    area.select();
-    try {
-      document.execCommand("copy");
-      mostrarCopiadoSucesso(btn);
-    } catch (err) {
-      btn.textContent = "Erro!";
-    }
-    document.body.removeChild(area);
+  // 4. Preenche o campo de senha
+  const clientPwd = p.clientPassword || p.client_password || "";
+  const pwdInput = document.getElementById("shareClientPasswordInput");
+  if (pwdInput) pwdInput.value = clientPwd;
+
+  // 5. Limpa o Link Mágico
+  const magicInput = document.getElementById("shareMagicLinkInput");
+  if (magicInput) magicInput.value = "";
+  const magicFeedback = document.getElementById("magicLinkFeedback");
+  if (magicFeedback) {
+    magicFeedback.style.display = "none";
+    magicFeedback.textContent = "";
+  }
+  const btnRevoke = document.getElementById("btnRevokeMagicLink");
+  if (btnRevoke) btnRevoke.style.display = "none";
+
+  // 6. Mostra o modal
+  const modal = document.getElementById("shareModal");
+  if (modal) {
+    modal.hidden = false;
+    modal.removeAttribute("hidden");
+    modal.style.display = "flex";
+    modal.classList.add("active");
   }
 }
 
 function closeShareModal() {
-  const wrapper = document.getElementById("customShareWrapper");
-  if (wrapper) wrapper.remove();
+  const modal = document.getElementById("shareModal");
+  if (modal) {
+    modal.hidden = true;
+    modal.style.display = "none";
+    modal.classList.remove("active");
+  }
 }
-
-window.openShareModal = openShareModal;
-window.closeShareModal = closeShareModal;
-
-
+	
 /* ---------------- DIÁRIO DE OBRA (SITE LOG) ---------------- */
 
 function renderSiteLogHTML(project, isDesigner = false) {

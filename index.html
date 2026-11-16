@@ -353,9 +353,9 @@
           os links dos produtos. Contratos ficam ocultos.
         </p>
 
-        <!-- CAMPO DE SENHA DO CLIENTE -->
+        <!-- OPÇÃO 1: SENHA (mantida) -->
         <div class="field" style="margin-bottom: 16px;">
-          <label for="shareClientPasswordInput">Definir Senha do Cliente</label>
+          <label for="shareClientPasswordInput">Definir Senha do Cliente (opcional)</label>
           <div style="display: flex; gap: 8px;">
             <input type="text" id="shareClientPasswordInput" placeholder="Digite a senha (ex: 1234)" style="flex: 1;" />
             <button type="button" class="btn-primary" id="btnSaveClientPassword">Salvar Senha</button>
@@ -365,13 +365,26 @@
           </p>
         </div>
 
-        <!-- LINK DO PROJETO -->
-        <div class="field">
-          <label for="shareLinkInput">Link de Acesso do Cliente</label>
-          <div class="share-link-row">
-            <input type="text" id="shareLinkInput" readonly />
-            <button class="btn-small" id="btnCopyLink">Copiar Link</button>
+        <!-- DIVISOR -->
+        <div style="text-align: center; margin: 20px 0; color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;">ou</div>
+
+        <!-- OPÇÃO 2: LINK MÁGICO -->
+        <div class="field" style="margin-bottom: 16px;">
+          <label for="shareMagicLinkInput">Link Mágico (acesso sem senha)</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="shareMagicLinkInput" readonly placeholder="Clique em Gerar Link Mágico" style="flex: 1;" />
+            <button type="button" class="btn-primary" id="btnGenerateMagicLink">Gerar</button>
           </div>
+          <div style="display: flex; gap: 8px; margin-top: 8px;">
+            <select id="magicLinkValidity" class="btn-small" style="flex: 1;">
+              <option value="1">1 dia</option>
+              <option value="7">7 dias</option>
+              <option value="30" selected>30 dias</option>
+              <option value="90">90 dias</option>
+            </select>
+            <button type="button" class="btn-delete" id="btnRevokeMagicLink" style="display: none;">Revogar</button>
+          </div>
+          <p id="magicLinkFeedback" style="display: none; font-size: 0.85rem; margin-top: 6px;"></p>
         </div>
       </div>
     </div>

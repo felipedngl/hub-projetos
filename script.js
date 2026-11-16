@@ -8263,6 +8263,12 @@ function bindEvents() {
   $("#btnCloseShare")?.addEventListener("click", closeShareModal);
   $("#btnSaveClientPassword")?.addEventListener("click", saveClientPassword);
   $("#btnCopyLink")?.addEventListener("click", copyShareLink);
+	
+  // ============================================================
+  // BOTÕES DO LINK MÁGICO (novos)
+  // ============================================================
+  $("#btnGenerateMagicLink")?.addEventListener("click", gerarMagicLink);
+  $("#btnRevokeMagicLink")?.addEventListener("click", revogarMagicLink);
 
   $("#btnDeleteProject")?.addEventListener("click", async () => {
     const p = typeof currentProject === "function" ? currentProject() : currentProject;

@@ -8099,7 +8099,19 @@ function gerarMagicLink() {
   p.magicTokenExpiresAt = expiraEm;
   p.magicTokenRevoked = false;
 
-  saveProjects([p]).then(() => {
+  saveProjects([p]).then(async () => {
+    // Salva o token em uma coleção separada (magicLinks)
+    try {
+      await db.collection("magicLinks").doc(token).set({
+        projectId: p.id,
+        projectSlug: p.slug || p.id,
+        expiresAt: expiraEm,
+        revoked: false,
+        createdAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error("[MAGIC LINK] Erro ao salvar token:", err);
+    }
     const link = `${window.location.origin}/${encodeURIComponent(p.slug || p.id)}?token=${token}`;
     const input = document.getElementById("shareMagicLinkInput");
     if (input) input.value = link;
@@ -8120,9 +8132,18 @@ function revogarMagicLink() {
   const p = currentProject();
   if (!p) return;
 
+  const token = p.magicToken;
   p.magicTokenRevoked = true;
 
-  saveProjects([p]).then(() => {
+  saveProjects([p]).then(async () => {
+    if (token) {
+      try {
+        await db.collection("magicLinks").doc(token).update({ revoked: true });
+      } catch (err) {
+        console.error("[MAGIC LINK] Erro ao revogar token:", err);
+      }
+    }
+	  
     const input = document.getElementById("shareMagicLinkInput");
     if (input) input.value = "";
 
@@ -8136,15 +8157,6 @@ function revogarMagicLink() {
     const btnRevoke = document.getElementById("btnRevokeMagicLink");
     if (btnRevoke) btnRevoke.style.display = "none";
   });
-}
-
-function validarMagicToken(token) {
-  if (!token) return null;
-  const p = projects.find(proj => proj.magicToken === token);
-  if (!p) return null;
-  if (p.magicTokenRevoked) return null;
-  if (p.magicTokenExpiresAt && Date.now() > p.magicTokenExpiresAt) return null;
-  return p;
 }
 	
 function bindEvents() {
@@ -8370,39 +8382,48 @@ if (magicToken) {
   clientMode = true;
   document.body.classList.add("client-view");
   
-  // Busca o projeto pelo token NO FIRESTORE (não na memória)
   try {
-    const snapshot = await db.collection("projects")
-      .where("magicToken", "==", magicToken)
-      .limit(1)
-      .get();
+    // Busca o token na coleção magicLinks
+    const tokenDoc = await db.collection("magicLinks").doc(magicToken).get();
     
-    if (!snapshot.empty) {
-      const doc = snapshot.docs[0];
-      const projeto = { id: doc.id, ...doc.data() };
-      
-      // Verifica se o token expirou ou foi revogado
-      if (projeto.magicTokenRevoked) {
-        showToast("Link revogado. Peça um novo link.", true);
-        showDashboard();
-        return;
-      }
-      if (projeto.magicTokenExpiresAt && Date.now() > projeto.magicTokenExpiresAt) {
-        showToast("Link expirado. Peça um novo link.", true);
-        showDashboard();
-        return;
-      }
-      
-      // Token válido → libera acesso
-      projects = [projeto];
-      sessionStorage.setItem(`client_authenticated_${projeto.id}`, "true");
-      openProject(projeto.id);
-      return;
-    } else {
+    if (!tokenDoc.exists) {
       showToast("Link inválido. Peça um novo link.", true);
       showDashboard();
       return;
     }
+    
+    const tokenData = tokenDoc.data();
+    
+    // Verifica se o token foi revogado
+    if (tokenData.revoked) {
+      showToast("Link revogado. Peça um novo link.", true);
+      showDashboard();
+      return;
+    }
+    
+    // Verifica se o token expirou
+    if (tokenData.expiresAt && Date.now() > tokenData.expiresAt) {
+      showToast("Link expirado. Peça um novo link.", true);
+      showDashboard();
+      return;
+    }
+    
+    // Token válido → busca o projeto
+    const projectDoc = await db.collection("projects").doc(tokenData.projectId).get();
+    
+    if (!projectDoc.exists) {
+      showToast("Projeto não encontrado.", true);
+      showDashboard();
+      return;
+    }
+    
+    const projeto = { id: projectDoc.id, ...projectDoc.data() };
+    
+    projects = [projeto];
+    sessionStorage.setItem(`client_authenticated_${projeto.id}`, "true");
+    openProject(projeto.id);
+    return;
+    
   } catch (err) {
     console.error("[MAGIC LINK] Erro ao validar token:", err);
     showToast("Erro ao validar link. Tente novamente.", true);

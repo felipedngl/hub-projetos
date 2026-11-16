@@ -10139,6 +10139,13 @@ btnCoverRandom?.addEventListener("click", async () => {
     }
   }
 });
+
+/* ---------------- CHAMADA DO INIT ---------------- */
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
 	
 // ==========================================================
 // CONTROLE DA TELA DE INTRODUÇÃO (LOGO PULSANTO)

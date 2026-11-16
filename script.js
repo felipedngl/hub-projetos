@@ -8367,16 +8367,45 @@ const queryProjectParam =
 
 // Se tem token mágico, valida e libera acesso
 if (magicToken) {
-  const projeto = validarMagicToken(magicToken);
-  if (projeto) {
-    clientMode = true;
-    document.body.classList.add("client-view");
-    projects = [projeto];
-    sessionStorage.setItem(`client_authenticated_${projeto.id}`, "true");
-    openProject(projeto.id);
-    return;
-  } else {
-    showToast("Link expirado ou revogado. Peça um novo link.", true);
+  clientMode = true;
+  document.body.classList.add("client-view");
+  
+  // Busca o projeto pelo token NO FIRESTORE (não na memória)
+  try {
+    const snapshot = await db.collection("projects")
+      .where("magicToken", "==", magicToken)
+      .limit(1)
+      .get();
+    
+    if (!snapshot.empty) {
+      const doc = snapshot.docs[0];
+      const projeto = { id: doc.id, ...doc.data() };
+      
+      // Verifica se o token expirou ou foi revogado
+      if (projeto.magicTokenRevoked) {
+        showToast("Link revogado. Peça um novo link.", true);
+        showDashboard();
+        return;
+      }
+      if (projeto.magicTokenExpiresAt && Date.now() > projeto.magicTokenExpiresAt) {
+        showToast("Link expirado. Peça um novo link.", true);
+        showDashboard();
+        return;
+      }
+      
+      // Token válido → libera acesso
+      projects = [projeto];
+      sessionStorage.setItem(`client_authenticated_${projeto.id}`, "true");
+      openProject(projeto.id);
+      return;
+    } else {
+      showToast("Link inválido. Peça um novo link.", true);
+      showDashboard();
+      return;
+    }
+  } catch (err) {
+    console.error("[MAGIC LINK] Erro ao validar token:", err);
+    showToast("Erro ao validar link. Tente novamente.", true);
     showDashboard();
     return;
   }

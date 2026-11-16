@@ -8358,7 +8358,40 @@ async function loadProjects() {
     return null;
   }
 }
+
+/* ==========================================================
+   AVISO PARA O CLIENTE (tela cheia, sem painel)
+   ========================================================== */
+function mostrarAvisoCliente(titulo, mensagem) {
+  document.body.innerHTML = `
+    <div style="
+      position: fixed; inset: 0;
+      background: #0a0a0a;
+      color: #f1eae3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      font-family: 'Inter', sans-serif;
+      gap: 12px;
+    ">
+      <h1 style="
+        font-size: 2.5rem;
+        font-weight: 200;
+        letter-spacing: -0.04em;
+        text-transform: uppercase;
+        margin: 0;
+        color: #f1eae3;
+      ">MENCHË <span style="color: #8c8c8c;">INTERIORES</span></h1>
+      <p style="font-size: 1.2rem; font-weight: 600; color: #E86A44; margin: 8px 0 0 0;">${titulo}</p>
+      <p style="font-size: 0.95rem; color: #8c8c8c; max-width: 400px; line-height: 1.5;">${mensagem}</p>
+    </div>
+  `;
+}
 	
+
 /* ---------------- Inicialização da Aplicação ---------------- */
 async function init() {
   if (
@@ -8403,15 +8436,13 @@ if (magicToken) {
     
     // Verifica se o token foi revogado
     if (tokenData.revoked) {
-      showToast("Link revogado. Peça um novo link.", true);
-      showDashboard();
+      mostrarAvisoCliente("Link revogado", "Este link foi revogado pela Menchë Interiores. Peça um novo link.");
       return;
     }
     
     // Verifica se o token expirou
     if (tokenData.expiresAt && Date.now() > tokenData.expiresAt) {
-      showToast("Link expirado. Peça um novo link.", true);
-      showDashboard();
+      mostrarAvisoCliente("Link expirado", "Este link expirou. Peça um novo link ao escritório.");
       return;
     }
     
@@ -8568,6 +8599,14 @@ return;
     );
 
     if (targetProject) {
+      // Se não é designer logado e não tem sessão de cliente, pede senha
+      if (!designerUnlocked && !sessionStorage.getItem(`client_authenticated_${targetProject.id}`)) {
+        clientMode = true;
+        document.body.classList.add("client-view");
+        promptClientPassword(targetProject);
+        return;
+      }
+      
       openProject(targetProject.id);
     } else {
       showDashboard();

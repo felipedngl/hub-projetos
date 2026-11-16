@@ -8059,7 +8059,6 @@ async function promptClientPassword(project) {
     }
 
     try {
-      // Verifica a senha (sem precisar de clientUid)
       const senhaSalva = project.clientPassword || project.client_password || "";
       
       if (entered !== senhaSalva) {
@@ -8067,29 +8066,8 @@ async function promptClientPassword(project) {
         return;
       }
 
-      // Cria a sessão
       sessionStorage.setItem(`client_authenticated_${project.id}`, "true");
       showSoundPermission();
-
-      modal.setAttribute("hidden", "");
-      modal.style.display = "none";
-      document.body.classList.remove("client-view");
-
-      openProject(project.id);
-
-      showToast("Acesso liberado!");
-    } catch (error) {
-      console.error("[AUTH] Erro no acesso do cliente:", error);
-      showToast("Senha incorreta ou acesso não autorizado.", true);
-    }
-  };
-	  
-	  sessionStorage.setItem(
-  		`client_authenticated_${project.id}`,
-  		"true"
-	  );
-
-	  showSoundPermission();
 
       modal.setAttribute("hidden", "");
       modal.style.display = "none";
@@ -8642,6 +8620,7 @@ return;
     } else {
       showDashboard();
     }
+	  
 } else {
   document.body.classList.remove("hub-is-locked");
   document.body.classList.remove("client-view");
@@ -8653,7 +8632,6 @@ return;
     if (window.financeiroInit) {
       window.financeiroInit();
     } else {
-      // Se o financeiro ainda não carregou, tenta de novo em 200ms
       setTimeout(() => {
         if (window.financeiroInit) window.financeiroInit();
       }, 200);
@@ -8663,16 +8641,17 @@ return;
   } else {
     showDashboard();
   }
+}
 
 // ============================================================
-  // ESCONDE O SPLASH (se ainda estiver visível)
-  // ============================================================
-  const splash = document.getElementById("introSplash");
-  if (splash) {
-    splash.style.opacity = "0";
-    setTimeout(() => { splash.style.display = "none"; }, 500);
-  }
-  document.body.style.visibility = "visible";
+// ESCONDE O SPLASH (sempre, no final da init)
+// ============================================================
+const splash = document.getElementById("introSplash");
+if (splash) {
+  splash.style.opacity = "0";
+  setTimeout(() => { splash.style.display = "none"; }, 500);
+}
+document.body.style.visibility = "visible";
 }
 
 // ============================================================

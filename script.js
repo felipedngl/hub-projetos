@@ -8390,17 +8390,8 @@ function mostrarAvisoCliente(titulo, mensagem) {
 
 /* ---------------- Inicialização da Aplicação ---------------- */
 async function init() {
-  // Mostra splash enquanto valida o token mágico
-  const temToken = new URLSearchParams(window.location.search).has("token");
-  if (temToken) {
-    const splash = document.getElementById("introSplash");
-    if (splash) {
-      splash.style.display = "flex";
-      splash.style.opacity = "1";
-    } else {
-      document.body.style.visibility = "hidden";
-    }
-  }
+  // Esconde o body enquanto decide o que fazer
+  document.body.style.visibility = "hidden";
 
   if (
     typeof DESIGNER_KEY !== "undefined" &&
@@ -8414,238 +8405,125 @@ async function init() {
   initSearchToggle();
 
   const urlParams = new URLSearchParams(window.location.search);
-
-  // Link Mágico (acesso sem senha)
   const magicToken = urlParams.get("token");
+  const queryProjectParam = urlParams.get("projeto") || urlParams.get("project") || urlParams.get("p");
 
-  // Links antigos e compartilhados com clientes
-  const queryProjectParam =
-    urlParams.get("projeto") ||
-    urlParams.get("project") ||
-    urlParams.get("p");
-
-  // ============================================================
-  // 1. TOKEN MÁGICO (valida ANTES de qualquer coisa)
-  // ============================================================
+  // 1. TOKEN MÁGICO (valida primeiro)
   if (magicToken) {
     clientMode = true;
     document.body.classList.add("client-view");
-
+    
     try {
       const tokenDoc = await db.collection("magicLinks").doc(magicToken).get();
-
+      
       if (!tokenDoc.exists) {
-        mostrarAvisoCliente("Link inválido", "Este link não existe ou foi removido. Peça um novo link.");
+        mostrarAvisoCliente("Link inválido", "Este link não existe.");
         return;
       }
-
       const tokenData = tokenDoc.data();
-
       if (tokenData.revoked) {
-        mostrarAvisoCliente("Link revogado", "Este link foi revogado pela Menchë Interiores. Peça um novo link.");
+        mostrarAvisoCliente("Link revogado", "Peça um novo link.");
         return;
       }
-
       if (tokenData.expiresAt && Date.now() > tokenData.expiresAt) {
-        mostrarAvisoCliente("Link expirado", "Este link expirou. Peça um novo link ao escritório.");
+        mostrarAvisoCliente("Link expirado", "Peça um novo link.");
         return;
       }
 
       const projectDoc = await db.collection("projects").doc(tokenData.projectId).get();
-
       if (!projectDoc.exists) {
-        mostrarAvisoCliente("Projeto não encontrado", "O projeto deste link não existe mais.");
+        mostrarAvisoCliente("Projeto não encontrado", "O projeto não existe mais.");
         return;
       }
 
       const projeto = { id: projectDoc.id, ...projectDoc.data() };
-
       projects = [projeto];
       sessionStorage.setItem(`client_authenticated_${projeto.id}`, "true");
+      
       openProject(projeto.id);
-
-      // Esconde a splash e mostra o body
-      const splash = document.getElementById("introSplash");
-      if (splash) {
-        splash.style.opacity = "0";
-        setTimeout(() => { splash.style.display = "none"; }, 300);
-      }
       document.body.style.visibility = "visible";
-
       return;
     } catch (err) {
-      console.error("[MAGIC LINK] Erro ao validar token:", err);
-      mostrarAvisoCliente("Erro no link", "Não foi possível validar este link. Tente novamente.");
+      console.error("[MAGIC LINK] Erro:", err);
+      mostrarAvisoCliente("Erro no link", "Tente novamente.");
       return;
     }
   }
 
-  // ============================================================
-  // 2. ROTAS DO DESIGNER (bloqueia qualquer rota do designer no modo cliente)
-  // ============================================================
-  const pathParts = window.location.pathname
-    .split("/")
-    .filter(Boolean);
-
-  // Lista de rotas que são EXCLUSIVAS do designer
-  // (adicione novas páginas aqui: "clientes", "crm", "lojas", etc.)
-  const ROTAS_DESIGNER = [
-    "painel",
-    "financeiro",
-  ];
-
+  // 2. BLOQUEIO DE ROTAS DO DESIGNER
+  const pathParts = window.location.pathname.split("/").filter(Boolean);
+  const ROTAS_DESIGNER = ["painel", "financeiro"]; // adicione novas rotas aqui
   const isDesignerPath = ROTAS_DESIGNER.includes(pathParts[0]);
   const isDashboardPath = pathParts[0] === "painel";
   const isFinanceiroPath = pathParts[0] === "financeiro";
 
-  // Se for cliente e tentar acessar qualquer rota do designer, bloqueia
   if (clientMode && isDesignerPath) {
     mostrarAvisoCliente("Acesso Restrito", "Área exclusiva do escritório.");
     return;
   }
 
-  const pathProjectParam =
-    pathParts[0] && !isDesignerPath
-      ? pathParts[0]
-      : null;
-
+  const pathProjectParam = pathParts[0] && !isDesignerPath ? pathParts[0] : null;
   const projectParam = queryProjectParam || pathProjectParam;
 
-  // ============================================================
-  // 3. ACESSO POR LINK DE CLIENTE (com senha)
-  // ============================================================
+  // 3. ACESSO POR LINK DE CLIENTE (COM SENHA)
   if (queryProjectParam && !designerUnlocked) {
     clientMode = true;
     document.body.classList.add("client-view");
 
     try {
       let accessDoc = null;
-
-      // Primeiro, tenta localizar pelo slug do projeto
-      const accessSnapshot = await db
-        .collection("clientAccess")
-        .where("slug", "==", projectParam)
-        .limit(1)
-        .get();
-
+      const accessSnapshot = await db.collection("clientAccess").where("slug", "==", projectParam).limit(1).get();
+      
       if (!accessSnapshot.empty) {
         accessDoc = accessSnapshot.docs[0];
       } else {
-        // Se não encontrar pelo slug, tenta pelo ID do documento
-        const directAccessSnapshot = await db
-          .collection("clientAccess")
-          .doc(projectParam)
-          .get();
-
-        if (directAccessSnapshot.exists) {
-          accessDoc = directAccessSnapshot;
-        }
+        const directAccessSnapshot = await db.collection("clientAccess").doc(projectParam).get();
+        if (directAccessSnapshot.exists) accessDoc = directAccessSnapshot;
       }
 
-      // Se não encontrou de nenhuma das duas formas, encerra
       if (!accessDoc) {
-        mostrarAvisoCliente("Projeto não encontrado", "O projeto deste link não existe.");
+        mostrarAvisoCliente("Projeto não encontrado", "O projeto não existe.");
         return;
       }
 
       const accessData = accessDoc.data();
-      const projectId = accessDoc.id;
-
-      const targetProject = {
-        id: projectId,
-        title: accessData.slug || projectId,
-        clientUid: accessData.clientUid || null,
-        clientEmail: accessData.clientEmail || null
-      };
-
+      const targetProject = { id: accessDoc.id, title: accessData.slug || accessDoc.id, clientUid: accessData.clientUid || null, clientEmail: accessData.clientEmail || null };
       projects = [targetProject];
 
-      const clientSessionKey = `client_authenticated_${targetProject.id}`;
-
-      if (sessionStorage.getItem(clientSessionKey) === "true") {
+      if (sessionStorage.getItem(`client_authenticated_${targetProject.id}`) === "true") {
         openProject(targetProject.id);
-
-        // Esconde a splash
-        const splash = document.getElementById("introSplash");
-        if (splash) {
-          splash.style.opacity = "0";
-          setTimeout(() => { splash.style.display = "none"; }, 300);
-        }
-        document.body.style.visibility = "visible";
-
-        return;
-      }
-
-      promptClientPassword(targetProject);
-
-      // Esconde a splash
-      const splash = document.getElementById("introSplash");
-      if (splash) {
-        splash.style.opacity = "0";
-        setTimeout(() => { splash.style.display = "none"; }, 300);
+      } else {
+        promptClientPassword(targetProject);
       }
       document.body.style.visibility = "visible";
-
       return;
-
     } catch (error) {
       console.error("[INIT] Erro ao localizar projeto do cliente:", error);
-      mostrarAvisoCliente("Erro ao carregar", "Não foi possível carregar o projeto. Tente novamente.");
+      mostrarAvisoCliente("Erro ao carregar", "Tente novamente.");
       return;
     }
   }
 
-  // ============================================================
-  // 4. ACESSO DA DESIGNER (só se não for cliente)
-  // ============================================================
-  const cloudProjects =
-    typeof loadProjects === "function"
-      ? await loadProjects()
-      : [];
-
+  // 4. ACESSO DA DESIGNER
+  const cloudProjects = typeof loadProjects === "function" ? await loadProjects() : [];
   if (cloudProjects && cloudProjects.length > 0) {
-    projects = cloudProjects.map((p) =>
-      typeof seedProject === "function"
-        ? seedProject(p)
-        : p
-    );
+    projects = cloudProjects.map((p) => typeof seedProject === "function" ? seedProject(p) : p);
   } else if (typeof initialProjects !== "undefined") {
     projects = initialProjects;
   }
 
-  // ============================================================
-  // 5. ABERTURA DE PROJETO (designer ou cliente com sessão)
-  // ============================================================
+  // 5. ABERTURA DE PROJETO
   if (projectParam) {
-    const targetProject = projects.find(
-      (p) =>
-        p.id === projectParam ||
-        (
-          typeof slugify === "function" &&
-          slugify(p.title) === slugify(projectParam)
-        ) ||
-        p.slug === projectParam
-    );
+    const targetProject = projects.find((p) => p.id === projectParam || (typeof slugify === "function" && slugify(p.title) === slugify(projectParam)) || p.slug === projectParam);
 
     if (targetProject) {
-      // Se não é designer logado e não tem sessão de cliente, pede senha
       if (!designerUnlocked && !sessionStorage.getItem(`client_authenticated_${targetProject.id}`)) {
         clientMode = true;
         document.body.classList.add("client-view");
         promptClientPassword(targetProject);
-
-        // Esconde a splash
-        const splash = document.getElementById("introSplash");
-        if (splash) {
-          splash.style.opacity = "0";
-          setTimeout(() => { splash.style.display = "none"; }, 300);
-        }
-        document.body.style.visibility = "visible";
-
-        return;
+      } else {
+        openProject(targetProject.id);
       }
-
-      openProject(targetProject.id);
     } else {
       showDashboard();
     }
@@ -8654,45 +8532,34 @@ async function init() {
     document.body.classList.remove("client-view");
 
     if (designerUnlocked && !clientMode && isFinanceiroPath) {
-      // Abre o financeiro automaticamente
       document.getElementById("view-dashboard").hidden = true;
       document.getElementById("view-financeiro").hidden = false;
-      if (window.financeiroInit) {
-        window.financeiroInit();
-      } else {
-        setTimeout(() => {
-          if (window.financeiroInit) window.financeiroInit();
-        }, 200);
-      }
-    } else if (designerUnlocked && !clientMode && isDashboardPath) {
-      showDashboard();
+      if (window.financeiroInit) window.financeiroInit();
     } else {
       showDashboard();
     }
   }
 
-  // ============================================================
-  // 6. ESCONDE A SPLASH (sempre, no final da init)
-  // ============================================================
-  const splash = document.getElementById("introSplash");
-  if (splash) {
-    splash.style.opacity = "0";
-    setTimeout(() => { splash.style.display = "none"; }, 300);
-  }
+  // 6. MOSTRA O BODY NO FINAL
   document.body.style.visibility = "visible";
 
-  // Se for modo cliente, garante que as classes de UI estejam aplicadas
+  // 7. SE FOR MODO CLIENTE, AJUSTA A UI
   if (clientMode) {
     document.body.classList.add("client-view");
+    
+    // Esconde o botão do financeiro (se ele existir no HTML)
+    const btnFinanceiro = document.getElementById("btnFinanceiro");
+    if (btnFinanceiro) btnFinanceiro.style.display = "none";
 
-    // Muda a logo para levar ao Instagram (em vez de /painel)
+    // Muda a logo para o Instagram
     const brandIcon = document.getElementById("brandHome");
     if (brandIcon) {
       brandIcon.href = "https://instagram.com/mencheinteriores";
       brandIcon.target = "_blank";
     }
   }
-}
+}	
+
 	
 /* ---------------- Lógica da Lupa de Busca ---------------- */
 function initSearchToggle() {

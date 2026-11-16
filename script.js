@@ -8398,7 +8398,6 @@ async function init() {
       splash.style.display = "flex";
       splash.style.opacity = "1";
     } else {
-      // Se não tem splash, esconde o body
       document.body.style.visibility = "hidden";
     }
   }
@@ -8414,194 +8413,209 @@ async function init() {
   initViewModeSwitcher();
   initSearchToggle();
 
-const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(window.location.search);
 
-// Link Mágico (acesso sem senha)
-const magicToken = urlParams.get("token");
+  // Link Mágico (acesso sem senha)
+  const magicToken = urlParams.get("token");
 
-// Links antigos e compartilhados com clientes
-const queryProjectParam =
-  urlParams.get("projeto") ||
-  urlParams.get("project") ||
-  urlParams.get("p");
+  // Links antigos e compartilhados com clientes
+  const queryProjectParam =
+    urlParams.get("projeto") ||
+    urlParams.get("project") ||
+    urlParams.get("p");
 
-// Se tem token mágico, valida e libera acesso
-if (magicToken) {
-  clientMode = true;
-  document.body.classList.add("client-view");
-  
-  try {
+  // ============================================================
+  // 1. TOKEN MÁGICO (valida ANTES de qualquer coisa)
+  // ============================================================
+  if (magicToken) {
+    clientMode = true;
+    document.body.classList.add("client-view");
 
-    // Busca o token na coleção magicLinks
-    const tokenDoc = await db.collection("magicLinks").doc(magicToken).get();
-    
-    if (!tokenDoc.exists) {
-      showToast("Link inválido. Peça um novo link.", true);
-      showDashboard();
+    try {
+      const tokenDoc = await db.collection("magicLinks").doc(magicToken).get();
+
+      if (!tokenDoc.exists) {
+        mostrarAvisoCliente("Link inválido", "Este link não existe ou foi removido. Peça um novo link.");
+        return;
+      }
+
+      const tokenData = tokenDoc.data();
+
+      if (tokenData.revoked) {
+        mostrarAvisoCliente("Link revogado", "Este link foi revogado pela Menchë Interiores. Peça um novo link.");
+        return;
+      }
+
+      if (tokenData.expiresAt && Date.now() > tokenData.expiresAt) {
+        mostrarAvisoCliente("Link expirado", "Este link expirou. Peça um novo link ao escritório.");
+        return;
+      }
+
+      const projectDoc = await db.collection("projects").doc(tokenData.projectId).get();
+
+      if (!projectDoc.exists) {
+        mostrarAvisoCliente("Projeto não encontrado", "O projeto deste link não existe mais.");
+        return;
+      }
+
+      const projeto = { id: projectDoc.id, ...projectDoc.data() };
+
+      projects = [projeto];
+      sessionStorage.setItem(`client_authenticated_${projeto.id}`, "true");
+      openProject(projeto.id);
+
+      // Esconde a splash e mostra o body
+      const splash = document.getElementById("introSplash");
+      if (splash) {
+        splash.style.opacity = "0";
+        setTimeout(() => { splash.style.display = "none"; }, 300);
+      }
+      document.body.style.visibility = "visible";
+
+      return;
+    } catch (err) {
+      console.error("[MAGIC LINK] Erro ao validar token:", err);
+      mostrarAvisoCliente("Erro no link", "Não foi possível validar este link. Tente novamente.");
       return;
     }
-    
-    const tokenData = tokenDoc.data();
-    
-    // Verifica se o token foi revogado
-    if (tokenData.revoked) {
-      mostrarAvisoCliente("Link revogado", "Este link foi revogado pela Menchë Interiores. Peça um novo link.");
-      return;
-    }
-    
-    // Verifica se o token expirou
-    if (tokenData.expiresAt && Date.now() > tokenData.expiresAt) {
-      mostrarAvisoCliente("Link expirado", "Este link expirou. Peça um novo link ao escritório.");
-      return;
-    }
-    
-    // Token válido → busca o projeto
-    const projectDoc = await db.collection("projects").doc(tokenData.projectId).get();
-    
-    if (!projectDoc.exists) {
-      showToast("Projeto não encontrado.", true);
-      showDashboard();
-      return;
-    }
-    
-    const projeto = { id: projectDoc.id, ...projectDoc.data() };
-    
-    projects = [projeto];
-    sessionStorage.setItem(`client_authenticated_${projeto.id}`, "true");
-    openProject(projeto.id);
-    return;
-    
-  } catch (err) {
-    console.error("[MAGIC LINK] Erro ao validar token:", err);
-    showToast("Erro ao validar link. Tente novamente.", true);
-    showDashboard();
+  }
+
+  // ============================================================
+  // 2. ROTAS DO DESIGNER (bloqueia qualquer rota do designer no modo cliente)
+  // ============================================================
+  const pathParts = window.location.pathname
+    .split("/")
+    .filter(Boolean);
+
+  // Lista de rotas que são EXCLUSIVAS do designer
+  // (adicione novas páginas aqui: "clientes", "crm", "lojas", etc.)
+  const ROTAS_DESIGNER = [
+    "painel",
+    "financeiro",
+  ];
+
+  const isDesignerPath = ROTAS_DESIGNER.includes(pathParts[0]);
+  const isDashboardPath = pathParts[0] === "painel";
+  const isFinanceiroPath = pathParts[0] === "financeiro";
+
+  // Se for cliente e tentar acessar qualquer rota do designer, bloqueia
+  if (clientMode && isDesignerPath) {
+    mostrarAvisoCliente("Acesso Restrito", "Área exclusiva do escritório.");
     return;
   }
-}
 
-// Novo formato: /nome-do-projeto/briefing
-const pathParts = window.location.pathname
-  .split("/")
-  .filter(Boolean);
+  const pathProjectParam =
+    pathParts[0] && !isDesignerPath
+      ? pathParts[0]
+      : null;
 
-const isDashboardPath = pathParts[0] === "painel";
-const isFinanceiroPath = pathParts[0] === "financeiro";
-
-// Se for cliente tentando acessar o financeiro, bloqueia
-if (isFinanceiroPath && clientMode) {
-  mostrarAvisoCliente("Acesso Restrito", "Área exclusiva do escritório.");
-  return;
-}
-
-const pathProjectParam =
-  pathParts[0] && !isDashboardPath && !isFinanceiroPath  // ← MODIFICADO
-    ? pathParts[0]
-    : null;
-
-const projectParam = queryProjectParam || pathProjectParam;
+  const projectParam = queryProjectParam || pathProjectParam;
 
   // ============================================================
-  // ACESSO POR LINK DE CLIENTE
+  // 3. ACESSO POR LINK DE CLIENTE (com senha)
   // ============================================================
-
   if (queryProjectParam && !designerUnlocked) {
     clientMode = true;
     document.body.classList.add("client-view");
 
     try {
+      let accessDoc = null;
 
-let accessDoc = null;
+      // Primeiro, tenta localizar pelo slug do projeto
+      const accessSnapshot = await db
+        .collection("clientAccess")
+        .where("slug", "==", projectParam)
+        .limit(1)
+        .get();
 
-// Primeiro, tenta localizar pelo slug do projeto
-const accessSnapshot = await db
-  .collection("clientAccess")
-  .where("slug", "==", projectParam)
-  .limit(1)
-  .get();
+      if (!accessSnapshot.empty) {
+        accessDoc = accessSnapshot.docs[0];
+      } else {
+        // Se não encontrar pelo slug, tenta pelo ID do documento
+        const directAccessSnapshot = await db
+          .collection("clientAccess")
+          .doc(projectParam)
+          .get();
 
-if (!accessSnapshot.empty) {
-  accessDoc = accessSnapshot.docs[0];
-} else {
-  // Se não encontrar pelo slug, tenta pelo ID do documento
-  const directAccessSnapshot = await db
-    .collection("clientAccess")
-    .doc(projectParam)
-    .get();
+        if (directAccessSnapshot.exists) {
+          accessDoc = directAccessSnapshot;
+        }
+      }
 
-  if (directAccessSnapshot.exists) {
-    accessDoc = directAccessSnapshot;
-  }
-}
-
-// Se não encontrou de nenhuma das duas formas, encerra
-if (!accessDoc) {
-  showToast("Projeto não encontrado.", true);
-  showDashboard();
-  return;
-}
+      // Se não encontrou de nenhuma das duas formas, encerra
+      if (!accessDoc) {
+        mostrarAvisoCliente("Projeto não encontrado", "O projeto deste link não existe.");
+        return;
+      }
 
       const accessData = accessDoc.data();
-
       const projectId = accessDoc.id;
-      const clientUid = accessData.clientUid;
 
-      // Busca somente o projeto correspondente
-	const targetProject = {
-	  id: projectId,
-	  title: accessData.slug || projectId,
-	  clientUid: accessData.clientUid || null,
-	  clientEmail: accessData.clientEmail || null
-	};
-	
-projects = [targetProject];
+      const targetProject = {
+        id: projectId,
+        title: accessData.slug || projectId,
+        clientUid: accessData.clientUid || null,
+        clientEmail: accessData.clientEmail || null
+      };
 
-const clientSessionKey =
-  `client_authenticated_${targetProject.id}`;
+      projects = [targetProject];
 
-if (sessionStorage.getItem(clientSessionKey) === "true") {
-  openProject(targetProject.id);
-  return;
-}
+      const clientSessionKey = `client_authenticated_${targetProject.id}`;
 
-promptClientPassword(targetProject);
-return;
-		
+      if (sessionStorage.getItem(clientSessionKey) === "true") {
+        openProject(targetProject.id);
+
+        // Esconde a splash
+        const splash = document.getElementById("introSplash");
+        if (splash) {
+          splash.style.opacity = "0";
+          setTimeout(() => { splash.style.display = "none"; }, 300);
+        }
+        document.body.style.visibility = "visible";
+
+        return;
+      }
+
+      promptClientPassword(targetProject);
+
+      // Esconde a splash
+      const splash = document.getElementById("introSplash");
+      if (splash) {
+        splash.style.opacity = "0";
+        setTimeout(() => { splash.style.display = "none"; }, 300);
+      }
+      document.body.style.visibility = "visible";
+
+      return;
+
     } catch (error) {
-      console.error(
-        "[INIT] Erro ao localizar projeto do cliente:",
-        error
-      );
-
-      showToast("Erro ao carregar o projeto.", true);
-      showDashboard();
+      console.error("[INIT] Erro ao localizar projeto do cliente:", error);
+      mostrarAvisoCliente("Erro ao carregar", "Não foi possível carregar o projeto. Tente novamente.");
       return;
     }
   }
 
   // ============================================================
-  // ACESSO DA DESIGNER
+  // 4. ACESSO DA DESIGNER (só se não for cliente)
   // ============================================================
-
   const cloudProjects =
     typeof loadProjects === "function"
       ? await loadProjects()
       : [];
-	
+
   if (cloudProjects && cloudProjects.length > 0) {
     projects = cloudProjects.map((p) =>
       typeof seedProject === "function"
         ? seedProject(p)
         : p
-    ); 
-	  
+    );
   } else if (typeof initialProjects !== "undefined") {
     projects = initialProjects;
   }
 
   // ============================================================
-  // ABERTURA DE PROJETO
+  // 5. ABERTURA DE PROJETO (designer ou cliente com sessão)
   // ============================================================
-
   if (projectParam) {
     const targetProject = projects.find(
       (p) =>
@@ -8619,60 +8633,65 @@ return;
         clientMode = true;
         document.body.classList.add("client-view");
         promptClientPassword(targetProject);
+
+        // Esconde a splash
+        const splash = document.getElementById("introSplash");
+        if (splash) {
+          splash.style.opacity = "0";
+          setTimeout(() => { splash.style.display = "none"; }, 300);
+        }
+        document.body.style.visibility = "visible";
+
         return;
       }
-      
+
       openProject(targetProject.id);
     } else {
       showDashboard();
     }
-	  
-} else {
-  document.body.classList.remove("hub-is-locked");
-  document.body.classList.remove("client-view");
-
-  if (designerUnlocked && !clientMode && isFinanceiroPath) {
-    // Abre o financeiro automaticamente
-    document.getElementById("view-dashboard").hidden = true;
-    document.getElementById("view-financeiro").hidden = false;
-    if (window.financeiroInit) {
-      window.financeiroInit();
-    } else {
-      setTimeout(() => {
-        if (window.financeiroInit) window.financeiroInit();
-      }, 200);
-    }
-  } else if (designerUnlocked && !clientMode && isDashboardPath) {
-    showDashboard();
   } else {
-    showDashboard();
+    document.body.classList.remove("hub-is-locked");
+    document.body.classList.remove("client-view");
+
+    if (designerUnlocked && !clientMode && isFinanceiroPath) {
+      // Abre o financeiro automaticamente
+      document.getElementById("view-dashboard").hidden = true;
+      document.getElementById("view-financeiro").hidden = false;
+      if (window.financeiroInit) {
+        window.financeiroInit();
+      } else {
+        setTimeout(() => {
+          if (window.financeiroInit) window.financeiroInit();
+        }, 200);
+      }
+    } else if (designerUnlocked && !clientMode && isDashboardPath) {
+      showDashboard();
+    } else {
+      showDashboard();
+    }
   }
-}
 
-// ============================================================
-// ESCONDE O SPLASH (sempre, no final da init)
-// ============================================================
-const splash = document.getElementById("introSplash");
-if (splash) {
-  splash.style.opacity = "0";
-  setTimeout(() => { splash.style.display = "none"; }, 300);
-}
-document.body.style.visibility = "visible";
+  // ============================================================
+  // 6. ESCONDE A SPLASH (sempre, no final da init)
+  // ============================================================
+  const splash = document.getElementById("introSplash");
+  if (splash) {
+    splash.style.opacity = "0";
+    setTimeout(() => { splash.style.display = "none"; }, 300);
+  }
+  document.body.style.visibility = "visible";
 
-// Se for modo cliente, garante que as classes de UI estejam aplicadas
-if (clientMode) {
-  document.body.classList.add("client-view");
-}
-}
+  // Se for modo cliente, garante que as classes de UI estejam aplicadas
+  if (clientMode) {
+    document.body.classList.add("client-view");
 
-// ============================================================
-// INICIALIZAÇÃO
-// ============================================================
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init);
-} else {
-  init();
+    // Muda a logo para levar ao Instagram (em vez de /painel)
+    const brandIcon = document.getElementById("brandHome");
+    if (brandIcon) {
+      brandIcon.href = "https://instagram.com/mencheinteriores";
+      brandIcon.target = "_blank";
+    }
+  }
 }
 	
 /* ---------------- Lógica da Lupa de Busca ---------------- */

@@ -470,12 +470,13 @@ body.shared-client #btnDesignerAccess { display: none !important; }
   display: flex;
   flex-direction: column;
   cursor: pointer;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.2s ease; /* Só a borda, sem transform */
   aspect-ratio: 3 / 4.2;
 }
+
 .card:hover {
   border-color: var(--border-strong);
-  transform: translateY(-4px);
+  /* transform: translateY(-4px); ← Removido */
 }
 .card-cover {
   position: absolute;

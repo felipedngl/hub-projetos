@@ -1703,6 +1703,11 @@ function renderDashboard() {
   // Trava de segurança: se 'projects' não for uma lista (array), transforma em lista vazia
   if (!Array.isArray(projects)) projects = [];
 
+  // TRAVA DE SEGURANÇA: impede que o renderDashboard rode em loop
+  if (window._isRenderingDashboard) return;
+  window._isRenderingDashboard = true;
+  setTimeout(() => { window._isRenderingDashboard = false; }, 500); // Libera a trava após 500ms
+
   // Proteção: Se a lista de projetos estiver vazia mas já carregamos antes, 
   // não sobrescrevemos a tela para evitar que os cards sumam na atualização.
   if (projects.length === 0 && window._hasLoadedProjectsOnce) {

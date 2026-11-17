@@ -2295,88 +2295,98 @@ function ensurePanelButton() {
 }
 
 function openProject(id, fromDashboard = false) {
+  console.log("[OPEN] Abrindo projeto:", id);
   currentProjectId = id;
 
-  if (clientMode) {
-    const user = getFirebaseUser();
+  try {
+    if (clientMode) {
+      const user = getFirebaseUser();
 
-    // Verifica se é link mágico (sessão criada pelo token)
-    const isMagicLink = sessionStorage.getItem(`client_authenticated_${id}`) === "true";
+      // Verifica se é link mágico (sessão criada pelo token)
+      const isMagicLink = sessionStorage.getItem(`client_authenticated_${id}`) === "true";
 
-    // Se não for link mágico e não tiver usuário logado, bloqueia
-    if (!user && !isMagicLink) {
-      console.error("[AUTH] Cliente sem usuário autenticado.");
-      showDashboard();
-      return;
+      // Se não for link mágico e não tiver usuário logado, bloqueia
+      if (!user && !isMagicLink) {
+        console.error("[AUTH] Cliente sem usuário autenticado.");
+        showDashboard();
+        return;
+      }
+
+      const project = projects.find((p) => p.id === id);
+
+      // Se não for link mágico, verifica se o cliente logado é o dono do projeto
+      if (!isMagicLink && (!project || project.clientUid !== user.uid)) {
+        console.error(
+          "[AUTH] Cliente tentou acessar projeto não autorizado:",
+          id
+        );
+        showDashboard();
+        return;
+      }
     }
 
-    const project = projects.find((p) => p.id === id);
+    listenToCurrentProject(id);
 
-    // Se não for link mágico, verifica se o cliente logado é o dono do projeto
-    if (!isMagicLink && (!project || project.clientUid !== user.uid)) {
-      console.error(
-        "[AUTH] Cliente tentou acessar projeto não autorizado:",
-        id
+    currentStage = fromDashboard
+      ? "briefing"
+      : getStageFromURL() || "briefing";
+
+    // Atualiza a URL da proprietária para /projeto/etapa
+    if (designerUnlocked && !clientMode) {
+      const project = projects.find(
+        (p) => String(p.id) === String(id)
       );
-      showDashboard();
-      return;
+
+      const projectSlug =
+        project?.slug ||
+        (typeof slugify === "function"
+          ? slugify(project?.title || String(id))
+          : String(id));
+
+      const newPath =
+        `/${encodeURIComponent(projectSlug)}/${currentStage}`;
+
+      window.history.replaceState({}, "", newPath);
     }
 
-    // Se for link mágico, permite o acesso (o token já foi validado)
-  }
+    // Esconde o painel, mostra o projeto (com proteção)
+    const viewDashboard = document.getElementById("view-dashboard");
+    const viewProject = document.getElementById("view-project");
+    
+    if (viewDashboard) viewDashboard.hidden = true;
+    if (viewProject) viewProject.hidden = false;
 
-  listenToCurrentProject(id);
+    console.log("[OPEN] Painel escondido, projeto mostrado.");
 
-  currentStage = fromDashboard
-    ? "briefing"
-    : getStageFromURL() || "briefing";
+    const btnBack = ensurePanelButton();
 
-  // Atualiza a URL da proprietária para /projeto/etapa
-  if (designerUnlocked && !clientMode) {
-    const project = projects.find(
-      (p) => String(p.id) === String(id)
-    );
+    if (btnBack) {
+      const showBackButton = designerUnlocked && !clientMode;
+      btnBack.hidden = !showBackButton;
+      btnBack.style.display = showBackButton ? "inline-flex" : "none";
+    }
 
-    const projectSlug =
-      project?.slug ||
-      (typeof slugify === "function"
-        ? slugify(project?.title || String(id))
-        : String(id));
+    if (clientMode) {
+      document.title =
+        `${id ? currentProjectTitle() : "Projeto"} — HUB de Projetos`;
+    }
 
-    const newPath =
-      `/${encodeURIComponent(projectSlug)}/${currentStage}`;
+    updateClientButton();
+    applyAccessUI();
+    renderSidebar();
+    renderStage();
+    window.scrollTo({ top: 0 });
 
-    window.history.replaceState({}, "", newPath);
-  }
+    if (
+      clientMode &&
+      typeof setupClientNotificationPrompt === "function"
+    ) {
+      setupClientNotificationPrompt();
+    }
 
-  $("#view-dashboard").hidden = true;
-  $("#view-project").hidden = false;
-
-  const btnBack = ensurePanelButton();
-
-  if (btnBack) {
-    const showBackButton = designerUnlocked && !clientMode;
-
-    btnBack.hidden = !showBackButton;
-    btnBack.style.display = showBackButton ? "inline-flex" : "none";
-  }
-
-  if (clientMode) {
-    document.title =
-      `${id ? currentProjectTitle() : "Projeto"} — HUB de Projetos`;
-  }
-
-  updateClientButton();
-  applyAccessUI();
-  renderSidebar();
-  renderStage();
-  window.scrollTo({ top: 0 });
-
-  if (
-    clientMode &&
-    typeof setupClientNotificationPrompt === "function"
-  ) {
-    setupClientNotificationPrompt();
+    console.log("[OPEN] Projeto aberto com sucesso!");
+  } catch (error) {
+    console.error("[OPEN] ERRO ao abrir projeto:", error);
   }
 }
 

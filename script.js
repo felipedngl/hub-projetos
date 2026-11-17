@@ -2301,7 +2301,11 @@ function openProject(id, fromDashboard = false) {
   // Se for designer, garante que o body NÃO esteja no modo cliente
   if (designerUnlocked && !clientMode) {
     document.body.classList.remove("client-view");
+    document.body.classList.add("designer-unlocked");
   }
+
+  // Marca que o projeto está aberto (para esconder a logo)
+  document.body.classList.add("project-open");
 
   try {
     if (clientMode) {
@@ -2407,6 +2411,7 @@ function showDashboard() {
   }
 
   document.body.classList.remove("client-view");
+  document.body.classList.remove("project-open"); // ← NOVO: remove a classe do projeto
 
   if (typeof unsubscribeProjectListener === "function") {
     unsubscribeProjectListener();

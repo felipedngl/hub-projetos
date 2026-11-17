@@ -2090,7 +2090,8 @@ body.client-view #btnDesignerAccess,
 body.client-view .toolbar,
 body.client-view .stats-bar,
 body.client-view #view-dashboard,
-body.client-view .btn-back {
+body.client-view .btn-back,
+body.client-view #brandHome {
   display: none !important;
 }
 
@@ -2106,31 +2107,36 @@ body.designer-unlocked #view-dashboard:not([hidden]) {
 }
 
 /* ==========================================================
-   FORÇA A LOGO À ESQUERDA (modo designer)
+   LOGO E BOTÃO "PAINEL" (modo designer)
    ========================================================== */
 
-/* No modo designer, a logo fica SEMPRE à esquerda */
-body.designer-unlocked #brandHome {
-  position: static !important;
-  margin: 0 !important;
-  left: auto !important;
-  right: auto !important;
-  transform: none !important;
-}
-
+/* No painel: logo à esquerda, menu no centro, ícones à direita */
 body.designer-unlocked .header-inner {
   justify-content: space-between !important;
 }
 
-/* No modo designer, o menu fica no centro */
 body.designer-unlocked .header-nav {
   position: absolute !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
 }
 
-/* No modo designer, os ícones ficam à direita */
 body.designer-unlocked .header-actions {
   margin-left: auto !important;
 }
 
+/* No painel (projeto fechado): mostra a logo */
+body.designer-unlocked:not(.project-open) #brandHome {
+  display: block !important;
+}
+
+/* No projeto aberto: esconde a logo (o botão "← Painel" ocupa o lugar) */
+body.project-open #brandHome {
+  display: none !important;
+}
+
+/* Botão "← Painel" fica à esquerda quando o projeto está aberto */
+body.project-open #btnBack {
+  position: static !important;
+  margin: 0 !important;
+}

@@ -2080,7 +2080,7 @@ textarea.stage-textarea:focus,
    CONTROLE DE UI: MODO CLIENTE vs DESIGNER
    ========================================================== */
 
-/* Esconde TUDO do designer no modo cliente */
+/* Esconde TUDO do designer APENAS no modo cliente */
 body.client-view .header-nav,
 body.client-view .header-actions,
 body.client-view .main-nav,
@@ -2094,14 +2094,13 @@ body.client-view .btn-back {
   display: none !important;
 }
 
-/* Garante que o menu apareça no modo designer */
-body.designer-unlocked .header-nav,
-body.designer-unlocked .header-actions,
-body.designer-unlocked .main-nav {
-  display: flex !important;
+/* Garante que o projeto SEMPRE apareça quando aberto */
+#view-project:not([hidden]) {
+  display: block !important;
+  visibility: visible !important;
 }
 
-/* Garante que o painel apareça no modo designer */
-body.designer-unlocked #view-dashboard {
+/* Garante que o painel APAREÇA no modo designer */
+body.designer-unlocked #view-dashboard:not([hidden]) {
   display: block !important;
 }

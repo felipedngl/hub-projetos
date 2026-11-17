@@ -2317,7 +2317,8 @@ function openProject(id, fromDashboard = false) {
       // Se não for link mágico e não tiver usuário logado, bloqueia
       if (!user && !isMagicLink) {
         console.error("[AUTH] Cliente sem usuário autenticado.");
-        showDashboard();
+        // Em vez de showDashboard (que pede senha do designer), mostra aviso
+        mostrarAvisoCliente("Acesso Restrito", "Você precisa de um link válido para acessar este projeto.");
         return;
       }
 
@@ -2329,7 +2330,7 @@ function openProject(id, fromDashboard = false) {
           "[AUTH] Cliente tentou acessar projeto não autorizado:",
           id
         );
-        showDashboard();
+        mostrarAvisoCliente("Acesso Restrito", "Você não tem permissão para acessar este projeto.");
         return;
       }
     }
@@ -8426,7 +8427,22 @@ function mostrarAvisoCliente(titulo, mensagem) {
 
 /* ---------------- Inicialização da Aplicação ---------------- */
 async function init() {
-  // 1. Verifica se o designer já está logado (sessão)
+  // 1. Mostra splash (se tiver token) ou esconde o body
+  const urlParams = new URLSearchParams(window.location.search);
+  const magicToken = urlParams.get("token");
+  const queryProjectParam = urlParams.get("projeto") || urlParams.get("project") || urlParams.get("p");
+
+  if (magicToken) {
+    const splash = document.getElementById("introSplash");
+    if (splash) {
+      splash.style.display = "flex";
+      splash.style.opacity = "1";
+    }
+  } else {
+    document.body.style.visibility = "hidden";
+  }
+
+  // 2. Verifica se o designer está logado
   if (
     typeof DESIGNER_KEY !== "undefined" &&
     sessionStorage.getItem(DESIGNER_KEY) === "true"
@@ -8434,34 +8450,144 @@ async function init() {
     designerUnlocked = true;
   }
 
-  // 2. Liga os eventos básicos da interface
   bindEvents();
   initViewModeSwitcher();
   initSearchToggle();
 
-  // 3. Carrega os projetos do Firebase (para o designer)
-  const cloudProjects = typeof loadProjects === "function" ? await loadProjects() : [];
-  if (cloudProjects && cloudProjects.length > 0) {
-    projects = cloudProjects.map((p) =>
-      typeof seedProject === "function" ? seedProject(p) : p
-    );
-  } else if (typeof initialProjects !== "undefined") {
-    projects = initialProjects;
+  // 3. SE FOR DESIGNER: carrega tudo e mostra o painel
+  if (designerUnlocked) {
+    const cloudProjects = typeof loadProjects === "function" ? await loadProjects() : [];
+    projects = cloudProjects || [];
+
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const isFinanceiroPath = pathParts[0] === "financeiro";
+
+    if (isFinanceiroPath) {
+      document.getElementById("view-dashboard").hidden = true;
+      document.getElementById("view-financeiro").hidden = false;
+      if (window.financeiroInit) window.financeiroInit();
+    } else if (queryProjectParam) {
+      const targetProject = projects.find(p => p.id === queryProjectParam || p.slug === queryProjectParam);
+      if (targetProject) {
+        openProject(targetProject.id);
+      } else {
+        showDashboard();
+      }
+    } else {
+      showDashboard();
+    }
+
+    document.body.style.visibility = "visible";
+    const splash = document.getElementById("introSplash");
+    if (splash) {
+      splash.style.opacity = "0";
+      setTimeout(() => { splash.style.display = "none"; }, 300);
+    }
+    return;
   }
 
-  // 4. Mostra o painel na tela
-  document.body.classList.remove("hub-is-locked");
-  document.body.classList.remove("client-view");
+  // 4. SE FOR CLIENTE COM TOKEN MÁGICO
+  if (magicToken) {
+    clientMode = true;
+    document.body.classList.add("client-view");
+
+    try {
+      const tokenDoc = await db.collection("magicLinks").doc(magicToken).get();
+      if (!tokenDoc.exists) {
+        mostrarAvisoCliente("Link inválido", "Este link não existe.");
+        return;
+      }
+      const tokenData = tokenDoc.data();
+      if (tokenData.revoked) {
+        mostrarAvisoCliente("Link revogado", "Peça um novo link.");
+        return;
+      }
+      if (tokenData.expiresAt && Date.now() > tokenData.expiresAt) {
+        mostrarAvisoCliente("Link expirado", "Peça um novo link.");
+        return;
+      }
+
+      const projectDoc = await db.collection("projects").doc(tokenData.projectId).get();
+      if (!projectDoc.exists) {
+        mostrarAvisoCliente("Projeto não encontrado", "O projeto não existe.");
+        return;
+      }
+
+      const projeto = { id: projectDoc.id, ...projectDoc.data() };
+      projects = [projeto];
+      sessionStorage.setItem(`client_authenticated_${projeto.id}`, "true");
+      openProject(projeto.id);
+
+      document.body.style.visibility = "visible";
+      const splash = document.getElementById("introSplash");
+      if (splash) {
+        splash.style.opacity = "0";
+        setTimeout(() => { splash.style.display = "none"; }, 300);
+      }
+      return;
+    } catch (err) {
+      console.error("[MAGIC LINK] Erro:", err);
+      mostrarAvisoCliente("Erro no link", "Tente novamente.");
+      return;
+    }
+  }
+
+  // 5. SE FOR CLIENTE COM LINK DE SENHA (?projeto= ou /Cafe-Aurora)
+  const pathParts = window.location.pathname.split("/").filter(Boolean);
+  const pathProjectParam = pathParts[0] && pathParts[0] !== "painel" && pathParts[0] !== "financeiro" ? pathParts[0] : null;
+  const projectParam = queryProjectParam || pathProjectParam;
+
+  if (projectParam) {
+    clientMode = true;
+    document.body.classList.add("client-view");
+
+    try {
+      let accessDoc = null;
+      const accessSnapshot = await db.collection("clientAccess").where("slug", "==", projectParam).limit(1).get();
+      if (!accessSnapshot.empty) {
+        accessDoc = accessSnapshot.docs[0];
+      } else {
+        const directAccessSnapshot = await db.collection("clientAccess").doc(projectParam).get();
+        if (directAccessSnapshot.exists) accessDoc = directAccessSnapshot;
+      }
+
+      if (!accessDoc) {
+        mostrarAvisoCliente("Projeto não encontrado", "O projeto não existe.");
+        return;
+      }
+
+      const accessData = accessDoc.data();
+      const targetProject = { id: accessDoc.id, title: accessData.slug || accessDoc.id, clientUid: accessData.clientUid || null, clientEmail: accessData.clientEmail || null };
+      projects = [targetProject];
+
+      if (sessionStorage.getItem(`client_authenticated_${targetProject.id}`) === "true") {
+        openProject(targetProject.id);
+      } else {
+        promptClientPassword(targetProject);
+      }
+
+      document.body.style.visibility = "visible";
+      const splash = document.getElementById("introSplash");
+      if (splash) {
+        splash.style.opacity = "0";
+        setTimeout(() => { splash.style.display = "none"; }, 300);
+      }
+      return;
+    } catch (error) {
+      console.error("[INIT] Erro ao carregar projeto do cliente:", error);
+      mostrarAvisoCliente("Erro ao carregar", "Tente novamente.");
+      return;
+    }
+  }
+
+  // 6. Cliente sem link → mostra painel (modo cliente)
   document.body.style.visibility = "visible";
-
-  showDashboard();
-
-  // 5. Esconde a splash, se ela estiver visível
   const splash = document.getElementById("introSplash");
   if (splash) {
     splash.style.opacity = "0";
     setTimeout(() => { splash.style.display = "none"; }, 300);
   }
+  showDashboard();
 }	
 
 	

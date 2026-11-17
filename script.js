@@ -8053,6 +8053,9 @@ function copyShareLink() {
 
 async function promptClientPassword(project) {
   document.body.classList.add("client-view");
+  
+  // Garante que o body está visível (para o modal aparecer)
+  document.body.style.visibility = "visible";
 
   const modal = $("#passwordModal") || $("#pwdModal");
 
@@ -8069,6 +8072,11 @@ async function promptClientPassword(project) {
 
   modal.removeAttribute("hidden");
   modal.style.display = "flex";
+  modal.hidden = false;
+  modal.classList.add("active");
+  
+  // Garante que o body está visível
+  document.body.style.visibility = "visible";
 
   const btnConfirm = $("#btnConfirmPassword") || $("#btnConfirmPwd");
   const pwdInput = $("#passwordInput") || $("#pwdInput");

@@ -2104,3 +2104,33 @@ body.client-view .btn-back {
 body.designer-unlocked #view-dashboard:not([hidden]) {
   display: block !important;
 }
+
+/* ==========================================================
+   FORÇA A LOGO À ESQUERDA (modo designer)
+   ========================================================== */
+
+/* No modo designer, a logo fica SEMPRE à esquerda */
+body.designer-unlocked #brandHome {
+  position: static !important;
+  margin: 0 !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+}
+
+body.designer-unlocked .header-inner {
+  justify-content: space-between !important;
+}
+
+/* No modo designer, o menu fica no centro */
+body.designer-unlocked .header-nav {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+/* No modo designer, os ícones ficam à direita */
+body.designer-unlocked .header-actions {
+  margin-left: auto !important;
+}
+

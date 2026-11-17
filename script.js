@@ -8016,18 +8016,25 @@ const verifyPassword = async () => {
 
 async function saveClientPassword() {
   const p = typeof currentProject === "function" ? currentProject() : currentProject;
-  const pwdInput = $("#shareClientPasswordInput");
-  const feedback = $("#savePasswordFeedback");
+  const pwdInput = document.getElementById("shareClientPasswordInput");
+  const feedback = document.getElementById("savePasswordFeedback");
 
   if (!p || !pwdInput) return;
 
-  p.clientPassword = pwdInput.value.trim();
+  const novaSenha = pwdInput.value.trim();
+
+  // Salva nos dois campos (para garantir compatibilidade)
+  p.clientPassword = novaSenha;
+  p.client_password = novaSenha;
 
   if (typeof saveProjects === "function") {
-    await saveProjects();
+    await saveProjects([p]);
   }
 
-  if (feedback) feedback.style.display = "block";
+  if (feedback) {
+    feedback.style.display = "block";
+    feedback.textContent = `✓ Senha salva: "${novaSenha}"`;
+  }
   showToast("Senha do cliente salva!");
 }
 
@@ -8080,6 +8087,15 @@ async function promptClientPassword(project) {
 
     try {
       const senhaSalva = project.clientPassword || project.client_password || "";
+      
+      console.log("[DEBUG SENHA] Senha digitada:", entered);
+      console.log("[DEBUG SENHA] Senha salva:", senhaSalva);
+      console.log("[DEBUG SENHA] Projeto:", project);
+
+      if (!senhaSalva) {
+        showToast("Este projeto não tem senha configurada.", true);
+        return;
+      }
       
       if (entered !== senhaSalva) {
         showToast("Senha incorreta.", true);

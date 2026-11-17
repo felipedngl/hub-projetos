@@ -2298,6 +2298,11 @@ function openProject(id, fromDashboard = false) {
   console.log("[OPEN] Abrindo projeto:", id);
   currentProjectId = id;
 
+  // Se for designer, garante que o body NÃO esteja no modo cliente
+  if (designerUnlocked && !clientMode) {
+    document.body.classList.remove("client-view");
+  }
+
   try {
     if (clientMode) {
       const user = getFirebaseUser();

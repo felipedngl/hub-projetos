@@ -8095,21 +8095,33 @@ async function promptClientPassword(project) {
     }
 
     try {
-      const senhaSalva = project.clientPassword || project.client_password || "";
-      
-      console.log("[DEBUG SENHA] Senha digitada:", entered);
-      console.log("[DEBUG SENHA] Senha salva:", senhaSalva);
-      console.log("[DEBUG SENHA] Projeto:", project);
+      // A senha NUNCA é comparada aqui no navegador.
+      // A verificação acontece no servidor (/api/client-auth), que suporta
+      // senhas antigas em texto puro e novas com hash PBKDF2.
+      showToast("Verificando senha...");
 
-      if (!senhaSalva) {
-        showToast("Este projeto não tem senha configurada.", true);
-        return;
-      }
-      
-      if (entered !== senhaSalva) {
+      const resp = await fetch("/api/client-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: project.id,
+          clientName: project.title,
+          password: entered
+        })
+      });
+
+      if (resp.status === 401) {
         showToast("Senha incorreta.", true);
         return;
       }
+
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        showToast(data.error || "Não foi possível verificar a senha.", true);
+        return;
+      }
+
+      const data = await resp.json();
 
       sessionStorage.setItem(`client_authenticated_${project.id}`, "true");
       showSoundPermission();
@@ -8118,12 +8130,12 @@ async function promptClientPassword(project) {
       modal.style.display = "none";
       document.body.classList.remove("client-view");
 
-      openProject(project.id);
+      openProject(data.projectId || project.id);
 
       showToast("Acesso liberado!");
     } catch (error) {
       console.error("[AUTH] Erro no acesso do cliente:", error);
-      showToast("Senha incorreta ou acesso não autorizado.", true);
+      showToast("Erro ao verificar a senha. Tente novamente.", true);
     }
   };
 
@@ -8550,25 +8562,47 @@ async function init() {
     document.body.classList.add("client-view");
 
     try {
-      let accessDoc = null;
-      const accessSnapshot = await db.collection("clientAccess").where("slug", "==", projectParam).limit(1).get();
-      if (!accessSnapshot.empty) {
-        accessDoc = accessSnapshot.docs[0];
-      } else {
-        const directAccessSnapshot = await db.collection("clientAccess").doc(projectParam).get();
-        if (directAccessSnapshot.exists) accessDoc = directAccessSnapshot;
+      // Resolve o projeto diretamente na coleção "projects"
+      // (a coleção "clientAccess" era usada antes, mas nunca era gravada)
+      let projectDoc = null;
+
+      try {
+        const directSnapshot = await db.collection("projects").doc(String(projectParam)).get();
+        if (directSnapshot.exists) projectDoc = directSnapshot;
+      } catch (e) {
+        // projectParam não é um ID válido de documento — segue para busca por slug
       }
 
-      if (!accessDoc) {
+      if (!projectDoc) {
+        const slugSnapshot = await db.collection("projects")
+          .where("slug", "==", String(projectParam).toLowerCase())
+          .limit(1)
+          .get();
+        if (!slugSnapshot.empty) projectDoc = slugSnapshot.docs[0];
+      }
+
+      if (!projectDoc) {
+        const titleSnapshot = await db.collection("projects")
+          .where("title", "==", String(projectParam))
+          .limit(1)
+          .get();
+        if (!titleSnapshot.empty) projectDoc = titleSnapshot.docs[0];
+      }
+
+      if (!projectDoc) {
         mostrarAvisoCliente("Projeto não encontrado", "O projeto não existe.");
         return;
       }
 
-      const accessData = accessDoc.data();
-      const targetProject = { id: accessDoc.id, title: accessData.slug || accessDoc.id, clientUid: accessData.clientUid || null, clientEmail: accessData.clientEmail || null };
+      const targetProject = { id: projectDoc.id, ...projectDoc.data() };
       projects = [targetProject];
 
-      if (sessionStorage.getItem(`client_authenticated_${targetProject.id}`) === "true") {
+      const temSenha = Boolean(targetProject.clientPassword || targetProject.client_password);
+      const jaAutenticado = sessionStorage.getItem(`client_authenticated_${targetProject.id}`) === "true";
+
+      if (!temSenha || jaAutenticado) {
+        // Sem senha: o link já é o acesso. Com senha: sessão já validada antes.
+        sessionStorage.setItem(`client_authenticated_${targetProject.id}`, "true");
         openProject(targetProject.id);
       } else {
         promptClientPassword(targetProject);

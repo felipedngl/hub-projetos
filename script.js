@@ -1758,19 +1758,6 @@ function renderDashboard() {
 
   const grid = $("#projectsGrid");
   const emptyState = $("#emptyState");
-  
-  // Escuta atualizações do Firestore para atualizar o card em tempo real
-  if (typeof db !== "undefined" && db) {
-    db.collection("projects").onSnapshot(() => {
-      // Quando o banco mudar (nova msg, novo arquivo), redesenha a tela
-      if (!window._cardUpdateTimeout) {
-        window._cardUpdateTimeout = setTimeout(() => {
-          renderDashboard();
-          window._cardUpdateTimeout = null;
-        }, 500);
-      }
-    });
-  }
 
   if (filtered.length === 0) {
     // Só esvazia se realmente não houver projetos carregados no sistema
@@ -1792,60 +1779,6 @@ function renderDashboard() {
       ? `<strong>${projects.length}</strong> projetos · <strong>${formatArea(totalM2)} m²</strong> totais · <strong>${activeCount}</strong> em andamento`
       : `<strong>${filtered.length}</strong> de <strong>${projects.length}</strong> projetos · <strong>${formatArea(filteredM2)} m²</strong>`;
   }
-
-// Delegação de eventos para os botões do card (mais seguro e não duplica)
-document.addEventListener("click", (e) => {
-  // Botão Editar
-  const btnEdit = e.target.closest(".btn-card-edit");
-  if (btnEdit) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!designerUnlocked || clientMode) return;
-    const projectId = btnEdit.dataset.projectId;
-    const projeto = projects.find(p => String(p.id) === String(projectId));
-    if (!projeto) return;
-
-    const modal = $("#modalOverlay");
-    if (modal) {
-      modal.hidden = false;
-      modal.removeAttribute("hidden");
-      modal.style.display = "flex";
-      modal.classList.remove("hidden", "active", "open", "show");
-      
-      const fieldName = $("#fieldName");
-      const fieldClient = $("#fieldClient");
-      const fieldArea = $("#fieldArea");
-      const fieldType = $("#fieldType");
-      const fieldStatus = $("#fieldStatus");
-      const fieldPacote = $("#fieldPacote");
-      const modalTitle = $("#modalTitle");
-      const form = $("#projectForm");
-      
-      if (fieldName) fieldName.value = projeto.title || "";
-      if (fieldClient) fieldClient.value = projeto.client || "";
-      if (fieldArea) fieldArea.value = projeto.area || "";
-      if (fieldType) fieldType.value = projeto.type || "residencial";
-      if (fieldStatus) fieldStatus.value = projeto.status || "em andamento";
-      if (fieldPacote) fieldPacote.value = projeto.pacote || "trema";
-      if (modalTitle) modalTitle.textContent = "Editar Projeto";
-      if (form) form.dataset.editId = projectId;
-    }
-    return;
-  }
-
-  // Botão Abrir
-  const btnOpen = e.target.closest(".btn-card-open");
-  if (btnOpen) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!designerUnlocked || clientMode) return;
-    const projectId = btnOpen.dataset.projectId;
-    if (projectId) {
-      openProject(projectId, true);
-    }
-    return;
-  }
-});
 
 // Botão "Abrir" (abre o projeto)
 $$(".btn-card-open").forEach((button) => {
@@ -1896,6 +1829,88 @@ $$(".btn-card-open").forEach((button) => {
   setTimeout(() => { 
     window._isRenderingDashboard = false; 
   }, 1000); // 1 segundo de trava
+}
+
+let unsubscribeDashboardProjects = null;
+let dashboardEventsBound = false;
+
+function initDashboardInteractions() {
+  if (!dashboardEventsBound) {
+    dashboardEventsBound = true;
+
+    document.addEventListener("click", (e) => {
+      const btnEdit = e.target.closest(".btn-card-edit");
+      if (btnEdit) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!designerUnlocked || clientMode) return;
+
+        const projectId = btnEdit.dataset.projectId;
+        const projeto = projects.find((p) => String(p.id) === String(projectId));
+        if (!projeto) return;
+
+        const modal = $("#modalOverlay");
+        if (modal) {
+          modal.hidden = false;
+          modal.removeAttribute("hidden");
+          modal.style.display = "flex";
+          modal.classList.remove("hidden", "active", "open", "show");
+
+          const fieldName = $("#fieldName");
+          const fieldClient = $("#fieldClient");
+          const fieldArea = $("#fieldArea");
+          const fieldType = $("#fieldType");
+          const fieldStatus = $("#fieldStatus");
+          const fieldPacote = $("#fieldPacote");
+          const modalTitle = $("#modalTitle");
+          const form = $("#projectForm");
+
+          if (fieldName) fieldName.value = projeto.title || "";
+          if (fieldClient) fieldClient.value = projeto.client || "";
+          if (fieldArea) fieldArea.value = projeto.area || "";
+          if (fieldType) fieldType.value = projeto.type || "residencial";
+          if (fieldStatus) fieldStatus.value = projeto.status || "em andamento";
+          if (fieldPacote) fieldPacote.value = projeto.pacote || "trema";
+          if (modalTitle) modalTitle.textContent = "Editar Projeto";
+          if (form) form.dataset.editId = projectId;
+        }
+        return;
+      }
+
+      const btnOpen = e.target.closest(".btn-card-open");
+      if (btnOpen) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!designerUnlocked || clientMode) return;
+
+        const projectId = btnOpen.dataset.projectId;
+        if (projectId) {
+          openProject(projectId, true);
+        }
+        return;
+      }
+
+      const card = e.target.closest(".project-card, .card");
+      if (card && !e.target.closest("button") && !e.target.closest("a") && !e.target.closest("input")) {
+        const projectId = card.dataset.projectId || card.dataset.id || card.getAttribute("data-id");
+        if (projectId && !clientMode && designerUnlocked) {
+          openProject(projectId, true);
+        }
+      }
+    });
+  }
+
+  if (!unsubscribeDashboardProjects && typeof db !== "undefined" && db) {
+    unsubscribeDashboardProjects = db.collection("projects").onSnapshot(() => {
+      if (currentProjectId != null) return;
+      if (!window._cardUpdateTimeout) {
+        window._cardUpdateTimeout = setTimeout(() => {
+          renderDashboard();
+          window._cardUpdateTimeout = null;
+        }, 500);
+      }
+    });
+  }
 }
 	
 /* ---------------- Render: visão interna ---------------- */
@@ -3785,8 +3800,8 @@ try {
     .set(clientMessage);
 
   if (input) input.value = "";
-
-  renderStageClient(project, stage);
+  sendButton.disabled = false;
+  sendButton.textContent = "Enviar observação";
 
   if (typeof showToast === "function") {
     showToast("Observação enviada.");
@@ -4862,10 +4877,32 @@ function clientContractsHTML(project) {
     </div>`;
 }
 
-function openContractFile(dataUrl) {
+function openContractFile(fileValue) {
   try {
-    const parts = dataUrl.split(",");
-    const mime = parts[0].match(/data:(.*?);base64/)?.[1] || "application/octet-stream";
+    if (!fileValue || typeof fileValue !== "string") {
+      if (typeof showToast === "function") {
+        showToast("Arquivo não encontrado.", true);
+      }
+      return;
+    }
+
+    // Se já for uma URL do Supabase / link externo, abre direto em nova aba
+    if (/^https?:\/\//i.test(fileValue.trim())) {
+      window.open(fileValue.trim(), "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    // Compatibilidade com arquivos antigos salvos em Base64 (data URL)
+    const parts = fileValue.split(",");
+    if (parts.length < 2) {
+      window.open(fileValue, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    const mime =
+      parts[0].match(/data:(.*?);base64/)?.[1] ||
+      "application/octet-stream";
+
     const binary = atob(parts[1]);
     const bytes = new Uint8Array(binary.length);
 
@@ -4881,7 +4918,9 @@ function openContractFile(dataUrl) {
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   } catch (error) {
     console.error("Erro ao visualizar arquivo:", error);
-    if (typeof showToast === "function") showToast("Não foi possível visualizar este arquivo.", true);
+    if (typeof showToast === "function") {
+      showToast("Não foi possível visualizar este arquivo.", true);
+    }
   }
 }
 
@@ -8236,6 +8275,7 @@ function revogarMagicLink() {
 	
 function bindEvents() {
   setupNewProjectModal();
+  initDashboardInteractions();
 
 	const btnBack = $("#btnBack");
 	

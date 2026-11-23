@@ -8100,52 +8100,23 @@ function copyShareLink() {
 
 async function promptClientPassword(project) {
   document.body.classList.add("client-view");
-  
-  // Garante que o body está visível (para o modal aparecer)
   document.body.style.visibility = "visible";
+  document.body.style.opacity = "1";
 
   const modal = $("#passwordModal") || $("#pwdModal");
 
-  if (!modal) {
-    document.body.classList.remove("client-view");
-    openProject(project.id);
-    return;
-  }
-
-  const hint = $("#passwordModalHint");
-  if (hint) {
-    hint.textContent = `Digite a senha de acesso para visualizar o projeto "${project.title}":`;
-  }
-
-  modal.removeAttribute("hidden");
-  modal.style.display = "flex";
-  modal.hidden = false;
-  modal.classList.add("active");
-  
-  // Garante que o body está visível
-  document.body.style.visibility = "visible";
-
-  const btnConfirm = $("#btnConfirmPassword") || $("#btnConfirmPwd");
-  const pwdInput = $("#passwordInput") || $("#pwdInput");
-
-  if (pwdInput) {
-    pwdInput.value = "";
-    pwdInput.focus();
-  }
-
-  const handleAuth = async () => {
-    const entered = pwdInput ? pwdInput.value.trim() : "";
-
+  const validarSenhaCliente = async (entered) => {
     if (!entered) {
-      showToast("Digite a senha para continuar.", true);
-      return;
+      if (typeof showToast === "function") {
+        showToast("Digite a senha para continuar.", true);
+      }
+      return false;
     }
 
     try {
-      // A senha NUNCA é comparada aqui no navegador.
-      // A verificação acontece no servidor (/api/client-auth), que suporta
-      // senhas antigas em texto puro e novas com hash PBKDF2.
-      showToast("Verificando senha...");
+      if (typeof showToast === "function") {
+        showToast("Verificando senha...");
+      }
 
       const resp = await fetch("/api/client-auth", {
         method: "POST",
@@ -8158,43 +8129,170 @@ async function promptClientPassword(project) {
       });
 
       if (resp.status === 401) {
-        showToast("Senha incorreta.", true);
-        return;
+        if (typeof showToast === "function") {
+          showToast("Senha incorreta.", true);
+        }
+        return false;
       }
 
       if (!resp.ok) {
         const data = await resp.json().catch(() => ({}));
-        showToast(data.error || "Não foi possível verificar a senha.", true);
-        return;
+        if (typeof showToast === "function") {
+          showToast(data.error || "Não foi possível verificar a senha.", true);
+        }
+        return false;
       }
 
-const data = await resp.json();
-
-      if (!data.token) {
-        showToast("Não foi possível iniciar a sessão.", true);
-        return;
-      }
-
-      await signInWithCustomToken(data.token);
+      const data = await resp.json();
 
       sessionStorage.setItem(`client_authenticated_${project.id}`, "true");
-      showSoundPermission();
+      if (typeof showSoundPermission === "function") {
+        showSoundPermission();
+      }
 
-      modal.setAttribute("hidden", "");
-      modal.style.display = "none";
       document.body.classList.remove("client-view");
-
       openProject(data.projectId || project.id);
 
-      showToast("Acesso liberado!");
+      if (typeof showToast === "function") {
+        showToast("Acesso liberado!");
+      }
+      return true;
     } catch (error) {
       console.error("[AUTH] Erro no acesso do cliente:", error);
-      showToast("Erro ao verificar a senha. Tente novamente.", true);
+      if (typeof showToast === "function") {
+        showToast("Erro ao verificar a senha. Tente novamente.", true);
+      }
+      return false;
     }
   };
 
-  if (btnConfirm) {
-    btnConfirm.onclick = handleAuth;
+  if (modal) {
+    const hint = $("#passwordModalHint");
+    if (hint) {
+      hint.textContent = `Digite a senha de acesso para visualizar o projeto "${project.title}":`;
+    }
+
+    modal.removeAttribute("hidden");
+    modal.hidden = false;
+    modal.style.display = "flex";
+    modal.style.zIndex = "99999";
+    modal.classList.add("active", "open", "show");
+
+    const btnConfirm = $("#btnConfirmPassword") || $("#btnConfirmPwd");
+    const pwdInput = $("#passwordInput") || $("#pwdInput");
+
+    if (pwdInput) {
+      pwdInput.value = "";
+      pwdInput.focus();
+    }
+
+    if (btnConfirm) {
+      btnConfirm.onclick = async () => {
+        const entered = pwdInput ? pwdInput.value.trim() : "";
+        const ok = await validarSenhaCliente(entered);
+        if (ok) {
+          modal.setAttribute("hidden", "");
+          modal.hidden = true;
+          modal.style.display = "none";
+          modal.classList.remove("active", "open", "show");
+        }
+      };
+    }
+    return;
+  }
+
+  // Fallback caso o modal de senha não exista no index.html
+  const oldFallback = document.getElementById("clientPasswordFallbackModal");
+  if (oldFallback) oldFallback.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "clientPasswordFallbackModal";
+  overlay.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    padding: 20px;
+    font-family: inherit;
+  `;
+
+  overlay.innerHTML = `
+    <div style="
+      background: #1a1d20;
+      color: #f1eae3;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 24px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+    ">
+      <h3 style="margin: 0 0 8px 0; font-size: 1.15rem;">Acesso ao Projeto</h3>
+      <p style="margin: 0 0 16px 0; font-size: 0.9rem; color: #b8b2aa;">
+        Digite a senha do projeto <strong>${typeof escapeHTML === "function" ? escapeHTML(project.title) : project.title}</strong>:
+      </p>
+      <input
+        type="password"
+        id="fallbackClientPwdInput"
+        placeholder="Digite a senha"
+        style="
+          width: 100%;
+          box-sizing: border-box;
+          padding: 10px 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.2);
+          background: #111315;
+          color: #fff;
+          font-size: 0.95rem;
+          margin-bottom: 14px;
+        "
+      />
+      <button
+        type="button"
+        id="fallbackClientPwdBtn"
+        style="
+          width: 100%;
+          padding: 10px 14px;
+          border: 0;
+          border-radius: 8px;
+          background: #E86A44;
+          color: #fff;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 0.95rem;
+        "
+      >
+        Entrar
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const fallbackInput = document.getElementById("fallbackClientPwdInput");
+  const fallbackBtn = document.getElementById("fallbackClientPwdBtn");
+
+  if (fallbackInput) fallbackInput.focus();
+
+  const enviarFallback = async () => {
+    const entered = fallbackInput ? fallbackInput.value.trim() : "";
+    const ok = await validarSenhaCliente(entered);
+    if (ok) {
+      overlay.remove();
+    }
+  };
+
+  if (fallbackBtn) fallbackBtn.onclick = enviarFallback;
+  if (fallbackInput) {
+    fallbackInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        enviarFallback();
+      }
+    });
   }
 }
 
@@ -8608,6 +8706,7 @@ async function init() {
   }
 
   // 5. SE FOR CLIENTE COM LINK DE SENHA (?projeto= ou /Cafe-Aurora)
+  // 5. SE FOR CLIENTE COM LINK DE SENHA (?projeto= ou /Cafe-Aurora)
   const pathParts = window.location.pathname.split("/").filter(Boolean);
   const pathProjectParam = pathParts[0] && pathParts[0] !== "painel" && pathParts[0] !== "financeiro" ? pathParts[0] : null;
   const projectParam = queryProjectParam || pathProjectParam;
@@ -8616,16 +8715,24 @@ async function init() {
     clientMode = true;
     document.body.classList.add("client-view");
 
+    const liberarTelaCliente = () => {
+      document.body.style.visibility = "visible";
+      document.body.style.opacity = "1";
+      const splash = document.getElementById("introSplash");
+      if (splash) {
+        splash.style.opacity = "0";
+        setTimeout(() => { splash.style.display = "none"; }, 300);
+      }
+    };
+
     try {
-      // Resolve o projeto diretamente na coleção "projects"
-      // (a coleção "clientAccess" era usada antes, mas nunca era gravada)
       let projectDoc = null;
 
       try {
         const directSnapshot = await db.collection("projects").doc(String(projectParam)).get();
         if (directSnapshot.exists) projectDoc = directSnapshot;
       } catch (e) {
-        // projectParam não é um ID válido de documento — segue para busca por slug
+        // Não é ID direto; tenta buscar por slug ou título
       }
 
       if (!projectDoc) {
@@ -8637,15 +8744,17 @@ async function init() {
       }
 
       if (!projectDoc) {
+        const decodedParam = decodeURIComponent(String(projectParam));
         const titleSnapshot = await db.collection("projects")
-          .where("title", "==", String(projectParam))
+          .where("title", "==", decodedParam)
           .limit(1)
           .get();
         if (!titleSnapshot.empty) projectDoc = titleSnapshot.docs[0];
       }
 
       if (!projectDoc) {
-        mostrarAvisoCliente("Projeto não encontrado", "O projeto não existe.");
+        liberarTelaCliente();
+        mostrarAvisoCliente("Projeto não encontrado", "Verifique o link enviado ou fale com o escritório.");
         return;
       }
 
@@ -8655,24 +8764,20 @@ async function init() {
       const temSenha = Boolean(targetProject.clientPassword || targetProject.client_password);
       const jaAutenticado = sessionStorage.getItem(`client_authenticated_${targetProject.id}`) === "true";
 
+      liberarTelaCliente();
+
       if (!temSenha || jaAutenticado) {
-        // Sem senha: o link já é o acesso. Com senha: sessão já validada antes.
         sessionStorage.setItem(`client_authenticated_${targetProject.id}`, "true");
         openProject(targetProject.id);
       } else {
         promptClientPassword(targetProject);
       }
 
-      document.body.style.visibility = "visible";
-      const splash = document.getElementById("introSplash");
-      if (splash) {
-        splash.style.opacity = "0";
-        setTimeout(() => { splash.style.display = "none"; }, 300);
-      }
       return;
     } catch (error) {
       console.error("[INIT] Erro ao carregar projeto do cliente:", error);
-      mostrarAvisoCliente("Erro ao carregar", "Tente novamente.");
+      liberarTelaCliente();
+      mostrarAvisoCliente("Erro ao carregar", "Não foi possível abrir o projeto agora. Tente novamente.");
       return;
     }
   }

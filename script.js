@@ -34,6 +34,14 @@ firebaseAuth?.onAuthStateChanged((user) => {
     console.log("[AUTH] Nenhum usuário autenticado.");
   }
 });
+
+async function signInWithCustomToken(token) {
+  if (!firebaseAuth) {
+    throw new Error("Firebase Auth não está disponível.");
+  }
+
+  return firebaseAuth.signInWithCustomToken(token);
+}
 	
 function getFirebaseUser() {
   return firebaseAuth?.currentUser || null;
@@ -8121,7 +8129,14 @@ async function promptClientPassword(project) {
         return;
       }
 
-      const data = await resp.json();
+const data = await resp.json();
+
+      if (!data.token) {
+        showToast("Não foi possível iniciar a sessão.", true);
+        return;
+      }
+
+      await signInWithCustomToken(data.token);
 
       sessionStorage.setItem(`client_authenticated_${project.id}`, "true");
       showSoundPermission();

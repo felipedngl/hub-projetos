@@ -3197,3 +3197,147 @@ body.shared-client .stage-checklist-item input[type="checkbox"] {
   text-decoration-color: var(--text-dim) !important;
 }
 
+/* ==========================================================
+   CORREÇÃO FINAL: MODAL DO CHECKLIST (tamanho e rolagem)
+   ========================================================== */
+
+/* 1. Força o modal a caber na tela e ter rolagem interna */
+.checklist-modal {
+  width: min(720px, 95vw) !important;     /* Largura confortável */
+  max-height: 85vh !important;            /* Não passa de 85% da altura da tela */
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;            /* Esconde o transbordamento */
+}
+
+/* 2. O cabeçalho e o rodapé não encolhem */
+.checklist-modal-header,
+.checklist-modal-footer {
+  flex-shrink: 0 !important;
+}
+
+/* 3. O corpo (a lista) é quem rola */
+.checklist-modal-body {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;            /* Permite rolar a lista */
+  padding: 20px 24px !important;
+}
+
+/* ==========================================================
+   CLIENTE: FORÇAR O VISUAL FICAR IGUAL AO ESCRITÓRIO
+   ========================================================== */
+
+/* Os itens do cliente (.checklist-modal-item) devem se comportar como os labels do escritório */
+.checklist-modal-item {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 16px !important;
+  margin: 0 0 8px 0 !important;           /* Espaçamento entre as linhas */
+  border-radius: 10px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  font-size: 0.86rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* O número da linha (1., 2., ...) */
+.checklist-modal-number {
+  font-weight: 600 !important;
+  color: var(--text-dim) !important;
+  font-size: 0.8rem !important;
+  min-width: 20px !important;
+}
+
+/* A caixinha do check */
+.checklist-modal-check {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  border: 2px solid var(--border-strong) !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: transparent !important; /* Esconde o "✓" quando não marcado */
+  font-size: 0.7rem !important;
+  font-weight: bold !important;
+}
+
+/* Quando o item está marcado, a caixinha fica laranja e mostra o "✓" */
+.checklist-modal-item.done .checklist-modal-check {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}
+
+/* O texto do item */
+.checklist-modal-item-text {
+  flex: 1 !important;
+  line-height: 1.4 !important;
+}
+
+/* Risco no texto de itens concluídos */
+.checklist-modal-item.done {
+  opacity: 0.6 !important;
+}
+.checklist-modal-item.done .checklist-modal-item-text {
+  text-decoration: line-through !important;
+  text-decoration-color: var(--text-dim) !important;
+}
+
+/* ---------- O BOTÃO QUE ABRE O CHECKLIST (cliente) ---------- */
+/* No cliente, o botão tem a mesma classe do escritório, então o CSS já pegou.
+   Mas garantindo que ele fique bonito: */
+.stage-checklist-open-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  width: 100% !important;
+  max-width: 320px !important;
+  padding: 10px 16px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border-strong) !important;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  font-family: inherit !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  margin-top: 8px;
+}
+.stage-checklist-open-btn:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--accent) !important;
+}
+
+/* O texto dentro do botão */
+.stage-checklist-open-btn > span:first-child {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: var(--text) !important;
+}
+
+/* O contador "2/11" */
+.stage-checklist-open-btn strong {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+  padding: 2px 8px !important;
+  border-radius: 999px !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+}
+
+/* A setinha */
+.stage-checklist-chevron {
+  color: var(--text-dim) !important;
+  font-size: 0.7rem !important;
+}
+

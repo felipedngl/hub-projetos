@@ -148,9 +148,9 @@ module.exports = async function handler(req, res) {
     } else {
       const query = String(projectId || clientName || "").trim();
 
-      if (!query || typeof password !== "string") {
+      if (!query) {
         return res.status(400).json({
-          error: "Projeto e senha são obrigatórios."
+          error: "Projeto é obrigatório."
         });
       }
 
@@ -164,7 +164,7 @@ module.exports = async function handler(req, res) {
         // Se o projeto NÃO tem senha cadastrada, libera o acesso
         // (o cliente ainda recebe um custom token para ler/escrever no Firestore).
         if (storedPassword) {
-          if (!passwordsMatch(password, storedPassword)) {
+          if (typeof password !== "string" || !passwordsMatch(password, storedPassword)) {
             projectDocument = null;
           }
         }

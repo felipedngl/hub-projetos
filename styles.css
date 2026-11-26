@@ -2723,3 +2723,35 @@ body.project-open #btnBack {
   border-top: 1px solid var(--border);
 }
 
+/* ==========================================================
+   BLOCO 3B — ESCONDER AÇÕES DO DESIGNER NO MODO CLIENTE
+   ========================================================== */
+
+/* O script.js coloca .client-view no <body> quando o cliente entra.
+   Ou .shared-client. Vamos cobrir os dois. */
+
+body.client-view .project-hero .btn-share,
+body.client-view .project-hero .btn-delete-hero,
+body.shared-client .project-hero .btn-share,
+body.shared-client .project-hero .btn-delete-hero {
+  display: none !important;
+}
+
+/* Também esconde os botões de alterar/ajustar capa no modo cliente */
+body.client-view #btnChangeCover,
+body.client-view #btnAdjustCover,
+body.shared-client #btnChangeCover,
+body.shared-client #btnAdjustCover {
+  display: none !important;
+}
+
+/* Se o cliente ainda puder ver o select de status, esconde e mostra só a tag */
+body.client-view .project-hero #projStatus,
+body.shared-client .project-hero #projStatus {
+  display: none !important;
+}
+body.client-view .project-hero #projStatusTag,
+body.shared-client .project-hero #projStatusTag {
+  display: inline-flex !important;
+}
+

@@ -2963,39 +2963,61 @@ body.shared-client .checklist-modal-body > label:hover {
 }
 
 /* ==========================================================
-   CHECKLIST — FORÇA BRUTA (funciona independente de classe)
+   CHECKLIST — VERSÃO FINAL (com os nomes reais do JS)
    ========================================================== */
 
-/* 1. O BOTÃO QUE ABRE O CHECKLIST 
-   (pega qualquer botão que tenha "Entregas" ou "Checklist" no texto ou id) */
-button[id*="Checklist"],
-button[id*="Entregas"],
-#btnViewChecklist,
-.stage-checklist-client-button {
+/* ---------- 1. O BOTÃO QUE ABRE O CHECKLIST ---------- */
+.stage-checklist-open-btn {
   display: inline-flex !important;
   align-items: center !important;
-  justify-content: center !important;
-  gap: 6px !important;
-  padding: 8px 16px !important;
-  border-radius: 999px !important;
-  border: 1px solid #E86A44 !important; /* var(--accent) */
-  background: rgba(232, 106, 68, 0.08) !important;
-  color: #E86A44 !important;
+  justify-content: space-between !important; /* Espalha o texto, o 2/11 e a setinha */
+  gap: 12px !important;
+  width: 100% !important;
+  max-width: 320px !important; /* Não deixa o botão ficar gigante */
+  padding: 10px 16px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border-strong) !important;
+  background: var(--surface) !important;
+  color: var(--text) !important;
   font-family: inherit !important;
-  font-size: 0.78rem !important;
-  font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
   cursor: pointer !important;
-  transition: all 0.2s !important;
-}
-button[id*="Checklist"]:hover,
-button[id*="Entregas"]:hover,
-#btnViewChecklist:hover,
-.stage-checklist-client-button:hover {
-  background: #E86A44 !important;
-  color: #fff !important;
+  transition: all 0.2s ease !important;
+  margin-top: 8px;
 }
 
-/* 2. O MODAL — Força o container a empilhar tudo */
+.stage-checklist-open-btn:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--accent) !important;
+}
+
+/* O texto "✓ Entregas da etapa" */
+.stage-checklist-open-btn > span:first-child {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: var(--text) !important;
+}
+
+/* O contador "2/11" */
+.stage-checklist-open-btn strong {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+  padding: 2px 8px !important;
+  border-radius: 999px !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+}
+
+/* A setinha "▾" */
+.stage-checklist-chevron {
+  color: var(--text-dim) !important;
+  font-size: 0.7rem !important;
+  transition: transform 0.2s ease !important;
+}
+
+/* ---------- 2. O MODAL DO CHECKLIST (forçando empilhar) ---------- */
 .checklist-modal-body {
   display: flex !important;
   flex-direction: column !important;
@@ -3003,41 +3025,48 @@ button[id*="Entregas"]:hover,
   padding: 20px !important;
 }
 
-/* 3. QUALQUER COISA que esteja dentro do modal e pareça um item 
-   (label, li, div ou qualquer coisa que tenha um checkbox dentro) */
-.checklist-modal-body label,
-.checklist-modal-body li,
-.checklist-modal-body > div,
-.checklist-modal-body .checklist-item {
+/* ---------- 3. CADA ITEM DA LISTA ---------- */
+.stage-checklist-item {
   display: flex !important;
-  flex-direction: row !important; /* Força ficar lado a lado */
-  align-items: center !important; /* Centraliza verticalmente */
+  flex-direction: row !important;
+  align-items: center !important;
   justify-content: flex-start !important;
   gap: 12px !important;
   padding: 12px 16px !important;
   margin: 0 !important;
   border-radius: 10px !important;
-  border: 1px solid #262626 !important; /* var(--border) */
-  background: #121212 !important; /* var(--surface) */
-  color: #f1eae3 !important; /* var(--text) */
+  border: 1px solid var(--border) !important;
+  background: var(--surface) !important;
+  color: var(--text) !important;
   font-size: 0.86rem !important;
   cursor: pointer !important;
-  transition: all 0.2s !important;
+  transition: all 0.2s ease !important;
   width: 100% !important;
   box-sizing: border-box !important;
 }
 
-/* 4. O Checkbox — Força o visual (qualquer checkbox dentro do modal) */
-.checklist-modal-body input[type="checkbox"] {
+.stage-checklist-item:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--border-strong) !important;
+}
+
+/* O texto dentro do item */
+.stage-checklist-item span {
+  flex: 1 !important; /* Ocupa o resto do espaço */
+  line-height: 1.4 !important;
+}
+
+/* ---------- 4. O CHECKBOX CUSTOMIZADO ---------- */
+.stage-checklist-item input[type="checkbox"] {
   appearance: none !important;
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
   width: 20px !important;
   height: 20px !important;
   min-width: 20px !important;
-  margin: 0 !important; /* Remove margem */
+  margin: 0 !important;
   padding: 0 !important;
-  border: 2px solid #404040 !important; /* var(--border-strong) */
+  border: 2px solid var(--border-strong) !important;
   border-radius: 6px !important;
   background: transparent !important;
   position: relative !important;
@@ -3045,13 +3074,13 @@ button[id*="Entregas"]:hover,
   flex-shrink: 0 !important;
 }
 
-.checklist-modal-body input[type="checkbox"]:checked {
-  background: #E86A44 !important; /* var(--accent) */
-  border-color: #E86A44 !important;
+.stage-checklist-item input[type="checkbox"]:checked {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
 }
 
-/* 5. O "v" branco dentro do checkbox marcado */
-.checklist-modal-body input[type="checkbox"]:checked::after {
+/* O "v" branco dentro do checkbox marcado */
+.stage-checklist-item input[type="checkbox"]:checked::after {
   content: "" !important;
   position: absolute !important;
   left: 5px !important;
@@ -3063,30 +3092,30 @@ button[id*="Entregas"]:hover,
   transform: rotate(45deg) !important;
 }
 
-/* 6. O texto dentro do item */
-.checklist-modal-body label span,
-.checklist-modal-body li span,
-.checklist-modal-body > div span {
-  display: inline !important; /* Não quebra linha */
-  flex: 1 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  line-height: 1.4 !important;
+/* Item marcado (riscado e apagado) */
+.stage-checklist-item:has(input:checked) {
+  opacity: 0.6 !important;
+}
+.stage-checklist-item:has(input:checked) span {
+  text-decoration: line-through !important;
+  text-decoration-color: var(--text-dim) !important;
 }
 
-/* 7. O modo cliente (não clicável) */
-body.client-view .checklist-modal-body input[type="checkbox"],
-body.shared-client .checklist-modal-body input[type="checkbox"] {
-  pointer-events: none !important;
-  opacity: 0.8 !important;
-}
-body.client-view .checklist-modal-body label,
-body.shared-client .checklist-modal-body label {
+/* ---------- 5. MODO CLIENTE (não clicável) ---------- */
+body.client-view .stage-checklist-item,
+body.shared-client .stage-checklist-item {
   cursor: default !important;
 }
-body.client-view .checklist-modal-body label:hover,
-body.shared-client .checklist-modal-body label:hover {
-  background: #121212 !important;
-  border-color: #262626 !important;
+
+body.client-view .stage-checklist-item:hover,
+body.shared-client .stage-checklist-item:hover {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+body.client-view .stage-checklist-item input[type="checkbox"],
+body.shared-client .stage-checklist-item input[type="checkbox"] {
+  pointer-events: none !important;
+  opacity: 0.8 !important;
 }
 

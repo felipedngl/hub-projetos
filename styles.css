@@ -3119,3 +3119,81 @@ body.shared-client .stage-checklist-item input[type="checkbox"] {
   opacity: 0.8 !important;
 }
 
+/* ==========================================================
+   CHECKLIST DO CLIENTE (Visual de Leitura)
+   ========================================================== */
+
+/* 1. O container do modal do cliente */
+.checklist-modal-body {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  padding: 20px !important;
+}
+
+/* 2. Cada item da lista do cliente */
+.checklist-modal-item {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  padding: 12px 16px !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  font-size: 0.86rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  transition: background 0.15s ease !important;
+}
+
+/* 3. O número (1., 2., 3...) */
+.checklist-modal-number {
+  font-weight: 600 !important;
+  color: var(--text-dim) !important;
+  font-size: 0.8rem !important;
+  min-width: 20px !important;
+}
+
+/* 4. A caixinha do "check" */
+.checklist-modal-check {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  border: 2px solid var(--border-strong) !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: transparent !important; /* Esconde o "✓" por padrão */
+  font-size: 0.7rem !important;
+  font-weight: bold !important;
+}
+
+/* Quando o item está marcado como "done" */
+.checklist-modal-item.done .checklist-modal-check {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important; /* Mostra o "✓" branco */
+}
+
+/* 5. O texto do item */
+.checklist-modal-item-text {
+  flex: 1 !important;
+  line-height: 1.4 !important;
+}
+
+/* 6. Item concluído: texto riscado e apagado */
+.checklist-modal-item.done {
+  opacity: 0.6 !important;
+}
+
+.checklist-modal-item.done .checklist-modal-item-text {
+  text-decoration: line-through !important;
+  text-decoration-color: var(--text-dim) !important;
+}
+

@@ -8159,6 +8159,20 @@ async function promptClientPassword(project) {
 
       const data = await resp.json();
 
+      // Autentica no Firebase com o custom token retornado pela API.
+      // Sem isso, o Firestore nega leitura/escrita do cliente.
+      if (data.token) {
+        try {
+          await signInWithCustomToken(data.token);
+        } catch (authError) {
+          console.error("[AUTH] Erro ao autenticar com custom token:", authError);
+          if (typeof showToast === "function") {
+            showToast("Não foi possível autenticar. Tente novamente.", true);
+          }
+          return false;
+        }
+      }
+
       sessionStorage.setItem(`client_authenticated_${project.id}`, "true");
       if (typeof showSoundPermission === "function") {
         showSoundPermission();
@@ -8779,7 +8793,34 @@ async function init() {
 
       liberarTelaCliente();
 
-      if (!temSenha || jaAutenticado) {
+      if (jaAutenticado) {
+        // Já autenticou nesta sessão — abre direto.
+        openProject(targetProject.id);
+      } else if (!temSenha) {
+        // Projeto sem senha: pega o custom token na API (sem password)
+        // para poder ler/escrever no Firestore, e abre.
+        try {
+          const resp = await fetch("/api/client-auth", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              projectId: targetProject.id,
+              clientName: targetProject.title
+            })
+          });
+
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data.token) {
+              await signInWithCustomToken(data.token);
+            }
+          } else {
+            console.warn("[AUTH] API sem senha retornou", resp.status);
+          }
+        } catch (authError) {
+          console.error("[AUTH] Erro ao autenticar sem senha:", authError);
+        }
+
         sessionStorage.setItem(`client_authenticated_${targetProject.id}`, "true");
         openProject(targetProject.id);
       } else {

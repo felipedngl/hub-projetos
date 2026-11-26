@@ -2756,97 +2756,110 @@ body.shared-client .project-hero #projStatusTag {
 }
 
 /* ==========================================================
-   BLOCO 4 — CHECKLIST BONITO (cliente e escritório)
+   BLOCO 4 — CHECKLIST BONITO (cliente e escritório) — v2
    ========================================================== */
 
-/* Cada item da lista (label ou li) */
+/* ---------- Cada item (label ou li) como card ---------- */
 .checklist-modal-body li,
 .checklist-modal-body label,
 .checklist-modal-body .checklist-item,
 .checklist-modal-body .stage-checklist-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  font-size: 0.86rem;
-  line-height: 1.4;
-  color: var(--text);
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  padding: 12px 14px !important;
+  margin-bottom: 8px !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--surface) !important;
+  font-size: 0.86rem !important;
+  line-height: 1.45 !important;
+  color: var(--text) !important;
+  cursor: pointer !important;
+  transition: background 0.15s ease, border-color 0.15s ease !important;
 }
 
 .checklist-modal-body li:hover,
 .checklist-modal-body label:hover,
 .checklist-modal-body .checklist-item:hover,
 .checklist-modal-body .stage-checklist-item:hover {
-  background: var(--surface-2);
-  border-color: var(--border-strong);
+  background: var(--surface-2) !important;
+  border-color: var(--border-strong) !important;
 }
 
-/* Checkbox customizado (laranja quando marcado) */
-.checklist-modal-body input[type="checkbox"] {
-  appearance: none;
-  -webkit-appearance: none;
-  flex: none;
-  width: 20px;
-  height: 20px;
-  margin-top: 1px;
-  border: 1.5px solid var(--border-strong);
-  border-radius: 6px;
-  background: var(--bg);
-  cursor: pointer;
-  position: relative;
-  transition: all 0.18s ease;
+/* ---------- Checkbox customizado (laranja) ---------- */
+/* O !important no appearance é o que ganha do "appearance: auto" do navegador */
+
+.checklist-modal-body input[type="checkbox"],
+.checklist-modal-body input[type="checkbox" i] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  flex: none !important;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  margin: 1px 0 0 0 !important;
+  padding: 0 !important;
+  border: 1.5px solid var(--border-strong) !important;
+  border-radius: 6px !important;
+  background-color: var(--bg) !important;
+  background-image: none !important;
+  cursor: pointer !important;
+  position: relative !important;
+  box-shadow: none !important;
+  transition: background-color 0.18s ease, border-color 0.18s ease !important;
 }
 
-.checklist-modal-body input[type="checkbox"]:hover {
-  border-color: var(--accent);
+.checklist-modal-body input[type="checkbox"]:hover,
+.checklist-modal-body input[type="checkbox" i]:hover {
+  border-color: var(--accent) !important;
 }
 
-.checklist-modal-body input[type="checkbox"]:checked {
-  background: var(--accent);
-  border-color: var(--accent);
+.checklist-modal-body input[type="checkbox"]:checked,
+.checklist-modal-body input[type="checkbox" i]:checked {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
 }
 
 /* Desenha o "v" branco dentro do checkbox marcado */
-.checklist-modal-body input[type="checkbox"]:checked::after {
-  content: "";
-  position: absolute;
-  left: 5px;
-  top: 1px;
-  width: 6px;
-  height: 11px;
-  border: solid #fff;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+.checklist-modal-body input[type="checkbox"]:checked::after,
+.checklist-modal-body input[type="checkbox" i]:checked::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 5px !important;
+  top: 1px !important;
+  width: 6px !important;
+  height: 11px !important;
+  border: solid #fff !important;
+  border-width: 0 2px 2px 0 !important;
+  transform: rotate(45deg) !important;
+  background: transparent !important;
 }
 
-/* Item marcado (riscado e apagado) */
+/* ---------- Item marcado: riscado e apagado ---------- */
 .checklist-modal-body li.is-done,
 .checklist-modal-body label.is-done,
 .checklist-modal-body .checklist-item.is-done,
 .checklist-modal-body .stage-checklist-item.is-done {
-  opacity: 0.55;
+  opacity: 0.55 !important;
 }
 
 .checklist-modal-body li.is-done span,
 .checklist-modal-body label.is-done span,
 .checklist-modal-body .checklist-item.is-done span,
 .checklist-modal-body .stage-checklist-item.is-done span {
-  text-decoration: line-through;
-  text-decoration-color: var(--text-dim);
+  text-decoration: line-through !important;
+  text-decoration-color: var(--text-dim) !important;
 }
 
-/* Texto do item */
+/* ---------- Texto do item ocupa o espaço restante ---------- */
 .checklist-modal-body li span,
 .checklist-modal-body label span {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
+  flex: 1 !important;
+  min-width: 0 !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
 }
 
 /* ==========================================================
@@ -2855,23 +2868,23 @@ body.shared-client .project-hero #projStatusTag {
 
 body.client-view .checklist-modal-body input[type="checkbox"],
 body.shared-client .checklist-modal-body input[type="checkbox"] {
-  pointer-events: none;
-  cursor: default;
-  opacity: 0.85;
+  pointer-events: none !important;
+  cursor: default !important;
+  opacity: 0.85 !important;
 }
 
 body.client-view .checklist-modal-body li,
 body.client-view .checklist-modal-body label,
 body.shared-client .checklist-modal-body li,
 body.shared-client .checklist-modal-body label {
-  cursor: default;
+  cursor: default !important;
 }
 
 body.client-view .checklist-modal-body li:hover,
 body.client-view .checklist-modal-body label:hover,
 body.shared-client .checklist-modal-body li:hover,
 body.shared-client .checklist-modal-body label:hover {
-  background: var(--surface);
-  border-color: var(--border);
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
 }
 

@@ -2377,3 +2377,73 @@ body.project-open #btnBack {
   text-decoration-color: var(--text-dim);
 }
 
+/* ==========================================================
+   BLOCO 2A — CHECKLIST (cabeçalho + botão "Ver entregas")
+   ========================================================== */
+
+/* Painel do checklist no modo cliente */
+.panel.stage-checklist-client {
+  margin-top: 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.stage-checklist-client-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.stage-checklist-client-header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stage-checklist-client-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+
+.stage-checklist-client-header strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Botão "Ver entregas ›" — antes herdava o estilo cru do navegador */
+.stage-checklist-client-button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.stage-checklist-client-button:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.stage-checklist-client-button:active {
+  transform: scale(0.98);
+}
+

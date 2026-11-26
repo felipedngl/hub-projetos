@@ -647,6 +647,8 @@ function getStageProgress(stage) {
     );
     p.shareKey = p.shareKey || genKey();
     p.clientPassword = p.clientPassword || "";
+	p.slug = p.slug || slugify(p.title || p.client || p.id || "projeto");
+	  
     p.stages = Object.assign(
       { briefing: emptyStage(), levantamento: emptyStage(), estudo: emptyStage(), anteprojeto: emptyStage(), executivo: emptyStage(), pos: emptyStage() },
       p.stages || {}
@@ -1219,11 +1221,15 @@ for (const proj of listToSave) {
       );
     }
 
-    throw new Error(
+  throw new Error(
       `Base64 detectado no projeto ${proj.id}. Salvamento no Firestore bloqueado.`
     );
   }
 
+  if (!proj.slug && proj.title) {
+	  proj.slug = slugify(proj.title);
+	}
+	
   await db
     .collection("projects")
     .doc(String(proj.id))

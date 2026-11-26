@@ -1669,8 +1669,8 @@ function cardHTML(p, index) {
         />
       </div>
 
-      <span class="card-title-top">${escapeHTML(p.title)}</span>
-      ${pacoteLabel ? `<span class="card-pacote-top pacote-${p.pacote || "trema"}">${pacoteLabel}</span>` : ""}
+	<span class="card-title-top">${escapeHTML(p.title)}</span>
+	${pacoteLabel ? `<span class="card-pacote-top pacote-${p.pacote || "trema"}">${pacoteLabel}</span>` : ""}
 
       <div class="card-body">
         <div class="card-row-1">

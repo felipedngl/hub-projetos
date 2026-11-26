@@ -8081,16 +8081,20 @@ async function saveClientPassword() {
   // Salva nos dois campos (para garantir compatibilidade)
   p.clientPassword = novaSenha;
   p.client_password = novaSenha;
+  p.password = "";
 
+	
   if (typeof saveProjects === "function") {
     await saveProjects([p]);
   }
 
   if (feedback) {
     feedback.style.display = "block";
-    feedback.textContent = `✓ Senha salva: "${novaSenha}"`;
+    feedback.textContent = novaSenha
+      ? `✓ Senha salva: "${novaSenha}"`
+      : `✓ Senha removida — o link abrirá sem pedir senha.`;
   }
-  showToast("Senha do cliente salva!");
+  showToast(novaSenha ? "Senha do cliente salva!" : "Senha removida.");
 }
 
 function copyShareLink() {
@@ -8711,31 +8715,11 @@ async function init() {
       return;
     }
   }
-
-async function findProjectIdBySlug(slug) {
-  if (!slug) return null;
-  try {
-    const snap = await db
-      .collection("projects")
-      .where("slug", "==", String(slug))
-      .limit(1)
-      .get();
-    if (snap.empty) return null;
-    return snap.docs[0].id;
-  } catch (error) {
-    console.error("[SLUG] Erro ao buscar projeto por slug:", error);
-    return null;
-  }
-}
 	
   // 5. SE FOR CLIENTE COM LINK DE SENHA (?projeto= ou /Cafe-Aurora)
   const pathParts = window.location.pathname.split("/").filter(Boolean);
   const pathProjectParam = pathParts[0] && pathParts[0] !== "painel" && pathParts[0] !== "financeiro" ? pathParts[0] : null;
   let projectParam = queryProjectParam || pathProjectParam;
-
-  // Resolve slug -> ID
-  const __slugResolved = await findProjectIdBySlug(projectParam);
-  if (__slugResolved) projectParam = __slugResolved;
 
   if (projectParam) {
     clientMode = true;

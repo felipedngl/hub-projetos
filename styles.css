@@ -2634,3 +2634,92 @@ body.project-open #btnBack {
   }
 }
 
+/* ==========================================================
+   BLOCO 3A — CHECKLIST DO MODAL (um item por linha)
+   ========================================================== */
+
+/* Container da lista dentro do modal */
+.checklist-modal-body ul,
+.checklist-modal-body ol,
+.checklist-modal-body .checklist-items,
+.checklist-modal-body .stage-checklist-list,
+.checklist-modal-body .checklist-list,
+.checklist-modal-body > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Cada item (label ou li) */
+.checklist-modal-body li,
+.checklist-modal-body label,
+.checklist-modal-body .checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.checklist-modal-body li:hover,
+.checklist-modal-body label:hover,
+.checklist-modal-body .checklist-item:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+
+/* Checkbox */
+.checklist-modal-body input[type="checkbox"] {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* Item marcado (riscado e apagado) */
+.checklist-modal-body li.is-done,
+.checklist-modal-body label.is-done,
+.checklist-modal-body .checklist-item.is-done {
+  opacity: 0.6;
+}
+
+.checklist-modal-body li.is-done span,
+.checklist-modal-body label.is-done span,
+.checklist-modal-body .checklist-item.is-done span {
+  text-decoration: line-through;
+  text-decoration-color: var(--text-dim);
+}
+
+/* Texto do item (se estiver dentro de um span) */
+.checklist-modal-body li span,
+.checklist-modal-body label span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* O botão "Adicionar entrega" e "Concluir" (rodapé) já têm CSS,
+   mas garantindo que fiquem alinhados: */
+.checklist-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 14px 24px 18px;
+  border-top: 1px solid var(--border);
+}
+

@@ -161,11 +161,15 @@ module.exports = async function handler(req, res) {
         const storedPassword =
           data.clientPassword || data.client_password || data.password;
 
-        if (!passwordsMatch(password, storedPassword)) {
-          projectDocument = null;
+        // Se o projeto NÃO tem senha cadastrada, libera o acesso
+        // (o cliente ainda recebe um custom token para ler/escrever no Firestore).
+        if (storedPassword) {
+          if (!passwordsMatch(password, storedPassword)) {
+            projectDocument = null;
+          }
         }
+        // Se storedPassword está vazio, não valida senha — acesso liberado.
       }
-    }
 
     if (!projectDocument) {
       return res.status(401).json({

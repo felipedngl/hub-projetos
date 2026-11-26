@@ -499,15 +499,15 @@ async function markClientMessagesAsReadByDesigner(stage) {
   }
 
   function slugify(s) {
-  return (
-    String(s)
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "") || "projeto"
-  );
-}
+	  return (
+	    String(s)
+	      .normalize("NFD")
+	      .replace(/[\u0300-\u036f]/g, "")
+	      .toLowerCase()
+	      .replace(/[^a-z0-9]+/g, "-")
+	      .replace(/^-|-$/g, "") || "projeto"
+	  );
+	}
 
   /* ---------------- Modelo ---------------- */
 const DEFAULT_STAGE_CHECKLISTS = {
@@ -8078,12 +8078,14 @@ async function saveClientPassword() {
 
   const novaSenha = pwdInput.value.trim();
 
-  // Salva nos dois campos (para garantir compatibilidade)
+  // Campo único oficial: clientPassword.
+  // Se vazio, o projeto fica SEM senha (abre direto pro cliente).
   p.clientPassword = novaSenha;
-  p.client_password = novaSenha;
+
+  // Limpa os campos legados para não confundir a API
+  p.client_password = "";
   p.password = "";
 
-	
   if (typeof saveProjects === "function") {
     await saveProjects([p]);
   }
@@ -8096,6 +8098,7 @@ async function saveClientPassword() {
   }
   showToast(novaSenha ? "Senha do cliente salva!" : "Senha removida.");
 }
+	
 
 function copyShareLink() {
   const linkInput = $("#shareLinkInput");

@@ -1674,7 +1674,7 @@ function cardHTML(p, index) {
 
       <div class="card-body">
         <div class="card-row-1">
-          <span class="card-cliente">${escapeHTML(p.client || "Sem cliente")}</span>
+          <span class="card-cliente" data-pacote="${p.pacote === "ponto" ? "Ponto" : p.pacote === "trema" ? "Trema" : p.pacote === "reticencias" ? "Reticências" : ""}">${escapeHTML(p.client || "Sem cliente")}</span>
           <span class="card-metragem">${formatArea(p.area)} m²</span>
         </div>
 

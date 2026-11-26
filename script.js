@@ -499,14 +499,15 @@ async function markClientMessagesAsReadByDesigner(stage) {
   }
 
   function slugify(s) {
-    return (
-      String(s)
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-zA-Z0-9]+/g, "-")
-        .replace(/^-|-$/g, "") || "projeto"
-    );
-  }
+  return (
+    String(s)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "projeto"
+  );
+}
 
   /* ---------------- Modelo ---------------- */
 const DEFAULT_STAGE_CHECKLISTS = {
@@ -8711,11 +8712,30 @@ async function init() {
     }
   }
 
-  // 5. SE FOR CLIENTE COM LINK DE SENHA (?projeto= ou /Cafe-Aurora)
+async function findProjectIdBySlug(slug) {
+  if (!slug) return null;
+  try {
+    const snap = await db
+      .collection("projects")
+      .where("slug", "==", String(slug))
+      .limit(1)
+      .get();
+    if (snap.empty) return null;
+    return snap.docs[0].id;
+  } catch (error) {
+    console.error("[SLUG] Erro ao buscar projeto por slug:", error);
+    return null;
+  }
+}
+	
   // 5. SE FOR CLIENTE COM LINK DE SENHA (?projeto= ou /Cafe-Aurora)
   const pathParts = window.location.pathname.split("/").filter(Boolean);
   const pathProjectParam = pathParts[0] && pathParts[0] !== "painel" && pathParts[0] !== "financeiro" ? pathParts[0] : null;
-  const projectParam = queryProjectParam || pathProjectParam;
+  let projectParam = queryProjectParam || pathProjectParam;
+
+  // Resolve slug -> ID
+  const __slugResolved = await findProjectIdBySlug(projectParam);
+  if (__slugResolved) projectParam = __slugResolved;
 
   if (projectParam) {
     clientMode = true;

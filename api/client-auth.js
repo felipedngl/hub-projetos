@@ -170,6 +170,7 @@ module.exports = async function handler(req, res) {
         }
         // Se storedPassword está vazio, não valida senha — acesso liberado.
       }
+    }
 
     if (!projectDocument) {
       return res.status(401).json({

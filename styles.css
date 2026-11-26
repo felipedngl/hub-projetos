@@ -2140,3 +2140,240 @@ body.project-open #btnBack {
   position: static !important;
   margin: 0 !important;
 }
+
+/* ==========================================================
+   BLOCO 1 — CORREÇÕES PONTUAIS
+   ========================================================== */
+
+/* ---------- 1. MODAL DE SENHA DO DESIGNER (#pwdModal) ---------- */
+/* Esse modal não tinha CSS nenhum — por isso ficava quebrado. */
+
+.pwd-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(10, 10, 10, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.pwd-modal-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 28px 28px 24px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  color: var(--text);
+}
+
+.pwd-modal-card h3 {
+  font-family: "Playfair Display", serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+
+.pwd-modal-card p {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+.pwd-modal-card input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.pwd-modal-card input:focus {
+  border-color: var(--accent);
+}
+
+.pwd-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.pwd-modal-actions .btn-secondary,
+.pwd-modal-actions .btn-primary {
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.pwd-modal-actions .btn-secondary {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text-dim);
+}
+.pwd-modal-actions .btn-secondary:hover {
+  color: var(--text);
+  border-color: var(--text-dim);
+}
+
+.pwd-modal-actions .btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.pwd-modal-actions .btn-primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+/* ---------- 2. BOTÕES "ALTERAR CAPA" / "AJUSTAR CAPA" ---------- */
+/* Já existem no HTML (.btn-change-cover) mas não tinham CSS — ficavam "Windows 98". */
+
+.btn-change-cover {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(15, 21, 25, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.9);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-change-cover:hover {
+  background: rgba(232, 106, 68, 0.9);
+  border-color: rgba(232, 106, 68, 0.9);
+  color: #fff;
+}
+
+/* ---------- 3. BOTÕES "CONCLUÍDO" / "EM ANDAMENTO" DO CARD ---------- */
+/* Se você tiver botões/selects com essas classes, esse CSS deixa o visual moderno. */
+
+.card-status,
+.card-row-2 .card-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Se for o <select id="projStatus"> (dentro do projeto aberto) */
+#projStatus {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 7px 28px 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background-color: var(--surface-2);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+#projStatus:focus {
+  border-color: var(--accent);
+}
+#projStatus option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* ---------- 4. CHECKLIST DAS ETAPAS (quebrar por linha) ---------- */
+/* Se o checklist é gerado dentro de .stage-checklist-client, isso força cada item em uma linha. */
+
+.stage-checklist-client ul,
+.stage-checklist-client-list,
+.checklist-items,
+.checklist-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.stage-checklist-client li,
+.checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--text);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.stage-checklist-client li:hover,
+.checklist-item:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+
+.stage-checklist-client input[type="checkbox"],
+.checklist-item input[type="checkbox"] {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.stage-checklist-client li.is-done,
+.checklist-item.is-done {
+  opacity: 0.65;
+}
+
+.stage-checklist-client li.is-done span,
+.checklist-item.is-done span {
+  text-decoration: line-through;
+  text-decoration-color: var(--text-dim);
+}
+

@@ -2447,3 +2447,190 @@ body.project-open #btnBack {
   transform: scale(0.98);
 }
 
+/* ==========================================================
+   BLOCO 2B — HERO DO PROJETO (capa horizontal + conteúdo)
+   ========================================================== */
+
+.project-hero {
+  position: relative;
+  width: 100%;
+  height: 42vh;
+  min-height: 320px;
+  max-height: 480px;
+  margin-bottom: 28px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface-2);
+  isolation: isolate;
+}
+
+/* Imagem ocupa todo o hero */
+.project-hero-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 50%;
+  z-index: 0;
+}
+
+/* Degradê: escuro em cima (para os botões) e embaixo (para o texto) */
+.project-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 10, 0.65) 0%,
+    rgba(10, 10, 10, 0.05) 22%,
+    transparent 45%,
+    transparent 55%,
+    rgba(10, 10, 10, 0.75) 85%,
+    rgba(10, 10, 10, 0.95) 100%
+  );
+}
+
+/* Botões no canto superior direito */
+.project-hero-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Botão de lixeira (pequeno, discreto) */
+.btn-delete-hero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(15, 21, 25, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-delete-hero:hover {
+  background: rgba(239, 68, 68, 0.9);
+  border-color: rgba(239, 68, 68, 0.9);
+  color: #fff;
+}
+
+/* Conteúdo sobre o degradê inferior */
+.project-hero-content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 24px 28px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #fff;
+}
+
+.project-hero-title {
+  font-family: "Playfair Display", serif;
+  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: #fff;
+  margin: 0;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.project-hero-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.project-hero-meta {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.78);
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+/* Botão "Compartilhar" dentro do hero (vidro escuro) */
+.project-hero .btn-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(15, 21, 25, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.92);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.project-hero .btn-share:hover {
+  background: rgba(232, 106, 68, 0.9);
+  border-color: rgba(232, 106, 68, 0.9);
+  color: #fff;
+}
+
+/* Status tag no hero (sobre o degradê) */
+.project-hero .status-tag {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Select de status no hero (quando designer) */
+.project-hero #projStatus {
+  background-color: rgba(15, 21, 25, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.project-hero #projStatus option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* Em telas pequenas, diminui o hero */
+@media (max-width: 640px) {
+  .project-hero {
+    height: 34vh;
+    min-height: 240px;
+    border-radius: 12px;
+  }
+  .project-hero-content {
+    padding: 18px 18px 20px;
+  }
+  .project-hero-title {
+    font-size: 1.5rem;
+  }
+}
+

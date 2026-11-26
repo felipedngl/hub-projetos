@@ -2756,19 +2756,90 @@ body.shared-client .project-hero #projStatusTag {
 }
 
 /* ==========================================================
-   BLOCO 4 — CHECKLIST BONITO (cliente e escritório) — v2
+   BLOCO 5 — CORREÇÕES FINAIS (checklist, botões, card do painel)
    ========================================================== */
 
-/* ---------- Cada item (label ou li) como card ---------- */
-.checklist-modal-body li,
-.checklist-modal-body label,
-.checklist-modal-body .checklist-item,
-.checklist-modal-body .stage-checklist-item {
+/* ----------------------------------------------------------
+   1. BOTÃO "ENTREGAS DA ETAPA" (modo escritório)
+   O print 2 mostra o botão "√ Entregas da etapa 1/11" no lugar
+   onde antes era "Ver entregas ›". É esse botão nativo que
+   precisa ficar bonito.
+   ---------------------------------------------------------- */
+
+/* Botão que abre o modal (o "Ver entregas ›") */
+.stage-checklist-client-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 8px 16px !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--accent) !important;
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+  font-family: inherit !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+}
+
+.stage-checklist-client-button:hover {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}
+
+/* Botão que aparece no lugar do "Ver entregas" dentro do modal
+   do escritório (o "√ Entregas da etapa 1/11" do print 2).
+   Vamos estilizar QUALQUER botão que tenha esse formato. */
+#checklistModal button:not(.checklist-modal-close):not(.btn-close) {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border-strong) !important;
+  background: var(--surface-2) !important;
+  color: var(--text) !important;
+  font-family: inherit !important;
+  font-size: 0.78rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+}
+
+#checklistModal button:not(.checklist-modal-close):not(.btn-close):hover {
+  background: var(--border) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+/* ----------------------------------------------------------
+   2. CHECKLIST NO MODAL (cliente E escritório) — cards escuros
+   O JS gera <label> com <input type="checkbox"> dentro.
+   O CSS anterior não pegou por causa do "appearance: auto" do
+   navegador. Este usa !important em tudo.
+   ---------------------------------------------------------- */
+
+/* Container da lista: força cada item em uma linha */
+.checklist-modal-body {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+/* Cada item (label que envolve o checkbox + texto) */
+.checklist-modal-body > label,
+.checklist-modal-body > li,
+.checklist-modal-body .checklist-item {
   display: flex !important;
   align-items: flex-start !important;
   gap: 12px !important;
   padding: 12px 14px !important;
-  margin-bottom: 8px !important;
+  margin: 0 !important;
   border-radius: 10px !important;
   border: 1px solid var(--border) !important;
   background: var(--surface) !important;
@@ -2777,19 +2848,27 @@ body.shared-client .project-hero #projStatusTag {
   color: var(--text) !important;
   cursor: pointer !important;
   transition: background 0.15s ease, border-color 0.15s ease !important;
+  list-style: none !important;
 }
 
-.checklist-modal-body li:hover,
-.checklist-modal-body label:hover,
-.checklist-modal-body .checklist-item:hover,
-.checklist-modal-body .stage-checklist-item:hover {
+.checklist-modal-body > label:hover,
+.checklist-modal-body > li:hover,
+.checklist-modal-body .checklist-item:hover {
   background: var(--surface-2) !important;
   border-color: var(--border-strong) !important;
 }
 
-/* ---------- Checkbox customizado (laranja) ---------- */
-/* O !important no appearance é o que ganha do "appearance: auto" do navegador */
+/* O texto dentro do label */
+.checklist-modal-body > label span,
+.checklist-modal-body > li span {
+  flex: 1 !important;
+  min-width: 0 !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+}
 
+/* Checkbox customizado — o !important no appearance é o que
+   ganha do "appearance: auto" do navegador (que estava no print) */
 .checklist-modal-body input[type="checkbox"],
 .checklist-modal-body input[type="checkbox" i] {
   appearance: none !important;
@@ -2822,7 +2901,6 @@ body.shared-client .project-hero #projStatusTag {
   border-color: var(--accent) !important;
 }
 
-/* Desenha o "v" branco dentro do checkbox marcado */
 .checklist-modal-body input[type="checkbox"]:checked::after,
 .checklist-modal-body input[type="checkbox" i]:checked::after {
   content: "" !important;
@@ -2837,35 +2915,17 @@ body.shared-client .project-hero #projStatusTag {
   background: transparent !important;
 }
 
-/* ---------- Item marcado: riscado e apagado ---------- */
-.checklist-modal-body li.is-done,
-.checklist-modal-body label.is-done,
-.checklist-modal-body .checklist-item.is-done,
-.checklist-modal-body .stage-checklist-item.is-done {
+/* Item marcado: risco e apagado */
+.checklist-modal-body > label.is-done,
+.checklist-modal-body > li.is-done,
+.checklist-modal-body > label.is-done span,
+.checklist-modal-body > li.is-done span {
   opacity: 0.55 !important;
-}
-
-.checklist-modal-body li.is-done span,
-.checklist-modal-body label.is-done span,
-.checklist-modal-body .checklist-item.is-done span,
-.checklist-modal-body .stage-checklist-item.is-done span {
   text-decoration: line-through !important;
   text-decoration-color: var(--text-dim) !important;
 }
 
-/* ---------- Texto do item ocupa o espaço restante ---------- */
-.checklist-modal-body li span,
-.checklist-modal-body label span {
-  flex: 1 !important;
-  min-width: 0 !important;
-  overflow-wrap: break-word !important;
-  word-wrap: break-word !important;
-}
-
-/* ==========================================================
-   MODO CLIENTE — checkboxes não clicáveis (só visual)
-   ========================================================== */
-
+/* MODO CLIENTE: checkbox não clicável (só visual) */
 body.client-view .checklist-modal-body input[type="checkbox"],
 body.shared-client .checklist-modal-body input[type="checkbox"] {
   pointer-events: none !important;
@@ -2873,18 +2933,69 @@ body.shared-client .checklist-modal-body input[type="checkbox"] {
   opacity: 0.85 !important;
 }
 
-body.client-view .checklist-modal-body li,
-body.client-view .checklist-modal-body label,
-body.shared-client .checklist-modal-body li,
-body.shared-client .checklist-modal-body label {
+body.client-view .checklist-modal-body > label,
+body.shared-client .checklist-modal-body > label {
   cursor: default !important;
 }
 
-body.client-view .checklist-modal-body li:hover,
-body.client-view .checklist-modal-body label:hover,
-body.shared-client .checklist-modal-body li:hover,
-body.shared-client .checklist-modal-body label:hover {
+body.client-view .checklist-modal-body > label:hover,
+body.shared-client .checklist-modal-body > label:hover {
   background: var(--surface) !important;
   border-color: var(--border) !important;
+}
+
+/* ----------------------------------------------------------
+   3. BOTÃO "COMPARTILHAR" DE VOLTA AO LARANJA (print 2)
+   ---------------------------------------------------------- */
+.project-hero .btn-share {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.project-hero .btn-share:hover {
+  background: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
+}
+
+/* ----------------------------------------------------------
+   4. CARD DO PAINEL: nome do projeto x pacote (print 3)
+   O nome sobrepõe o pacote ("RETICÊNCIAS") no topo do card.
+   Solução: o pacote desce para a linha do cliente (parte de baixo).
+   ---------------------------------------------------------- */
+
+/* Esconde o pacote do topo */
+.card-pacote-top {
+  display: none !important;
+}
+
+/* Coloca o pacote na linha do cliente (embaixo) */
+.card-row-1 {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Cria um "badge" de pacote inline na linha do cliente */
+.card-row-1 .card-cliente::after {
+  content: attr(data-pacote);
+  margin-left: 8px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.9;
+}
+
+/* Ajusta o título para não invadir o pacote (agora escondido) */
+.card-title-top {
+  max-width: calc(100% - 24px) !important;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
